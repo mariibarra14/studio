@@ -2,11 +2,21 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Trash2 } from "lucide-react";
+import { CreditCard, Trash2, PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 const initialPaymentMethods = [
   {
@@ -27,62 +37,62 @@ const initialPaymentMethods = [
   },
 ];
 
+type PaymentMethod = typeof initialPaymentMethods[0];
+
 export function PaymentMethods() {
   const { toast } = useToast();
   const [paymentMethods, setPaymentMethods] = useState(initialPaymentMethods);
-  const [selectedMethod, setSelectedMethod] = useState<typeof initialPaymentMethods[0] | null>(paymentMethods[0]);
 
   const handleRemove = (id: string) => {
     setPaymentMethods(paymentMethods.filter(pm => pm.id !== id));
-    if (selectedMethod?.id === id) {
-      setSelectedMethod(null);
-    }
     toast({
       title: "Payment Method Removed",
       description: `The selected card has been removed.`,
+      variant: "destructive"
     });
   };
 
-  const handleSelect = (method: typeof initialPaymentMethods[0]) => {
-    setSelectedMethod(method);
+  const handleSetPrimary = (id: string) => {
+    setPaymentMethods(paymentMethods.map(pm => ({
+        ...pm,
+        isPrimary: pm.id === id,
+    })))
+    toast({
+        title: "Primary Method Updated",
+        description: "Your primary payment method has been changed."
+    })
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="md:col-span-1 flex flex-col gap-4">
-        {paymentMethods.map((method) => (
-          <button
-            key={method.id}
-            onClick={() => handleSelect(method)}
-            className={`flex items-center gap-4 rounded-lg border p-4 text-left w-full transition-colors ${selectedMethod?.id === method.id ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'}`}
-          >
-            <CreditCard className="h-8 w-8 text-muted-foreground" />
-            <div>
-              <p className="font-medium">{method.type} ending in {method.last4}</p>
-              <p className="text-sm text-muted-foreground">Expires {method.expiry}</p>
-            </div>
-            {method.isPrimary && <span className="ml-auto text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full">Primary</span>}
-          </button>
-        ))}
-         <Button>Add New Method</Button>
-      </div>
-
-      <div className="md:col-span-2">
-        {selectedMethod ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Card Details</CardTitle>
-              <CardDescription>Details for your {selectedMethod.type} ending in {selectedMethod.last4}.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+    <div className="space-y-4">
+      {paymentMethods.map((method) => (
+        <Dialog key={method.id}>
+          <DialogTrigger asChild>
+            <button
+              className='flex items-center gap-4 rounded-lg border p-4 text-left w-full transition-colors hover:bg-muted/50'
+            >
+              <CreditCard className="h-8 w-8 text-muted-foreground" />
+              <div>
+                <p className="font-medium">{method.type} ending in {method.last4}</p>
+                <p className="text-sm text-muted-foreground">Expires {method.expiry}</p>
+              </div>
+              {method.isPrimary && <span className="ml-auto text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full">Primary</span>}
+            </button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Card Details</DialogTitle>
+              <DialogDescription>Details for your {method.type} ending in {method.last4}.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
               <div className="space-y-2">
                   <Label htmlFor="card-number">Card Number</Label>
-                  <Input id="card-number" value={`•••• •••• •••• ${selectedMethod.last4}`} readOnly />
+                  <Input id="card-number" value={`•••• •••• •••• ${method.last4}`} readOnly />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="expiry-date">Expiry Date</Label>
-                    <Input id="expiry-date" value={selectedMethod.expiry} readOnly />
+                    <Input id="expiry-date" value={method.expiry} readOnly />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="cvc">CVC</Label>
@@ -91,26 +101,66 @@ export function PaymentMethods() {
               </div>
                <div className="space-y-2">
                   <Label htmlFor="billing-address">Billing Address</Label>
-                  <Input id="billing-address" value={selectedMethod.billingAddress} readOnly />
+                  <Input id="billing-address" value={method.billingAddress} readOnly />
               </div>
-              <div className="flex justify-between items-center pt-4">
-                 {!selectedMethod.isPrimary && <Button variant="outline">Set as Primary</Button>}
-                 <div className="flex-grow" />
-                 <Button variant="destructive" onClick={() => handleRemove(selectedMethod.id)}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Card
+            </div>
+            <DialogFooter className="sm:justify-between">
+              {!method.isPrimary && (
+                <DialogClose asChild>
+                    <Button variant="outline" onClick={() => handleSetPrimary(method.id)}>Set as Primary</Button>
+                </DialogClose>
+              )}
+               <DialogClose asChild>
+                  <Button variant="destructive" onClick={() => handleRemove(method.id)}>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Card
+                  </Button>
+               </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ))}
+
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add New Method
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed p-8 text-center">
-            <CreditCard className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="font-semibold">Select a payment method</p>
-            <p className="text-sm text-muted-foreground">Or add a new one to get started.</p>
-          </div>
-        )}
-      </div>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add New Payment Method</DialogTitle>
+                    <DialogDescription>Enter your new card details below.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="new-card-number">Card Number</Label>
+                        <Input id="new-card-number" placeholder="•••• •••• •••• ••••" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="new-expiry-date">Expiry Date</Label>
+                            <Input id="new-expiry-date" placeholder="MM/YY" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="new-cvc">CVC</Label>
+                            <Input id="new-cvc" placeholder="•••" />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-billing-address">Billing Address</Label>
+                        <Input id="new-billing-address" placeholder="123 Main St, Anytown, USA" />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">Cancel</Button>
+                    </DialogClose>
+                    <Button type="submit">Add Card</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
