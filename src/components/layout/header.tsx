@@ -12,17 +12,15 @@ import {
 import { Ticket, User, CreditCard, History, LogOut } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function Header() {
-  const userAvatar = PlaceHolderImages.find(p => p.id === "user-avatar-1");
+  const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background">
-      <div className="container flex h-16 items-center justify-between">
-        <Link href="/profile" className="flex items-center gap-2">
-          <Ticket className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold">TicketVerse</span>
-        </Link>
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+      <SidebarTrigger className="sm:hidden" />
+      <div className="flex-1" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -72,7 +70,6 @@ export function Header() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
     </header>
   );
 }

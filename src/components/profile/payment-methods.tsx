@@ -1,17 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { CreditCard, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-const paymentMethods = [
+const initialPaymentMethods = [
   {
     id: '1',
     type: 'Visa',
     last4: '4242',
     expiry: '12/26',
     isPrimary: true,
+    billingAddress: "123 Main St, Anytown, USA",
   },
   {
     id: '2',
@@ -19,68 +23,93 @@ const paymentMethods = [
     last4: '5555',
     expiry: '08/25',
     isPrimary: false,
+    billingAddress: "456 Oak Ave, Otherville, USA",
   },
 ];
 
-const VisaIcon = () => (
-    <svg width="40" height="25" viewBox="0 0 48 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g clipPath="url(#clip0_1_1)">
-            <path d="M47.213 6.697H33.228V23.328H47.213V6.697Z" fill="#1A1F71"/>
-            <path d="M28.08 6.697L23.86 16.92L28.106 23.328H22.12L16.023 11.238L14.004 23.328H8.05L12.597 6.697H18.72L22.94 16.662L24.053 11.082L22.247 6.697H28.08Z" fill="#1A1F71"/>
-            <path d="M3.325 6.697C5.074 8.79 7.994 10.932 12.084 12.27L10.334 23.329H4.379L0 6.697H3.325Z" fill="#1A1F71"/>
-        </g>
-        <defs>
-            <clipPath id="clip0_1_1"><rect width="47.213" height="16.631" fill="white" transform="translate(0 6.697)"/></clipPath>
-        </defs>
-    </svg>
-)
-
-const MastercardIcon = () => (
-    <svg width="40" height="25" viewBox="0 0 40 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12.5" cy="12.5" r="12.5" fill="#EB001B"/>
-        <circle cx="27.5" cy="12.5" r="12.5" fill="#F79E1B" fillOpacity="0.8"/>
-    </svg>
-)
-
 export function PaymentMethods() {
   const { toast } = useToast();
-  
+  const [paymentMethods, setPaymentMethods] = useState(initialPaymentMethods);
+  const [selectedMethod, setSelectedMethod] = useState<typeof initialPaymentMethods[0] | null>(paymentMethods[0]);
+
   const handleRemove = (id: string) => {
+    setPaymentMethods(paymentMethods.filter(pm => pm.id !== id));
+    if (selectedMethod?.id === id) {
+      setSelectedMethod(null);
+    }
     toast({
       title: "Payment Method Removed",
       description: `The selected card has been removed.`,
     });
-    // Here you would typically update state or call an API
+  };
+
+  const handleSelect = (method: typeof initialPaymentMethods[0]) => {
+    setSelectedMethod(method);
   }
 
   return (
-    <div className="space-y-4">
-      {paymentMethods.map((method) => (
-        <div key={method.id} className="flex items-center justify-between rounded-lg border p-4">
-          <div className="flex items-center gap-4">
-            {method.type === 'Visa' ? <VisaIcon /> : <MastercardIcon />}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="md:col-span-1 flex flex-col gap-4">
+        {paymentMethods.map((method) => (
+          <button
+            key={method.id}
+            onClick={() => handleSelect(method)}
+            className={`flex items-center gap-4 rounded-lg border p-4 text-left w-full transition-colors ${selectedMethod?.id === method.id ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'}`}
+          >
+            <CreditCard className="h-8 w-8 text-muted-foreground" />
             <div>
               <p className="font-medium">{method.type} ending in {method.last4}</p>
               <p className="text-sm text-muted-foreground">Expires {method.expiry}</p>
             </div>
-            {method.isPrimary && <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full">Primary</span>}
+            {method.isPrimary && <span className="ml-auto text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full">Primary</span>}
+          </button>
+        ))}
+         <Button>Add New Method</Button>
+      </div>
+
+      <div className="md:col-span-2">
+        {selectedMethod ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Card Details</CardTitle>
+              <CardDescription>Details for your {selectedMethod.type} ending in {selectedMethod.last4}.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                  <Label htmlFor="card-number">Card Number</Label>
+                  <Input id="card-number" value={`•••• •••• •••• ${selectedMethod.last4}`} readOnly />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="expiry-date">Expiry Date</Label>
+                    <Input id="expiry-date" value={selectedMethod.expiry} readOnly />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="cvc">CVC</Label>
+                    <Input id="cvc" value="•••" readOnly />
+                </div>
+              </div>
+               <div className="space-y-2">
+                  <Label htmlFor="billing-address">Billing Address</Label>
+                  <Input id="billing-address" value={selectedMethod.billingAddress} readOnly />
+              </div>
+              <div className="flex justify-between items-center pt-4">
+                 {!selectedMethod.isPrimary && <Button variant="outline">Set as Primary</Button>}
+                 <div className="flex-grow" />
+                 <Button variant="destructive" onClick={() => handleRemove(selectedMethod.id)}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Card
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed p-8 text-center">
+            <CreditCard className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="font-semibold">Select a payment method</p>
+            <p className="text-sm text-muted-foreground">Or add a new one to get started.</p>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More options</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {!method.isPrimary && <DropdownMenuItem>Set as primary</DropdownMenuItem>}
-              <DropdownMenuItem className="text-destructive" onClick={() => handleRemove(method.id)}>Remove</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ))}
-      <div className="flex justify-end pt-4">
-        <Button>Add New Method</Button>
+        )}
       </div>
     </div>
   );

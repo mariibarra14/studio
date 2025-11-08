@@ -3,8 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,11 +19,9 @@ import { useState } from "react";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(1, { message: "Password is required." }),
 });
 
-export function LoginForm() {
-  const router = useRouter();
+export function ForgotPasswordForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,7 +29,6 @@ export function LoginForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
@@ -43,12 +38,12 @@ export function LoginForm() {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     
     toast({
-      title: "Login Successful",
-      description: "Welcome back! Redirecting you now...",
+      title: "Password Reset Link Sent",
+      description: `If an account exists for ${values.email}, you will receive a reset link shortly.`,
     });
 
-    router.push("/profile");
-    // No need to set isLoading to false as we are navigating away
+    setIsLoading(false);
+    form.reset();
   }
 
   return (
@@ -67,26 +62,8 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} autoComplete="current-password" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="flex items-center justify-end">
-          <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
-            Forgot Password?
-          </Link>
-        </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? <Loader2 className="animate-spin" /> : "Sign In"}
+          {isLoading ? <Loader2 className="animate-spin" /> : "Send Reset Link"}
         </Button>
       </form>
     </Form>

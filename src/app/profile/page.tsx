@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { ActivityHistory } from "@/components/profile/activity-history";
 import { ChangePasswordForm } from "@/components/profile/change-password-form";
@@ -7,14 +8,63 @@ import { PaymentMethods } from "@/components/profile/payment-methods";
 import { ProfileDetailsForm } from "@/components/profile/profile-details-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, CreditCard, History } from 'lucide-react';
+import { User, CreditCard, History, Ticket, LineChart, MessageSquare, PlusCircle } from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarInset } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <Header />
-      <main className="flex-1 bg-muted/30 p-4 md:p-8">
-        <div className="mx-auto max-w-6xl">
+    <SidebarProvider>
+    <div className="flex min-h-screen w-full flex-col bg-muted/20">
+       <Sidebar side="left" variant="sidebar" collapsible="icon">
+        <SidebarHeader>
+           <Link href="/profile" className="flex items-center gap-2">
+            <Ticket className="h-6 w-6 text-primary" />
+            <span className="text-lg font-bold">TicketVerse</span>
+          </Link>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarMenu>
+              <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton>
+                      <Ticket className="h-5 w-5" />
+                      <span>Events</span>
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton href="#">
+                        <PlusCircle className="h-4 w-4" />
+                        <span>Add Event</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </Collapsible>
+              <SidebarMenuItem>
+                <SidebarMenuButton href="#">
+                  <LineChart className="h-5 w-5" />
+                  <span>Reports</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton href="#">
+                  <MessageSquare className="h-5 w-5" />
+                  <span>Forums</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+        <Header />
+        <SidebarInset>
+        <main className="flex-1 p-4 md:p-8">
           <h1 className="text-3xl font-bold mb-6">Account Settings</h1>
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
@@ -80,8 +130,10 @@ export default function ProfilePage() {
               </div>
             </TabsContent>
           </Tabs>
-        </div>
-      </main>
+        </main>
+        </SidebarInset>
+      </div>
     </div>
+    </SidebarProvider>
   );
 }
