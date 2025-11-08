@@ -12,7 +12,7 @@ import { Ticket } from 'lucide-react';
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-fuchsia-600 to-accent p-4">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary to-secondary p-4">
       <div className="w-full max-w-md">
         <Link href="/">
           <div className="mb-8 flex justify-center text-white">
