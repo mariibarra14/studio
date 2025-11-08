@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Trash2, PlusCircle } from "lucide-react";
+import { Trash2, PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -39,6 +38,21 @@ const initialPaymentMethods = [
 
 type PaymentMethod = typeof initialPaymentMethods[0];
 
+const CardIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 40" {...props}>
+      <rect width="60" height="38" x="2" y="1" fill="#4A90E2" rx="4" />
+      <path d="M8 8H18L13 15L8 8Z" fill="#F5A623" />
+      <path d="M8 8L13 15L18 8H8Z" stroke="#DAA520" strokeWidth="0.5" />
+      <rect x="8" y="22" width="10" height="6" fill="#BDC3C7" rx="2" />
+      <rect x="20" y="22" width="10" height="6" fill="#BDC3C7" rx="2" />
+      <rect x="32" y="22" width="10" height="6" fill="#BDC3C7" rx="2" />
+      <rect x="44" y="22" width="10" height="6" fill="#BDC3C7" rx="2" />
+      <rect x="8" y="30" width="20" height="2" fill="#BDC3C7" />
+      <circle cx="46" cy="32" r="5" fill="#EB5757" />
+      <circle cx="52" cy="32" r="5" fill="#F2994A" fillOpacity="0.85" />
+    </svg>
+  );
+
 export function PaymentMethods() {
   const { toast } = useToast();
   const [paymentMethods, setPaymentMethods] = useState(initialPaymentMethods);
@@ -71,7 +85,7 @@ export function PaymentMethods() {
             <button
               className='flex items-center gap-4 rounded-lg border p-4 text-left w-full transition-colors hover:bg-muted/50'
             >
-              <CreditCard className="h-8 w-8 text-muted-foreground" />
+              <CardIcon className="h-8 w-12 text-muted-foreground" />
               <div>
                 <p className="font-medium">{method.type} ending in {method.last4}</p>
                 <p className="text-sm text-muted-foreground">Expires {method.expiry}</p>
