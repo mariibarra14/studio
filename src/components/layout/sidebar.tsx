@@ -2,25 +2,18 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/app-context";
 import { cn } from "@/lib/utils";
 import {
   Calendar,
-  PlusSquare,
   BarChart2,
   MessageSquare,
   Ticket,
   Menu,
-  ChevronRight,
   Home,
   Settings,
+  LogOut,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -42,7 +35,7 @@ export function Sidebar() {
               isSidebarOpen ? "justify-between px-4" : "justify-center"
             )}
           >
-            <Link href="/profile" className={cn("flex items-center gap-2 font-semibold", !isSidebarOpen && "hidden")}>
+            <Link href="/home" className={cn("flex items-center gap-2 font-semibold", !isSidebarOpen && "hidden")}>
               <Ticket className="h-6 w-6 text-primary" />
               <span className="">VivoPass</span>
             </Link>
@@ -60,40 +53,28 @@ export function Sidebar() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/profile"
+                  href="/home"
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
                     !isSidebarOpen && "justify-center"
                   )}
                 >
                   <Home className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Dashboard</span>
+                  <span className={cn(!isSidebarOpen && "hidden")}>Home</span>
                 </Link>
               </li>
-               <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="events" className="border-b-0">
-                    <AccordionTrigger
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:no-underline [&[data-state=open]>svg:last-child]:-rotate-90",
-                        !isSidebarOpen && "justify-center"
-                      )}
-                    >
-                      <Calendar className="h-5 w-5" />
-                      <span className={cn("flex-1 text-left", !isSidebarOpen && "hidden")}>Events</span>
-                      <ChevronRight className={cn("h-4 w-4 transition-transform duration-200", !isSidebarOpen && "hidden")} />
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-0 pl-7">
-                       <ul className="space-y-2 pt-2">
-                          <li>
-                            <Link href="#" className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary">
-                              <PlusSquare className="h-5 w-5" />
-                              <span className={cn(!isSidebarOpen && "hidden")}>Add Event</span>
-                            </Link>
-                          </li>
-                        </ul>
-                    </AccordionContent>
-                  </AccordionItem>
-              </Accordion>
+              <li>
+                <Link
+                  href="/events"
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                    !isSidebarOpen && "justify-center"
+                  )}
+                >
+                  <Calendar className="h-5 w-5" />
+                  <span className={cn(!isSidebarOpen && "hidden")}>Events</span>
+                </Link>
+              </li>
                <li>
                 <Link
                   href="#"
@@ -130,6 +111,16 @@ export function Sidebar() {
               >
                 <Settings className="h-5 w-5" />
                 <span className={cn(!isSidebarOpen && "hidden")}>Settings</span>
+              </Link>
+              <Link
+                  href="/login"
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                    !isSidebarOpen && "justify-center"
+                  )}
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span className={cn(!isSidebarOpen && "hidden")}>Log out</span>
               </Link>
           </div>
         </div>

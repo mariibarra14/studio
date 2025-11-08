@@ -28,7 +28,7 @@ export function Header() {
             <span className="sr-only">Toggle Sidebar</span>
         </Button>
         <div className="flex items-center gap-2 md:hidden">
-            <Link href="/profile" className="flex items-center gap-2 font-semibold">
+            <Link href="/home" className="flex items-center gap-2 font-semibold">
                 <Ticket className="h-6 w-6 text-primary" />
                 <span className="">VivoPass</span>
             </Link>
@@ -46,7 +46,7 @@ export function Header() {
                     />
                 )}
                 <AvatarFallback>
-                    {userAvatar ? "" : <User />}
+                    <User />
                 </AvatarFallback>
               </Avatar>
             </Button>
