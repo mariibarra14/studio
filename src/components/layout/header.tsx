@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Ticket, User, CreditCard, History, LogOut } from "lucide-react";
+import { User, CreditCard, History, LogOut } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { SidebarTrigger } from "@/components/ui/sidebar";
