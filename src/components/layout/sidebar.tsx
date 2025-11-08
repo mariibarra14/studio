@@ -8,12 +8,15 @@ import { cn } from "@/lib/utils";
 import {
   Calendar,
   BarChart2,
-  MessageSquare,
   Ticket,
   Menu,
   Home,
   Settings,
   LogOut,
+  CreditCard,
+  ClipboardList,
+  ConciergeBell,
+  LayoutDashboard,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -75,9 +78,45 @@ export function Sidebar() {
                   <span className={cn(!isSidebarOpen && "hidden")}>Events</span>
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/bookings"
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                    !isSidebarOpen && "justify-center"
+                  )}
+                >
+                  <ClipboardList className="h-5 w-5" />
+                  <span className={cn(!isSidebarOpen && "hidden")}>Bookings</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/payments"
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                    !isSidebarOpen && "justify-center"
+                  )}
+                >
+                  <CreditCard className="h-5 w-5" />
+                  <span className={cn(!isSidebarOpen && "hidden")}>Payments</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/complementary-services"
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                    !isSidebarOpen && "justify-center"
+                  )}
+                >
+                  <ConciergeBell className="h-5 w-5" />
+                  <span className={cn(!isSidebarOpen && "hidden")}>Complementary Services</span>
+                </Link>
+              </li>
                <li>
                 <Link
-                  href="#"
+                  href="/reports"
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
                     !isSidebarOpen && "justify-center"
@@ -89,14 +128,14 @@ export function Sidebar() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/control-panel"
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
                     !isSidebarOpen && "justify-center"
                   )}
                 >
-                  <MessageSquare className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Forums</span>
+                  <LayoutDashboard className="h-5 w-5" />
+                  <span className={cn(!isSidebarOpen && "hidden")}>Control Panel</span>
                 </Link>
               </li>
             </ul>
