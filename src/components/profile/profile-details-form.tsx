@@ -19,6 +19,7 @@ import { Loader2, Upload } from "lucide-react";
 import { useState, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { format } from "date-fns";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required." }),
@@ -34,6 +35,10 @@ export function ProfileDetailsForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(userAvatar?.imageUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Static data for display purposes
+  const email = "john.doe@example.com";
+  const dob = new Date("1990-05-15");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,60 +68,72 @@ export function ProfileDetailsForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-8">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <FormField
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <FormLabel>Email Address</FormLabel>
+                        <Input value={email} readOnly disabled />
+                    </div>
+                    <div className="space-y-2">
+                        <FormLabel>Date of Birth</FormLabel>
+                        <Input value={format(dob, "PPP")} readOnly disabled />
+                    </div>
+                </div>
+                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                            <Input placeholder="John" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                            <Input placeholder="Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                </div>
+                <FormField
                 control={form.control}
-                name="firstName"
+                name="phoneNumber"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} />
+                        <Input type="tel" placeholder="(123) 456-7890" {...field} />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
+                    </FormItem>
                 )}
-              />
-              <FormField
+                />
+                <FormField
                 control={form.control}
-                name="lastName"
+                name="address"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormItem>
+                    <FormLabel>Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} />
+                        <Textarea placeholder="123 Main St, Anytown USA" {...field} />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
+                    </FormItem>
                 )}
-              />
+                />
             </div>
-            <FormField
-              control={form.control}
-              name="phoneNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input type="tel" placeholder="(123) 456-7890" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="123 Main St, Anytown USA" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <div className="flex justify-start">
                 <Button type="submit" disabled={isLoading}>
                     {isLoading ? <Loader2 className="animate-spin" /> : "Save Changes"}
