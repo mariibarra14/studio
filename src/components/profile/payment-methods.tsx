@@ -49,8 +49,10 @@ const cardColors = [
     "from-amber-400 to-orange-500",
 ]
 
-const CardComponent = ({ method, colorClass }: { method: PaymentMethod; colorClass: string }) => (
-    <div className={cn("relative h-48 w-full max-w-sm rounded-xl text-white shadow-lg transition-transform hover:scale-105 overflow-hidden", colorClass, "bg-gradient-to-br")}>
+const CardComponent = ({ method }: { method: PaymentMethod }) => (
+    <div className={cn("relative h-48 w-full max-w-sm rounded-xl text-white shadow-lg transition-transform hover:scale-105 overflow-hidden", 
+        method.type === 'Visa' ? "from-purple-500 to-indigo-600" : "from-pink-500 to-rose-500", 
+        "bg-gradient-to-br")}>
       <div className="absolute top-4 right-4 text-2xl font-bold uppercase tracking-wider">{method.type}</div>
       <div className="absolute top-4 left-4">
         <Wifi className="h-6 w-6 transform -rotate-90" />
@@ -99,13 +101,13 @@ export function PaymentMethods() {
   return (
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {paymentMethods.map((method, index) => (
+            {paymentMethods.map((method) => (
                 <Dialog key={method.id}>
                 <DialogTrigger asChild>
-                    <button className="relative rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                        <CardComponent method={method} colorClass={cardColors[index % cardColors.length]} />
+                    <button className="relative w-full max-w-sm rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 justify-self-center">
+                        <CardComponent method={method} />
                         {method.isPrimary && (
-                          <div className="absolute top-0 right-0 h-16 w-16">
+                          <div className="absolute top-0 right-0 h-16 w-16 overflow-hidden">
                             <div className="absolute transform rotate-45 bg-primary text-center text-white font-semibold py-1 right-[-34px] top-[32px] w-[170px]">
                               Primary
                             </div>
