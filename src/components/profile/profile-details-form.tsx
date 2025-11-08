@@ -73,28 +73,24 @@ export function ProfileDetailsForm() {
                 <AvatarFallback className="text-2xl">JD</AvatarFallback>
               </Avatar>
               <div className="flex flex-col gap-2">
-                <FormControl>
-                  <>
-                    <input
-                      type="file"
-                      className="hidden"
-                      ref={fileInputRef}
-                      accept="image/*"
-                      {...photoRef}
-                      onChange={(event) => {
-                        const file = event.target.files?.[0];
-                        if (file) {
-                          setPhotoPreview(URL.createObjectURL(file));
-                        }
-                        field.onChange(event);
-                      }}
-                    />
-                    <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Change Photo
-                    </Button>
-                  </>
-                </FormControl>
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  {...photoRef}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) {
+                      setPhotoPreview(URL.createObjectURL(file));
+                    }
+                    field.onChange(event);
+                  }}
+                />
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Change Photo
+                </Button>
                 <p className="text-xs text-muted-foreground">JPG, GIF or PNG. 1MB max.</p>
                 <FormMessage />
               </div>

@@ -88,28 +88,24 @@ export function SignupForm() {
                     {form.getValues("lastName")?.[0] || ""}
                   </AvatarFallback>
                 </Avatar>
-                <FormControl>
-                  <>
-                    <input
-                      type="file"
-                      className="hidden"
-                      ref={fileInputRef}
-                      accept="image/*"
-                      {...photoRef}
-                      onChange={(event) => {
-                        const file = event.target.files?.[0];
-                        if (file) {
-                          setPhotoPreview(URL.createObjectURL(file));
-                        }
-                        field.onChange(event);
-                      }}
-                    />
-                    <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Upload Photo
-                    </Button>
-                  </>
-                </FormControl>
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  {...photoRef}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) {
+                      setPhotoPreview(URL.createObjectURL(file));
+                    }
+                    field.onChange(event);
+                  }}
+                />
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Photo
+                </Button>
                 <FormMessage />
               </FormItem>
             )}
