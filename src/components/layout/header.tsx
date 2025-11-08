@@ -1,3 +1,6 @@
+
+"use client";
+
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,15 +12,27 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, CreditCard, History, LogOut } from "lucide-react";
+import { User, CreditCard, History, LogOut, Ticket, Menu } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useApp } from "@/context/app-context";
 
 export function Header() {
   const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
+  const { toggleSidebar } = useApp();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
+        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
+            <Menu className="h-6 w-6" />
+            <span className="sr-only">Toggle Sidebar</span>
+        </Button>
+        <div className="flex items-center gap-2 md:hidden">
+            <Link href="/profile" className="flex items-center gap-2 font-semibold">
+                <Ticket className="h-6 w-6 text-primary" />
+                <span className="">TicketVerse</span>
+            </Link>
+        </div>
       <div className="flex-1" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

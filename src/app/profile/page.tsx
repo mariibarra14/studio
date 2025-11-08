@@ -1,6 +1,5 @@
 "use client";
 
-import { Header } from "@/components/layout/header";
 import { ActivityHistory } from "@/components/profile/activity-history";
 import { ChangePasswordForm } from "@/components/profile/change-password-form";
 import { PaymentMethods } from "@/components/profile/payment-methods";
@@ -8,15 +7,15 @@ import { ProfileDetailsForm } from "@/components/profile/profile-details-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, CreditCard, History } from 'lucide-react';
+import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 
 export default function ProfilePage() {
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/20">
-      <Header />
+    <AuthenticatedLayout>
       <main className="flex-1 p-4 md:p-8">
         <h1 className="text-3xl font-bold mb-6">Account Settings</h1>
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 md:w-[400px]">
             <TabsTrigger value="profile">
               <User className="mr-2 h-4 w-4" />
               Profile
@@ -80,6 +79,6 @@ export default function ProfilePage() {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
+    </AuthenticatedLayout>
   );
 }
