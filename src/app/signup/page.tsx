@@ -12,14 +12,14 @@ import { Ticket } from 'lucide-react';
 
 export default function SignupPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 py-8">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-fuchsia-600 to-accent p-4 py-8">
       <div className="w-full max-w-2xl">
-        <Link href="/login">
-            <div className="mb-8 flex justify-center text-primary">
+        <Link href="/">
+            <div className="mb-8 flex justify-center text-white">
                 <Ticket className="h-10 w-10" />
             </div>
         </Link>
-        <Card className="shadow-lg">
+        <Card className="shadow-2xl">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold tracking-tight">Create an Account</CardTitle>
             <CardDescription>Join TicketVerse and start your journey.</CardDescription>
