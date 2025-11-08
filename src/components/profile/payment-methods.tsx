@@ -104,15 +104,11 @@ export function PaymentMethods() {
             {paymentMethods.map((method) => (
                 <Dialog key={method.id}>
                 <DialogTrigger asChild>
-                    <button className="relative w-full max-w-sm rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 justify-self-center">
+                    <button className={cn(
+                        "relative w-full max-w-sm rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 justify-self-center",
+                        method.isPrimary && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                        )}>
                         <CardComponent method={method} />
-                        {method.isPrimary && (
-                          <div className="absolute top-0 right-0 h-16 w-16 overflow-hidden">
-                            <div className="absolute transform rotate-45 bg-primary text-center text-white font-semibold py-1 right-[-34px] top-[32px] w-[170px]">
-                              Primary
-                            </div>
-                          </div>
-                        )}
                     </button>
                 </DialogTrigger>
                 <DialogContent>
