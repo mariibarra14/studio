@@ -12,14 +12,12 @@ import {
 import { User, CreditCard, History, LogOut } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function Header() {
   const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-      <SidebarTrigger className="sm:hidden" />
       <div className="flex-1" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
