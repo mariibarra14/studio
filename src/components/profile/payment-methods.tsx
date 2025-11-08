@@ -50,7 +50,7 @@ const cardColors = [
 ]
 
 const CardComponent = ({ method, colorClass }: { method: PaymentMethod; colorClass: string }) => (
-    <div className={cn("relative h-48 w-full max-w-sm rounded-xl text-white shadow-lg transition-transform hover:scale-105", colorClass, "bg-gradient-to-br")}>
+    <div className={cn("relative h-48 w-full max-w-sm rounded-xl text-white shadow-lg transition-transform hover:scale-105 overflow-hidden", colorClass, "bg-gradient-to-br")}>
       <div className="absolute top-4 right-4 text-2xl font-bold uppercase tracking-wider">{method.type}</div>
       <div className="absolute top-4 left-4">
         <Wifi className="h-6 w-6 transform -rotate-90" />
@@ -102,9 +102,15 @@ export function PaymentMethods() {
             {paymentMethods.map((method, index) => (
                 <Dialog key={method.id}>
                 <DialogTrigger asChild>
-                    <button className={cn("relative rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2", method.isPrimary && "ring-2 ring-primary ring-offset-background ring-offset-2")}>
+                    <button className="relative rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                         <CardComponent method={method} colorClass={cardColors[index % cardColors.length]} />
-                        {method.isPrimary && <span className="absolute top-[-0.75rem] right-[-0.75rem] text-xs font-semibold text-white bg-primary px-2 py-1 rounded-full shadow-lg">Primary</span>}
+                        {method.isPrimary && (
+                          <div className="absolute top-0 right-0 h-16 w-16">
+                            <div className="absolute transform rotate-45 bg-primary text-center text-white font-semibold py-1 right-[-34px] top-[32px] w-[170px]">
+                              Primary
+                            </div>
+                          </div>
+                        )}
                     </button>
                 </DialogTrigger>
                 <DialogContent>
