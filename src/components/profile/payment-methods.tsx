@@ -50,7 +50,7 @@ const cardColors = [
 ]
 
 const CardComponent = ({ method }: { method: PaymentMethod }) => (
-    <div className={cn("relative h-48 w-full max-w-sm rounded-xl text-white shadow-lg transition-transform hover:scale-105 overflow-hidden", 
+    <div className={cn("relative h-48 w-full rounded-xl text-white shadow-lg transition-transform hover:scale-105 overflow-hidden", 
         method.type === 'Visa' ? "from-purple-500 to-indigo-600" : "from-pink-500 to-rose-500", 
         "bg-gradient-to-br")}>
       <div className="absolute top-4 right-4 text-2xl font-bold uppercase tracking-wider">{method.type}</div>
@@ -109,6 +109,11 @@ export function PaymentMethods() {
                         method.isPrimary && "ring-2 ring-primary ring-offset-2 ring-offset-background"
                         )}>
                         <CardComponent method={method} />
+                        {method.isPrimary && (
+                            <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full">
+                                Primary
+                            </div>
+                        )}
                     </button>
                 </DialogTrigger>
                 <DialogContent>
