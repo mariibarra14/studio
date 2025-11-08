@@ -30,7 +30,7 @@ export function Header() {
         <div className="flex items-center gap-2 md:hidden">
             <Link href="/profile" className="flex items-center gap-2 font-semibold">
                 <Ticket className="h-6 w-6 text-primary" />
-                <span className="">TicketVerse</span>
+                <span className="">VivoPass</span>
             </Link>
         </div>
       <div className="flex-1" />
@@ -62,9 +62,11 @@ export function Header() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+            <DropdownMenuItem asChild>
+              <Link href="/profile">
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <CreditCard className="mr-2 h-4 w-4" />

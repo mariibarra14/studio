@@ -44,7 +44,7 @@ export function Sidebar() {
           >
             <Link href="/profile" className={cn("flex items-center gap-2 font-semibold", !isSidebarOpen && "hidden")}>
               <Ticket className="h-6 w-6 text-primary" />
-              <span className="">TicketVerse</span>
+              <span className="">VivoPass</span>
             </Link>
             <Button
               variant="ghost"
