@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { LoginForm } from '@/components/auth/login-form';
 import {
   Card,
@@ -9,10 +10,22 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Ticket } from 'lucide-react';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function LoginPage() {
+  const concertBg = PlaceHolderImages.find(p => p.id === 'concert-background-1');
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary to-secondary p-4">
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-4">
+       {concertBg && (
+        <Image
+          src={concertBg.imageUrl}
+          alt={concertBg.description}
+          data-ai-hint={concertBg.imageHint}
+          fill
+          className="object-cover -z-10 brightness-50"
+        />
+      )}
       <div className="w-full max-w-md">
         <Link href="/">
           <div className="mb-8 flex justify-center text-white">
