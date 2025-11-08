@@ -39,16 +39,15 @@ export function Header() {
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar className="h-10 w-10">
                 {userAvatar && (
-                    <Image 
+                    <AvatarImage 
                         src={userAvatar.imageUrl} 
                         alt={userAvatar.description}
                         data-ai-hint={userAvatar.imageHint}
-                        width={40}
-                        height={40}
-                        className="rounded-full"
                     />
                 )}
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback>
+                    {userAvatar ? "" : <User />}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
