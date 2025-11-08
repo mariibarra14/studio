@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -101,9 +102,9 @@ export function PaymentMethods() {
             {paymentMethods.map((method, index) => (
                 <Dialog key={method.id}>
                 <DialogTrigger asChild>
-                    <button className="relative">
+                    <button className={cn("relative rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2", method.isPrimary && "ring-2 ring-primary ring-offset-background ring-offset-2")}>
                         <CardComponent method={method} colorClass={cardColors[index % cardColors.length]} />
-                        {method.isPrimary && <span className="absolute top-2 right-2 text-xs font-semibold text-white bg-black/30 px-2 py-1 rounded-full">Primary</span>}
+                        {method.isPrimary && <span className="absolute top-[-0.75rem] right-[-0.75rem] text-xs font-semibold text-white bg-primary px-2 py-1 rounded-full shadow-lg">Primary</span>}
                     </button>
                 </DialogTrigger>
                 <DialogContent>
