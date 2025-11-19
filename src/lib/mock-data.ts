@@ -1,3 +1,4 @@
+
 import { PlaceHolderImages, ImagePlaceholder } from './placeholder-images';
 
 export type TicketTier = {
@@ -121,5 +122,45 @@ export const mockEvents: MockEvent[] = [
             { id: 't8-1', name: 'Platea', price: 80, available: 100 },
             { id: 't8-2', name: 'Balcón', price: 50, available: 300 },
         ],
+    },
+];
+
+export type MockBooking = {
+    id: string;
+    event: MockEvent;
+    tier: TicketTier;
+    quantity: number;
+    totalPrice: number;
+    seat: string;
+    status: 'Confirmed' | 'Pending Payment' | 'Cancelled';
+};
+
+export const mockBookings: MockBooking[] = [
+    {
+        id: 'b1',
+        event: mockEvents[1],
+        tier: mockEvents[1].tiers[0],
+        quantity: 2,
+        totalPrice: 360,
+        seat: 'Platea, Fila 5, Asientos 12-13',
+        status: 'Confirmed',
+    },
+    {
+        id: 'b2',
+        event: mockEvents[3],
+        tier: mockEvents[3].tiers[1],
+        quantity: 4,
+        totalPrice: 600,
+        seat: 'Sección 204, Fila 8',
+        status: 'Pending Payment',
+    },
+    {
+        id: 'b3',
+        event: mockEvents[6],
+        tier: mockEvents[6].tiers[0],
+        quantity: 1,
+        totalPrice: 200,
+        seat: 'Acceso VIP',
+        status: 'Cancelled',
     },
 ];
