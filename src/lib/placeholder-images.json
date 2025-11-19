@@ -11,6 +11,66 @@
       "description": "A vibrant concert scene with a large crowd and stage lights.",
       "imageUrl": "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?q=80&w=1974&auto=format&fit=crop",
       "imageHint": "concert crowd"
+    },
+    {
+      "id": "event-pop-concert-1",
+      "description": "A female pop singer performing on stage with vibrant lighting.",
+      "imageUrl": "https://images.unsplash.com/photo-1741424151077-d1a4da0d20a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwb3AlMjBjb25jZXJ0fGVufDB8fHx8MTc2MzU1ODA4NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pop concert"
+    },
+    {
+      "id": "event-rock-band-1",
+      "description": "A rock band playing passionately on a dark stage.",
+      "imageUrl": "https://images.unsplash.com/photo-1499364615650-ec38552f4f34?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyb2NrJTIwYmFuZHxlbnwwfHx8fDE3NjM1NTgwODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "rock band"
+    },
+    {
+      "id": "event-classical-music-1",
+      "description": "An orchestra performing in a grand concert hall.",
+      "imageUrl": "https://images.unsplash.com/photo-1762008510357-90b8c10d53ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjbGFzc2ljYWwlMjBvcmNoZXN0cmF8ZW58MHx8fHwxNzYzNTU4MDg1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "classical orchestra"
+    },
+    {
+      "id": "event-music-festival-1",
+      "description": "A large crowd at an outdoor music festival during the day.",
+      "imageUrl": "https://images.unsplash.com/photo-1522601157550-4282ae97472d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtdXNpYyUyMGZlc3RpdmFsfGVufDB8fHx8MTc2MzQ2MTMxM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "music festival"
+    },
+    {
+      "id": "event-theater-play-1",
+      "description": "Actors performing a dramatic scene on a theater stage.",
+      "imageUrl": "https://images.unsplash.com/photo-1503095396549-807759245b35?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0aGVhdGVyJTIwcGxheXxlbnwwfHx8fDE3NjM1NTgwODV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "theater play"
+    },
+    {
+      "id": "event-standup-comedy-1",
+      "description": "A comedian telling jokes to an audience in a comedy club.",
+      "imageUrl": "https://images.unsplash.com/photo-1580188928585-0ef5c1a5c4dd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdGFuZHVwJTIwY29tZWR5fGVufDB8fHx8MTc2MzU0NjQzOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "standup comedy"
+    },
+    {
+      "id": "event-dj-set-1",
+      "description": "A DJ performing a set at a nightclub with laser lights.",
+      "imageUrl": "https://images.unsplash.com/photo-1647796310365-8741019c7ca9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8REolMjBuaWdodGNsdWJ8ZW58MHx8fHwxNzYzNTU4MDg2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "DJ nightclub"
+    },
+    {
+      "id": "event-art-exhibition-1",
+      "description": "People looking at paintings in a modern art gallery.",
+      "imageUrl": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhcnQlMjBnYWxsZXJ5fGVufDB8fHx8MTc2MzUyNTgyMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "art gallery"
+    },
+    {
+      "id": "event-food-festival-1",
+      "description": "Various food stalls at an outdoor food festival.",
+      "imageUrl": "https://images.unsplash.com/photo-1560479284-b69bb03b5e39?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Zm9vZCUyMGZlc3RpdmFsfGVufDB8fHx8MTc2MzUxMTcyMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "food festival"
+    },
+    {
+      "id": "event-tech-conference-1",
+      "description": "A speaker on stage at a technology conference.",
+      "imageUrl": "https://images.unsplash.com/photo-1504384764586-bb4cdc1707b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx0ZWNoJTIwY29uZmVyZW5jZXxlbnwwfHx8fDE3NjM1NTgwODV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tech conference"
     }
   ]
 }

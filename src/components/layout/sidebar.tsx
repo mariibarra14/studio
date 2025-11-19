@@ -63,7 +63,7 @@ export function Sidebar() {
                   )}
                 >
                   <Home className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Home</span>
+                  <span className={cn(!isSidebarOpen && "hidden")}>Inicio</span>
                 </Link>
               </li>
               <li>
@@ -75,7 +75,7 @@ export function Sidebar() {
                   )}
                 >
                   <Calendar className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Events</span>
+                  <span className={cn(!isSidebarOpen && "hidden")}>Eventos</span>
                 </Link>
               </li>
               <li>
@@ -87,7 +87,7 @@ export function Sidebar() {
                   )}
                 >
                   <ClipboardList className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Bookings</span>
+                  <span className={cn(!isSidebarOpen && "hidden")}>Reservas</span>
                 </Link>
               </li>
               <li>
@@ -99,7 +99,7 @@ export function Sidebar() {
                   )}
                 >
                   <CreditCard className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Payments</span>
+                  <span className={cn(!isSidebarOpen && "hidden")}>Pagos</span>
                 </Link>
               </li>
               <li>
@@ -111,7 +111,7 @@ export function Sidebar() {
                   )}
                 >
                   <ConciergeBell className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Complementary Services</span>
+                  <span className={cn(!isSidebarOpen && "hidden")}>Servicios Comp.</span>
                 </Link>
               </li>
                <li>
@@ -123,7 +123,7 @@ export function Sidebar() {
                   )}
                 >
                   <BarChart2 className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Reports</span>
+                  <span className={cn(!isSidebarOpen && "hidden")}>Reportes</span>
                 </Link>
               </li>
               <li>
@@ -135,7 +135,7 @@ export function Sidebar() {
                   )}
                 >
                   <LayoutDashboard className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Control Panel</span>
+                  <span className={cn(!isSidebarOpen && "hidden")}>Panel de Control</span>
                 </Link>
               </li>
             </ul>
@@ -149,7 +149,7 @@ export function Sidebar() {
                 )}
               >
                 <Settings className="h-5 w-5" />
-                <span className={cn(!isSidebarOpen && "hidden")}>Settings</span>
+                <span className={cn(!isSidebarOpen && "hidden")}>Ajustes</span>
               </Link>
               <Link
                   href="/login"
@@ -159,7 +159,7 @@ export function Sidebar() {
                   )}
                 >
                   <LogOut className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Log out</span>
+                  <span className={cn(!isSidebarOpen && "hidden")}>Cerrar Sesión</span>
               </Link>
           </div>
         </div>
@@ -168,7 +168,7 @@ export function Sidebar() {
         <div
           onClick={toggleSidebar}
           className="fixed inset-0 z-30 bg-black/50 md:hidden"
-        ></div>
+        />
       )}
     </>
   );

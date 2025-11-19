@@ -22,10 +22,10 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { format } from "date-fns";
 
 const formSchema = z.object({
-  firstName: z.string().min(1, { message: "First name is required." }),
-  lastName: z.string().min(1, { message: "Last name is required." }),
-  phoneNumber: z.string().min(10, { message: "Please enter a valid phone number." }),
-  address: z.string().min(1, { message: "Address is required." }),
+  firstName: z.string().min(1, { message: "El nombre es obligatorio." }),
+  lastName: z.string().min(1, { message: "El apellido es obligatorio." }),
+  phoneNumber: z.string().min(10, { message: "Por favor, introduzca un número de teléfono válido." }),
+  address: z.string().min(1, { message: "La dirección es obligatoria." }),
   photo: z.any().optional(),
 });
 
@@ -57,8 +57,8 @@ export function ProfileDetailsForm() {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     
     toast({
-      title: "Profile Updated",
-      description: "Your personal information has been saved.",
+      title: "Perfil Actualizado",
+      description: "Su información personal ha sido guardada.",
     });
 
     setIsLoading(false);
@@ -71,11 +71,11 @@ export function ProfileDetailsForm() {
             <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <FormLabel>Email Address</FormLabel>
+                        <FormLabel>Dirección de Correo Electrónico</FormLabel>
                         <Input value={email} readOnly disabled />
                     </div>
                     <div className="space-y-2">
-                        <FormLabel>Date of Birth</FormLabel>
+                        <FormLabel>Fecha de Nacimiento</FormLabel>
                         <Input value={format(dob, "PPP")} readOnly disabled />
                     </div>
                 </div>
@@ -85,7 +85,7 @@ export function ProfileDetailsForm() {
                         name="firstName"
                         render={({ field }) => (
                         <FormItem>
-                            <FormLabel>First Name</FormLabel>
+                            <FormLabel>Nombre</FormLabel>
                             <FormControl>
                             <Input placeholder="John" {...field} />
                             </FormControl>
@@ -98,7 +98,7 @@ export function ProfileDetailsForm() {
                         name="lastName"
                         render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Last Name</FormLabel>
+                            <FormLabel>Apellido</FormLabel>
                             <FormControl>
                             <Input placeholder="Doe" {...field} />
                             </FormControl>
@@ -112,7 +112,7 @@ export function ProfileDetailsForm() {
                 name="phoneNumber"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>Número de Teléfono</FormLabel>
                     <FormControl>
                         <Input type="tel" placeholder="(123) 456-7890" {...field} />
                     </FormControl>
@@ -125,7 +125,7 @@ export function ProfileDetailsForm() {
                 name="address"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel>Dirección</FormLabel>
                     <FormControl>
                         <Textarea placeholder="123 Main St, Anytown USA" {...field} />
                     </FormControl>
@@ -136,7 +136,7 @@ export function ProfileDetailsForm() {
             </div>
             <div className="flex justify-start">
                 <Button type="submit" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="animate-spin" /> : "Save Changes"}
+                    {isLoading ? <Loader2 className="animate-spin" /> : "Guardar Cambios"}
                 </Button>
             </div>
         </div>
@@ -146,9 +146,9 @@ export function ProfileDetailsForm() {
                 name="photo"
                 render={({ field }) => (
                     <FormItem className="flex flex-col items-center text-center gap-4 p-4 border rounded-lg bg-background">
-                        <FormLabel className="text-base font-semibold">Profile Photo</FormLabel>
+                        <FormLabel className="text-base font-semibold">Foto de Perfil</FormLabel>
                         <Avatar className="h-32 w-32">
-                            <AvatarImage src={photoPreview || undefined} alt="Profile photo preview" />
+                            <AvatarImage src={photoPreview || undefined} alt="Vista previa de la foto de perfil" />
                             <AvatarFallback className="text-4xl">JD</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col gap-2 items-center">
@@ -168,9 +168,9 @@ export function ProfileDetailsForm() {
                             />
                             <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                                 <Upload className="mr-2 h-4 w-4" />
-                                Change Photo
+                                Cambiar Foto
                             </Button>
-                            <p className="text-xs text-muted-foreground">JPG, GIF or PNG. 1MB max.</p>
+                            <p className="text-xs text-muted-foreground">JPG, GIF o PNG. 1MB máximo.</p>
                             <FormMessage />
                         </div>
                     </FormItem>

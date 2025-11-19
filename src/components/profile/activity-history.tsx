@@ -9,37 +9,38 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { LogIn, User, CreditCard, ShoppingCart, LogOut, Pencil } from "lucide-react";
 
 const activities = [
   {
     id: 1,
-    action: "Logged in",
-    timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+    action: "Inició sesión",
+    timestamp: new Date(Date.now() - 1000 * 60 * 5),
     icon: <LogIn className="h-5 w-5 text-muted-foreground" />,
   },
   {
     id: 2,
-    action: "Updated profile information",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+    action: "Actualizó la información del perfil",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
     icon: <Pencil className="h-5 w-5 text-muted-foreground" />,
   },
   {
     id: 3,
-    action: "Added a new payment method",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+    action: "Añadió un nuevo método de pago",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
     icon: <CreditCard className="h-5 w-5 text-muted-foreground" />,
   },
   {
     id: 4,
-    action: "Purchased ticket for 'React Conf 2024'",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
+    action: "Compró entrada para 'React Conf 2024'",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
     icon: <ShoppingCart className="h-5 w-5 text-muted-foreground" />,
   },
   {
     id: 5,
-    action: "Logged out",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3 - 1000 * 60 * 15), // 3 days and 15 mins ago
+    action: "Cerró sesión",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3 - 1000 * 60 * 15),
     icon: <LogOut className="h-5 w-5 text-muted-foreground" />,
   },
 ];
@@ -51,8 +52,8 @@ export function ActivityHistory() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Activity</TableHead>
-            <TableHead className="text-right">Date</TableHead>
+            <TableHead>Actividad</TableHead>
+            <TableHead className="text-right">Fecha</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -63,7 +64,7 @@ export function ActivityHistory() {
                 <span>{activity.action}</span>
               </TableCell>
               <TableCell className="text-right text-muted-foreground">
-                {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+                {formatDistanceToNow(activity.timestamp, { addSuffix: true, locale: es })}
               </TableCell>
             </TableRow>
           ))}
