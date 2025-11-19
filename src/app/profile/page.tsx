@@ -16,7 +16,7 @@ export default function ProfilePage() {
       <main className="flex-1 p-4 md:p-8">
         <h1 className="text-3xl font-bold mb-6">Gestión de Cuenta</h1>
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 md:w-[400px]">
+          <TabsList>
             <TabsTrigger value="profile">
               <User className="mr-2 h-4 w-4" />
               Perfil
