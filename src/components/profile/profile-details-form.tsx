@@ -39,14 +39,14 @@ export function ProfileDetailsForm() {
 
   // Static data for display purposes
   const email = "john.doe@example.com";
-  const dob = new Date("1990-05-15");
+  const dob = new Date("2002-10-14");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: "John",
       lastName: "Doe",
-      phoneNumber: "(123) 456-7890",
+      phoneNumber: "04142869306",
       address: "123 Main St, Anytown USA",
     },
   });
@@ -77,7 +77,7 @@ export function ProfileDetailsForm() {
                     </div>
                     <div className="space-y-2">
                         <FormLabel>Fecha de Nacimiento</FormLabel>
-                        <Input value={format(dob, "PPP")} readOnly disabled />
+                        <Input value={format(dob, "dd/MM/yyyy")} readOnly disabled />
                     </div>
                 </div>
                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -115,7 +115,7 @@ export function ProfileDetailsForm() {
                     <FormItem>
                     <FormLabel>Número de Teléfono</FormLabel>
                     <FormControl>
-                        <Input type="tel" placeholder="(123) 456-7890" {...field} />
+                        <Input type="tel" placeholder="04142869306" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
