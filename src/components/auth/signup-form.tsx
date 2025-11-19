@@ -262,7 +262,7 @@ export function SignupForm() {
             name="role"
             render={({ field }) => (
               <FormItem className="space-y-4 text-center">
-                <FormLabel className="text-base font-semibold">Elige el rol que desearias tener!</FormLabel>
+                <FormLabel className="text-base font-semibold">Elige el rol que desearías tener!</FormLabel>
                 <FormControl>
                     <div className="grid grid-cols-2 gap-4">
                         <Button
