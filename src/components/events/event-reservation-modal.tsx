@@ -83,6 +83,7 @@ export function EventReservationModal({
                             data-ai-hint={event.image.imageHint}
                             fill
                             className="object-cover rounded-l-lg"
+                            sizes="(max-width: 768px) 100vw, 50vw"
                         />
                     )}
                 </div>
