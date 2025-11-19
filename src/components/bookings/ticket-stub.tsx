@@ -2,31 +2,18 @@
 "use client";
 
 import { MockBooking } from "@/lib/mock-data";
-import { Ticket, Calendar, MapPin, QrCode } from "lucide-react";
+import { Ticket, Calendar, MapPin } from "lucide-react";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
 
 type TicketStubProps = {
   booking: MockBooking;
   onSelect: (booking: MockBooking) => void;
 };
 
-const statusColors = {
-    'Confirmed': 'bg-green-500',
-    'Pending Payment': 'bg-yellow-500',
-    'Cancelled': 'bg-red-500'
-};
-
-const statusTextMap: { [key in MockBooking['status']]: string } = {
-    'Confirmed': 'Confirmado',
-    'Pending Payment': 'Pago Pendiente',
-    'Cancelled': 'Cancelado'
-};
-
 export function TicketStub({ booking, onSelect }: TicketStubProps) {
   return (
     <div 
-        className="bg-card shadow-lg rounded-2xl overflow-hidden flex flex-col cursor-pointer transition-transform duration-300 hover:-translate-y-2"
+        className="bg-card shadow-lg rounded-2xl overflow-hidden flex flex-col cursor-pointer transition-transform duration-300 hover:-translate-y-2 group"
         onClick={() => onSelect(booking)}
     >
       <div className="relative h-40 w-full">
@@ -37,7 +24,7 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
           fill
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         <div className="absolute bottom-4 left-4 text-white">
           <h3 className="text-2xl font-bold">{booking.event.name}</h3>
         </div>
@@ -54,33 +41,26 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
         </div>
       </div>
       
-      <div className="border-t-2 border-dashed border-background-muted/50 relative flex items-stretch bg-muted/40">
-        <div className="absolute -top-4 left-0 h-8 w-8 rounded-full bg-background transform -translate-y-1/2"></div>
-        <div className="absolute -bottom-4 left-0 h-8 w-8 rounded-full bg-background transform translate-y-1/2"></div>
-        
-        <div className="w-16 bg-secondary flex items-center justify-center">
-            <Ticket className="h-8 w-8 text-secondary-foreground transform -rotate-45" />
-        </div>
-        
-        <div className="flex-grow p-4 flex justify-between items-center">
+      <div className="border-t-2 border-dashed border-muted relative flex items-center bg-muted/20">
+         <div className="absolute -top-3.5 left-0 w-7 h-7 rounded-full bg-background"></div>
+         <div className="absolute -top-3.5 right-0 w-7 h-7 rounded-full bg-background"></div>
+
+        <div className="flex-grow p-4 flex justify-between items-center text-center">
             <div>
                 <p className="text-xs text-muted-foreground">Categoría</p>
-                <p className="font-bold text-sm">{booking.tier.name}</p>
+                <p className="font-bold text-lg">{booking.tier.name}</p>
             </div>
-            
-            <div className="text-right">
+            <div className="h-10 border-l border-dashed border-muted-foreground/50"></div>
+            <div>
                 <p className="text-xs text-muted-foreground">Asiento</p>
-                <p className="font-bold text-sm">{booking.seat}</p>
+                <p className="font-bold text-lg">{booking.seat.split(',')[1]?.trim() || booking.seat}</p>
+            </div>
+            <div className="h-10 border-l border-dashed border-muted-foreground/50"></div>
+             <div>
+                <p className="text-xs text-muted-foreground">Fila</p>
+                <p className="font-bold text-lg">{booking.seat.split(',')[0]?.trim() || 'N/A'}</p>
             </div>
         </div>
-      </div>
-
-      <div className="p-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-            <div className={`h-3 w-3 rounded-full ${statusColors[booking.status]}`}></div>
-            <span className="text-sm font-medium">{statusTextMap[booking.status]}</span>
-        </div>
-        <QrCode className="h-8 w-8 text-foreground" />
       </div>
     </div>
   );
