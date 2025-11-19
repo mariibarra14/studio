@@ -73,15 +73,62 @@ export function SignupForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    toast({
-      title: "¡Cuenta Creada!",
-      description: "Te has registrado exitosamente. Redirigiendo a inicio de sesión...",
-    });
 
-    router.push("/login");
+    try {
+      const response = await fetch('http://localhost:44335/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre: values.firstName,
+          apellido: values.lastName,
+          correo: values.email,
+          idRol: values.role,
+          contrasena: values.password,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "¡Cuenta Creada!",
+          description: "Te has registrado exitosamente. Por favor, inicia sesión.",
+        });
+        router.push("/login");
+      } else {
+        const errorData = await response.json();
+        const errorMessage = errorData.message || response.statusText;
+        let userFriendlyMessage = "Ha ocurrido un error inesperado al intentar registrarse. Por favor, inténtelo de nuevo.";
+
+        if (errorMessage.includes("Error al registrar usuario en Keycloak")) {
+          userFriendlyMessage = "Este correo ya está registrado. Por favor, inicie sesión o use otro correo.";
+        } else if (errorMessage.includes("Credenciales inválidas")) {
+          userFriendlyMessage = "Las credenciales son inválidas. Verifique el formato de su correo y contraseña.";
+        } else if (errorMessage.includes("Error de autenticación en Keycloak")) {
+          userFriendlyMessage = "Error en la autenticación. Inténtelo de nuevo o revise sus datos.";
+        } else if (errorMessage.includes("No se pudo obtener el ID del usuario")) {
+          userFriendlyMessage = "Error interno: No se pudo completar el registro. Intente más tarde.";
+        } else if (errorMessage.includes("Error interno en el servidor")) {
+          userFriendlyMessage = "Error de conexión con el servidor. Intente registrarse más tarde.";
+        } else if (errorMessage.includes("Error inesperado en la infraestructura de Keycloak")) {
+          userFriendlyMessage = "Ocurrió un error inesperado. Por favor, inténtelo de nuevo.";
+        }
+
+        toast({
+          variant: "destructive",
+          title: "Error de Registro",
+          description: userFriendlyMessage,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error de Conexión",
+        description: "No se pudo conectar con el servidor. Por favor, inténtelo más tarde.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
