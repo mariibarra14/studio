@@ -9,14 +9,27 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Ticket, Menu } from "lucide-react";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { User, LogOut, Ticket, Menu, Gem } from "lucide-react";
 import { useApp } from "@/context/app-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function Header() {
-  const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
-  const { toggleSidebar } = useApp();
+  const { toggleSidebar, user, isLoadingUser } = useApp();
+
+  const handleLogout = () => {
+    // Clear all relevant local storage items
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('roleId');
+    // We can also just clear the whole local storage if the app doesn't store anything else
+    // localStorage.clear();
+  };
+
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
@@ -34,21 +47,45 @@ export function Header() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              <Avatar className="h-10 w-10">
-                {userAvatar && (
+              {isLoadingUser ? (
+                <Skeleton className="h-10 w-10 rounded-full" />
+              ) : (
+                <Avatar className="h-10 w-10">
                     <AvatarImage 
-                        src={userAvatar.imageUrl} 
-                        alt={userAvatar.description}
-                        data-ai-hint={userAvatar.imageHint}
+                        src={user?.fotoPerfil || undefined}
+                        alt={user?.nombre || "User Avatar"}
                     />
-                )}
-                <AvatarFallback>
-                    <User />
-                </AvatarFallback>
-              </Avatar>
+                  <AvatarFallback>
+                      <User />
+                  </AvatarFallback>
+                </Avatar>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
+             {isLoadingUser ? (
+                <div className="p-2">
+                    <Skeleton className="h-4 w-3/4 mb-2" />
+                    <Skeleton className="h-3 w-1/2" />
+                </div>
+            ) : user ? (
+                <>
+                    <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">{user.nombre} {user.apellido}</p>
+                            <p className="text-xs leading-none text-muted-foreground">{user.correo}</p>
+                        </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem disabled>
+                         <Gem className="mr-2 h-4 w-4" />
+                         <span>{user.rol}</span>
+                    </DropdownMenuItem>
+                </>
+            ) : (
+                <DropdownMenuLabel>Not logged in</DropdownMenuLabel>
+            )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/profile">
                 <User className="mr-2 h-4 w-4" />
@@ -56,7 +93,7 @@ export function Header() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/login">
+              <Link href="/login" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Cerrar Sesión</span>
               </Link>
@@ -66,3 +103,4 @@ export function Header() {
     </header>
   );
 }
+

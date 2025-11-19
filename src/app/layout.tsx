@@ -1,7 +1,9 @@
+
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AppProvider } from "@/context/app-context";
+import nextConfig from "../../next.config";
 
 export const metadata: Metadata = {
   title: "TicketVerse",
@@ -36,3 +38,4 @@ export default function RootLayout({
     </html>
   );
 }
+

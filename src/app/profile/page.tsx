@@ -9,8 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, CreditCard, History } from 'lucide-react';
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
+import { useApp } from "@/context/app-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePage() {
+  const { user, isLoadingUser } = useApp();
+
   return (
     <AuthenticatedLayout>
       <main className="flex-1 p-4 md:p-8">
@@ -38,7 +42,20 @@ export default function ProfilePage() {
                   <CardDescription>Actualice sus datos personales aquí.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ProfileDetailsForm />
+                  {isLoadingUser ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-24 w-full" />
+                      <div className="flex justify-end">
+                        <Skeleton className="h-10 w-24" />
+                      </div>
+                    </div>
+                  ) : user ? (
+                    <ProfileDetailsForm user={user} />
+                  ) : (
+                    <p>No se pudo cargar la información del usuario.</p>
+                  )}
                 </CardContent>
               </Card>
               <Card>
