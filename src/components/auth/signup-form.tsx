@@ -128,9 +128,7 @@ export function SignupForm() {
                   className="hidden"
                   accept="image/*"
                   ref={(e) => {
-                    if (photoRef && typeof photoRef.ref === 'function') {
-                      photoRef.ref(e);
-                    }
+                    photoRef.ref(e);
                     fileInputRef.current = e;
                   }}
                   onChange={handleFileChange}
@@ -350,3 +348,5 @@ export function SignupForm() {
     </>
   );
 }
+
+    
