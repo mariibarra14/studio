@@ -17,6 +17,12 @@ const statusColors = {
     'Cancelled': 'bg-red-500'
 };
 
+const statusTextMap: { [key in MockBooking['status']]: string } = {
+    'Confirmed': 'Confirmado',
+    'Pending Payment': 'Pago Pendiente',
+    'Cancelled': 'Cancelado'
+};
+
 export function TicketStub({ booking, onSelect }: TicketStubProps) {
   return (
     <div 
@@ -48,31 +54,31 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
         </div>
       </div>
       
-      <div className="border-t-2 border-dashed border-background-muted/50 relative px-5 py-4 flex justify-between items-center bg-muted/40">
-        <div className="absolute -top-4 left-4 h-8 w-8 rounded-full bg-background transform -translate-x-1/2"></div>
-        <div className="absolute -top-4 right-4 h-8 w-8 rounded-full bg-background transform translate-x-1/2"></div>
+      <div className="border-t-2 border-dashed border-background-muted/50 relative flex items-stretch bg-muted/40">
+        <div className="absolute -top-4 left-0 h-8 w-8 rounded-full bg-background transform -translate-y-1/2"></div>
+        <div className="absolute -bottom-4 left-0 h-8 w-8 rounded-full bg-background transform translate-y-1/2"></div>
         
-        <div>
-            <p className="text-xs text-muted-foreground">Categoría</p>
-            <p className="font-bold text-sm">{booking.tier.name}</p>
+        <div className="w-16 bg-secondary flex items-center justify-center">
+            <Ticket className="h-8 w-8 text-secondary-foreground transform -rotate-45" />
         </div>
         
-        <div>
-            <p className="text-xs text-muted-foreground">Asiento</p>
-            <p className="font-bold text-sm text-right">{booking.seat}</p>
+        <div className="flex-grow p-4 flex justify-between items-center">
+            <div>
+                <p className="text-xs text-muted-foreground">Categoría</p>
+                <p className="font-bold text-sm">{booking.tier.name}</p>
+            </div>
+            
+            <div className="text-right">
+                <p className="text-xs text-muted-foreground">Asiento</p>
+                <p className="font-bold text-sm">{booking.seat}</p>
+            </div>
         </div>
       </div>
 
-      <div className="p-5 flex justify-between items-center">
+      <div className="p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
             <div className={`h-3 w-3 rounded-full ${statusColors[booking.status]}`}></div>
-            <span className="text-sm font-medium">{
-                {
-                    'Confirmed': 'Confirmado',
-                    'Pending Payment': 'Pago Pendiente',
-                    'Cancelled': 'Cancelado'
-                }[booking.status]
-            }</span>
+            <span className="text-sm font-medium">{statusTextMap[booking.status]}</span>
         </div>
         <QrCode className="h-8 w-8 text-foreground" />
       </div>
