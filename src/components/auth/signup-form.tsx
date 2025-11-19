@@ -156,7 +156,7 @@ export function SignupForm() {
               <FormItem>
                 <FormLabel>Dirección de Correo Electrónico</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="nombre@ejemplo.com" {...field} value={field.value ?? ""} />
+                  <Input type="email" placeholder="nombre@ejemplo.com" {...field} value={field.value ?? ""} autoComplete="email" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -280,7 +280,7 @@ export function SignupForm() {
                   <FormLabel>Contraseña</FormLabel>
                   <div className="relative">
                     <FormControl>
-                      <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} value={field.value ?? ""} />
+                      <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} value={field.value ?? ""} autoComplete="new-password" />
                     </FormControl>
                     <Button
                       type="button"
@@ -305,7 +305,7 @@ export function SignupForm() {
                   <FormLabel>Confirmar Contraseña</FormLabel>
                   <div className="relative">
                     <FormControl>
-                      <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" {...field} value={field.value ?? ""} />
+                      <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" {...field} value={field.value ?? ""} autoComplete="new-password" />
                     </FormControl>
                     <Button
                       type="button"
@@ -331,3 +331,5 @@ export function SignupForm() {
     </Form>
   );
 }
+
+    
