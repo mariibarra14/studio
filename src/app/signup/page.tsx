@@ -35,7 +35,7 @@ export default function SignupPage() {
         <Card className="shadow-2xl">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold tracking-tight">Crear una Cuenta</CardTitle>
-            <CardDescription>Únete a TicketVerse y comienza tu aventura.</CardDescription>
+            <CardDescription>Únete a VivoPass y comienza tu aventura.</CardDescription>
           </CardHeader>
           <CardContent>
             <SignupForm />

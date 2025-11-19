@@ -47,7 +47,7 @@ export function SignupForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -99,9 +99,12 @@ export function SignupForm() {
                 <input
                   type="file"
                   className="hidden"
-                  ref={fileInputRef}
                   accept="image/*"
                   {...photoRef}
+                  ref={(e) => {
+                    photoRef.ref(e);
+                    fileInputRef.current = e;
+                  }}
                   onChange={(event) => {
                     const file = event.target.files?.[0];
                     if (file) {
