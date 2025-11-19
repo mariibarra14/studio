@@ -34,17 +34,17 @@ export default function ForgotPasswordPage() {
         </Link>
         <Card className="shadow-2xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold tracking-tight">Forgot Password?</CardTitle>
-            <CardDescription>Enter your email to reset your password</CardDescription>
+            <CardTitle className="text-2xl font-bold tracking-tight">¿Olvidaste tu Contraseña?</CardTitle>
+            <CardDescription>Ingresa tu correo para restablecer tu contraseña</CardDescription>
           </CardHeader>
           <CardContent>
             <ForgotPasswordForm />
           </CardContent>
           <CardFooter className="flex-col gap-4">
             <p className="text-center text-sm text-muted-foreground">
-              Remember your password?{' '}
+              ¿Recordaste tu contraseña?{' '}
               <Link href="/login" className="font-medium text-primary hover:underline">
-                Sign in
+                Iniciar sesión
               </Link>
             </p>
           </CardFooter>

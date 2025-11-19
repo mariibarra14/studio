@@ -18,7 +18,7 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
+  email: z.string().email({ message: "Por favor, introduce una dirección de correo electrónico válida." }),
 });
 
 export function ForgotPasswordForm() {
@@ -38,8 +38,8 @@ export function ForgotPasswordForm() {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     
     toast({
-      title: "Password Reset Link Sent",
-      description: `If an account exists for ${values.email}, you will receive a reset link shortly.`,
+      title: "Enlace de Restablecimiento Enviado",
+      description: `Si existe una cuenta para ${values.email}, recibirás un enlace en breve.`,
     });
 
     setIsLoading(false);
@@ -54,16 +54,16 @@ export function ForgotPasswordForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
+              <FormLabel>Dirección de Correo Electrónico</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com" {...field} autoComplete="email" />
+                <Input placeholder="nombre@ejemplo.com" {...field} autoComplete="email" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? <Loader2 className="animate-spin" /> : "Send Reset Link"}
+          {isLoading ? <Loader2 className="animate-spin" /> : "Enviar Enlace de Restablecimiento"}
         </Button>
       </form>
     </Form>

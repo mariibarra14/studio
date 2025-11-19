@@ -34,17 +34,17 @@ export default function LoginPage() {
         </Link>
         <Card className="shadow-2xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold tracking-tight">Welcome Back!</CardTitle>
-            <CardDescription>Sign in to your TicketVerse account</CardDescription>
+            <CardTitle className="text-2xl font-bold tracking-tight">¡Bienvenido de Nuevo!</CardTitle>
+            <CardDescription>Inicia sesión en tu cuenta de TicketVerse</CardDescription>
           </CardHeader>
           <CardContent>
             <LoginForm />
           </CardContent>
           <CardFooter className="flex-col gap-4">
             <p className="text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
+              ¿No tienes una cuenta?{' '}
               <Link href="/signup" className="font-medium text-primary hover:underline">
-                Sign up
+                Regístrate
               </Link>
             </p>
           </CardFooter>

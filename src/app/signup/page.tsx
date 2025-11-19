@@ -34,17 +34,17 @@ export default function SignupPage() {
         </Link>
         <Card className="shadow-2xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold tracking-tight">Create an Account</CardTitle>
-            <CardDescription>Join TicketVerse and start your journey.</CardDescription>
+            <CardTitle className="text-2xl font-bold tracking-tight">Crear una Cuenta</CardTitle>
+            <CardDescription>Únete a TicketVerse y comienza tu aventura.</CardDescription>
           </CardHeader>
           <CardContent>
             <SignupForm />
           </CardContent>
           <CardFooter>
             <p className="w-full text-center text-sm text-muted-foreground">
-              Already have an account?{' '}
+              ¿Ya tienes una cuenta?{' '}
               <Link href="/login" className="font-medium text-primary hover:underline">
-                Sign in
+                Iniciar sesión
               </Link>
             </p>
           </CardFooter>

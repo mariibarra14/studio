@@ -20,8 +20,8 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(1, { message: "Password is required." }),
+  email: z.string().email({ message: "Por favor, introduce una dirección de correo electrónico válida." }),
+  password: z.string().min(1, { message: "La contraseña es obligatoria." }),
 });
 
 export function LoginForm() {
@@ -43,8 +43,8 @@ export function LoginForm() {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     
     toast({
-      title: "Login Successful",
-      description: "Welcome back! Redirecting you now...",
+      title: "Inicio de Sesión Exitoso",
+      description: "¡Bienvenido de nuevo! Redirigiendo...",
     });
 
     router.push("/profile");
@@ -59,9 +59,9 @@ export function LoginForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
+              <FormLabel>Dirección de correo electrónico</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com" {...field} autoComplete="email" />
+                <Input placeholder="nombre@ejemplo.com" {...field} autoComplete="email" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -72,7 +72,7 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Contraseña</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} autoComplete="current-password" />
               </FormControl>
@@ -82,11 +82,11 @@ export function LoginForm() {
         />
         <div className="flex items-center justify-end">
           <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
-            Forgot Password?
+            ¿Olvidaste tu contraseña?
           </Link>
         </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? <Loader2 className="animate-spin" /> : "Sign In"}
+          {isLoading ? <Loader2 className="animate-spin" /> : "Iniciar Sesión"}
         </Button>
       </form>
     </Form>

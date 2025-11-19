@@ -21,21 +21,24 @@ import { useState, useRef } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const formSchema = z.object({
-  firstName: z.string().min(1, { message: "First name is required." }),
-  lastName: z.string().min(1, { message: "Last name is required." }),
-  email: z.string().email({ message: "Please enter a valid email." }),
-  dob: z.date({ required_error: "Date of birth is required." }),
-  phoneNumber: z.string().min(10, { message: "Please enter a valid phone number." }),
-  address: z.string().min(1, { message: "Address is required." }),
+  firstName: z.string().min(1, { message: "El nombre es obligatorio." }),
+  lastName: z.string().min(1, { message: "El apellido es obligatorio." }),
+  email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
+  dob: z.date({ required_error: "La fecha de nacimiento es obligatoria." }),
+  phoneNumber: z.string().min(10, { message: "Por favor, introduce un número de teléfono válido." }),
+  address: z.string().min(1, { message: "La dirección es obligatoria." }),
   photo: z.any().optional(),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  password: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }),
   confirmPassword: z.string(),
+  role: z.enum(["usuario_final", "organizador"], { required_error: "Debes seleccionar un rol." }),
 }).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match.",
+  message: "Las contraseñas no coinciden.",
   path: ["confirmPassword"],
 });
 
@@ -54,6 +57,7 @@ export function SignupForm() {
       email: "",
       phoneNumber: "",
       address: "",
+      role: "usuario_final"
     },
   });
 
@@ -65,8 +69,8 @@ export function SignupForm() {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     
     toast({
-      title: "Account Created!",
-      description: "You have successfully signed up. Redirecting to login...",
+      title: "¡Cuenta Creada!",
+      description: "Te has registrado exitosamente. Redirigiendo a inicio de sesión...",
     });
 
     router.push("/login");
@@ -82,7 +86,7 @@ export function SignupForm() {
             render={({ field }) => (
               <FormItem className="flex flex-col items-center justify-center space-y-4">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={photoPreview || undefined} alt="Profile photo preview" />
+                  <AvatarImage src={photoPreview || undefined} alt="Vista previa de foto de perfil" />
                   <AvatarFallback className="text-3xl">
                     {form.getValues("firstName")?.[0] || ""}
                     {form.getValues("lastName")?.[0] || ""}
@@ -104,7 +108,7 @@ export function SignupForm() {
                 />
                 <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="mr-2 h-4 w-4" />
-                    Upload Photo
+                    Subir Foto
                 </Button>
                 <FormMessage />
               </FormItem>
@@ -116,7 +120,7 @@ export function SignupForm() {
               name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>First Name</FormLabel>
+                  <FormLabel>Nombre</FormLabel>
                   <FormControl>
                     <Input placeholder="John" {...field} />
                   </FormControl>
@@ -129,7 +133,7 @@ export function SignupForm() {
               name="lastName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Last Name</FormLabel>
+                  <FormLabel>Apellido</FormLabel>
                   <FormControl>
                     <Input placeholder="Doe" {...field} />
                   </FormControl>
@@ -143,9 +147,9 @@ export function SignupForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email Address</FormLabel>
+                <FormLabel>Dirección de Correo Electrónico</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="name@example.com" {...field} />
+                  <Input type="email" placeholder="nombre@ejemplo.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -157,7 +161,7 @@ export function SignupForm() {
               name="dob"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date of Birth</FormLabel>
+                  <FormLabel>Fecha de Nacimiento</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -169,9 +173,9 @@ export function SignupForm() {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(field.value, "PPP", { locale: es })
                           ) : (
-                            <span>Pick a date</span>
+                            <span>Elige una fecha (DD/MM/YYYY)</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -198,9 +202,9 @@ export function SignupForm() {
               name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel>Número de Teléfono</FormLabel>
                   <FormControl>
-                    <Input type="tel" placeholder="(123) 456-7890" {...field} />
+                    <Input type="tel" placeholder="04142869306" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -212,9 +216,43 @@ export function SignupForm() {
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address</FormLabel>
+                <FormLabel>Dirección</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="123 Main St, Anytown USA" {...field} />
+                  <Textarea placeholder="123 Calle Principal, Cualquier Ciudad" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>¿Cómo usarás TicketVerse?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="usuario_final" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Usuario Final (Para comprar tiquetes)
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="organizador" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Organizador (Para crear y gestionar eventos)
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -226,7 +264,7 @@ export function SignupForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Contraseña</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
@@ -239,7 +277,7 @@ export function SignupForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>Confirmar Contraseña</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
@@ -250,7 +288,7 @@ export function SignupForm() {
           </div>
         </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? <Loader2 className="animate-spin" /> : "Create Account"}
+          {isLoading ? <Loader2 className="animate-spin" /> : "Crear Cuenta"}
         </Button>
       </form>
     </Form>
