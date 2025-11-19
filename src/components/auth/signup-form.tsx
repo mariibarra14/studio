@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, Upload } from "lucide-react";
+import { CalendarIcon, Loader2, Upload, Eye, EyeOff } from "lucide-react";
 import { useState, useRef } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -24,7 +25,6 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "El nombre es obligatorio." }),
@@ -48,6 +48,8 @@ export function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -101,9 +103,12 @@ export function SignupForm() {
                   onChange={(event) => {
                     const file = event.target.files?.[0];
                     if (file) {
+                      field.onChange(file);
                       setPhotoPreview(URL.createObjectURL(file));
+                    } else {
+                      field.onChange(null);
+                      setPhotoPreview(null);
                     }
-                    field.onChange(event);
                   }}
                 />
                 <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
@@ -173,9 +178,9 @@ export function SignupForm() {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP", { locale: es })
+                            format(field.value, "dd/MM/yyyy", { locale: es })
                           ) : (
-                            <span>Elige una fecha (DD/MM/YYYY)</span>
+                            <span>DD/MM/YYYY</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -184,12 +189,16 @@ export function SignupForm() {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
+                        captionLayout="dropdown-buttons"
+                        fromYear={1900}
+                        toYear={new Date().getFullYear()}
                         selected={field.value}
                         onSelect={field.onChange}
                         disabled={(date) =>
                           date > new Date() || date < new Date("1900-01-01")
                         }
                         initialFocus
+                        locale={es}
                       />
                     </PopoverContent>
                   </Popover>
@@ -228,31 +237,33 @@ export function SignupForm() {
             control={form.control}
             name="role"
             render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>¿Cómo usarás TicketVerse?</FormLabel>
+              <FormItem className="space-y-4 text-center">
+                <FormLabel className="text-base font-semibold">Elige el rol que desearias tener!</FormLabel>
                 <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="usuario_final" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Usuario Final (Para comprar tiquetes)
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="organizador" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Organizador (Para crear y gestionar eventos)
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Button
+                            type="button"
+                            variant={field.value === 'usuario_final' ? 'default' : 'outline'}
+                            onClick={() => field.onChange('usuario_final')}
+                            className="h-auto py-4"
+                        >
+                            <div className="flex flex-col items-center gap-2">
+                                <span className="text-sm font-bold">Usuario Final</span>
+                                <span className="text-xs text-muted-foreground data-[state=active]:text-primary-foreground">Para comprar tiquetes</span>
+                            </div>
+                        </Button>
+                        <Button
+                            type="button"
+                            variant={field.value === 'organizador' ? 'default' : 'outline'}
+                            onClick={() => field.onChange('organizador')}
+                            className="h-auto py-4"
+                        >
+                            <div className="flex flex-col items-center gap-2">
+                                <span className="text-sm font-bold">Organizador</span>
+                                <span className="text-xs text-muted-foreground data-[state=active]:text-primary-foreground">Para crear eventos</span>
+                            </div>
+                        </Button>
+                    </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -265,9 +276,21 @@ export function SignupForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Contraseña</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
+                  <div className="relative">
+                    <FormControl>
+                      <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute inset-y-0 right-0 h-full px-3"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff /> : <Eye />}
+                      <span className="sr-only">{showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}</span>
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -278,9 +301,21 @@ export function SignupForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Confirmar Contraseña</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
+                  <div className="relative">
+                    <FormControl>
+                      <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute inset-y-0 right-0 h-full px-3"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff /> : <Eye />}
+                      <span className="sr-only">{showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}</span>
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
