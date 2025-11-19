@@ -126,7 +126,7 @@ export function SignupForm() {
       formData.append('Id', userId);
       formData.append('Nombre', values.firstName);
       formData.append('Apellido', values.lastName);
-      formData.append('FechaNacimiento', format(values.dob, 'dd/MM/yyyy'));
+      formData.append('FechaNacimiento', format(values.dob, 'yyyy-MM-dd'));
       formData.append('Correo', values.email);
       formData.append('Telefono', values.phoneNumber);
       formData.append('Direccion', values.address);
@@ -456,5 +456,3 @@ export function SignupForm() {
     </>
   );
 }
-
-    
