@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ImageCropperModal } from "./image-cropper-modal";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "El nombre es obligatorio." }),
@@ -50,6 +51,9 @@ export function SignupForm() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  const [imageToCrop, setImageToCrop] = useState<string | undefined>(undefined);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -80,7 +84,30 @@ export function SignupForm() {
     router.push("/login");
   }
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, fieldChange: (file: File) => void) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageToCrop(reader.result as string);
+        setIsCropperOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
+    <>
+    <ImageCropperModal
+      isOpen={isCropperOpen}
+      onClose={() => setIsCropperOpen(false)}
+      imageSrc={imageToCrop}
+      onCropComplete={(croppedFile) => {
+        form.setValue("photo", croppedFile);
+        setPhotoPreview(URL.createObjectURL(croppedFile));
+        setIsCropperOpen(false);
+      }}
+    />
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4">
@@ -100,21 +127,8 @@ export function SignupForm() {
                   type="file"
                   className="hidden"
                   accept="image/*"
-                  {...photoRef}
-                  ref={(e) => {
-                    photoRef.ref(e);
-                    fileInputRef.current = e;
-                  }}
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file) {
-                      field.onChange(file);
-                      setPhotoPreview(URL.createObjectURL(file));
-                    } else {
-                      field.onChange(null);
-                      setPhotoPreview(null);
-                    }
-                  }}
+                  ref={fileInputRef}
+                  onChange={(e) => handleFileChange(e, field.onChange)}
                 />
                 <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="mr-2 h-4 w-4" />
@@ -332,5 +346,6 @@ export function SignupForm() {
         </Button>
       </form>
     </Form>
+    </>
   );
 }
