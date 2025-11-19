@@ -75,7 +75,8 @@ export function SignupForm() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:44335/register', {
+      // Stage 1: Authentication
+      const authResponse = await fetch('http://localhost:44335/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,15 +90,9 @@ export function SignupForm() {
         }),
       });
 
-      if (response.ok) {
-        toast({
-          title: "¡Cuenta Creada!",
-          description: "Te has registrado exitosamente. Por favor, inicia sesión.",
-        });
-        router.push("/login");
-      } else {
-        const errorData = await response.json();
-        const errorMessage = errorData.message || response.statusText;
+      if (!authResponse.ok) {
+        const errorData = await authResponse.json();
+        const errorMessage = errorData.message || authResponse.statusText;
         let userFriendlyMessage = "Ha ocurrido un error inesperado al intentar registrarse. Por favor, inténtelo de nuevo.";
 
         if (errorMessage.includes("Error al registrar usuario en Keycloak")) {
@@ -119,7 +114,73 @@ export function SignupForm() {
           title: "Error de Registro",
           description: userFriendlyMessage,
         });
+        setIsLoading(false);
+        return;
       }
+      
+      const authData = await authResponse.json();
+      const userId = authData.idusuario;
+
+      // Stage 2: Profile Creation
+      const formData = new FormData();
+      formData.append('Id', userId);
+      formData.append('Nombre', values.firstName);
+      formData.append('Apellido', values.lastName);
+      formData.append('FechaNacimiento', format(values.dob, 'dd/MM/yyyy'));
+      formData.append('Correo', values.email);
+      formData.append('Telefono', values.phoneNumber);
+      formData.append('Direccion', values.address);
+      formData.append('FotoPerfil', 'null'); // Constant value as requested
+      formData.append('Rol', authData.idrol);
+      
+      if (values.photo instanceof File) {
+        formData.append('imagen', values.photo, values.photo.name);
+      }
+
+      const profileResponse = await fetch('http://localhost:44335/api/Usuarios/crearUsuario', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (profileResponse.ok) {
+        toast({
+          title: "¡Registro Completado!",
+          description: "Te has registrado exitosamente. Por favor, inicia sesión.",
+        });
+        router.push("/login");
+      } else {
+        let userFriendlyMessage = "Ha ocurrido un error inesperado al completar el registro del perfil. Por favor, inténtelo de nuevo.";
+        try {
+            const errorData = await profileResponse.json();
+            const errorMessage = errorData.message || (errorData.errors ? JSON.stringify(errorData.errors) : profileResponse.statusText);
+
+            if (errorMessage.includes("El correo electrónico ya está registrado")) {
+              userFriendlyMessage = "Este correo ya está registrado. A pesar del éxito inicial de autenticación, el perfil ya existía.";
+            } else if (errorMessage.includes("The Id field is required")) {
+               userFriendlyMessage = "Faltan datos obligatorios. Asegúrese de haber completado todos los campos marcados.";
+            } else if (errorMessage.includes("El ID del rol especificado no existe")) {
+              userFriendlyMessage = "Error de configuración: El rol seleccionado es inválido. Intente de nuevo.";
+            } else if (errorMessage.includes("No se pudo crear el usuario")) {
+              userFriendlyMessage = "Error al crear el perfil. Hubo un fallo en la creación del perfil de usuario.";
+            } else if (profileResponse.status === 500 || errorMessage.includes("Error interno en el servidor")) {
+              userFriendlyMessage = "Error interno del servidor. Por favor, intente el registro más tarde.";
+            } else if (errorMessage.includes("No fue posible agregar el usuario al dominio")) {
+                userFriendlyMessage = "Error de negocio: No se pudo completar la operación de registro.";
+            } else if (errorMessage.includes("Fallo en UsuarioRepository")) {
+                userFriendlyMessage = "Fallo en la base de datos. Intente más tarde.";
+            }
+        } catch(e) {
+            // Error parsing JSON, use status text
+            userFriendlyMessage = `Error: ${profileResponse.statusText || 'No se pudo completar el perfil.'}`;
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "Error al Crear Perfil",
+          description: userFriendlyMessage,
+        });
+      }
+
     } catch (error) {
       toast({
         variant: "destructive",
