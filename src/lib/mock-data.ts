@@ -55,4 +55,71 @@ export const mockEvents: MockEvent[] = [
         remainingTickets: 2500,
         tiers: [
             { id: 't3-1', name: 'VIP', price: 150, available: 300 },
-            { id
+            { id: 't3-2', name: 'General', price: 70, available: 2200 },
+        ]
+    },
+    {
+        id: '4',
+        name: 'Karol G - Mañana Será Bonito Tour',
+        date: '12-13 Jul 2024',
+        location: 'Estadio El Campín, Bogotá',
+        image: PlaceHolderImages.find(p => p.id === 'event-pop-concert-1')!,
+        description: 'La superestrella mundial Karol G trae su gira "Mañana Será Bonito" a Bogotá para dos noches espectaculares. ¡No te pierdas a la Bichota en vivo!',
+        remainingTickets: 500,
+        tiers: [
+            { id: 't4-1', name: 'Platino', price: 300, available: 100 },
+            { id: 't4-2', name: 'Occidental', price: 150, available: 400 },
+        ],
+    },
+    {
+        id: '5',
+        name: 'Ópera: La Traviata de Verdi',
+        date: '28 Jul 2024',
+        location: 'Teatro Colón, Bogotá',
+        image: PlaceHolderImages.find(p => p.id === 'event-classical-music-1')!,
+        description: 'Una producción impresionante de la obra maestra de Verdi, La Traviata. Vive la trágica historia de amor de Violetta y Alfredo en el histórico Teatro Colón.',
+        remainingTickets: 120,
+        tiers: [
+            { id: 't5-1', name: 'Palco', price: 220, available: 20 },
+            { id: 't5-2', name: 'Luneta', price: 110, available: 100 },
+        ],
+    },
+    {
+        id: '6',
+        name: 'Feria Internacional del Libro de Bogotá (FILBo)',
+        date: '17 Abr - 02 May 2024',
+        location: 'Corferias, Bogotá',
+        image: PlaceHolderImages.find(p => p.id === 'event-art-exhibition-1')!,
+        description: 'El evento cultural más importante de Bogotá, que reúne a autores, editoriales y lectores de todo el mundo. Disfruta de lanzamientos de libros, charlas y más.',
+        remainingTickets: 10000,
+        tiers: [
+            { id: 't6-1', name: 'Entrada General', price: 10, available: 10000 },
+        ],
+    },
+    {
+        id: '7',
+        name: 'Baum Festival 2024',
+        date: '20-21 May 2024',
+        location: 'Corferias, Bogotá',
+        image: PlaceHolderImages.find(p => p.id === 'event-dj-set-1')!,
+        description: 'El festival de música electrónica más grande de Colombia regresa con un line-up de DJs internacionales y locales de primer nivel. ¡Prepárate para bailar sin parar!',
+        remainingTickets: 800,
+        tiers: [
+            { id: 't7-1', name: 'VIP', price: 200, available: 200 },
+            { id: 't7-2', name: 'General', price: 100, available: 600 },
+        ],
+    },
+    {
+        id: '8',
+        name: 'Show de Magia: "Ilusiones"',
+        date: '10 Jun 2024',
+        location: 'Teatro Nacional La Castellana, Bogotá',
+        image: PlaceHolderImages.find(p => p.id === 'event-theater-play-1')!,
+        description: 'Un espectáculo de magia asombroso que desafiará tus sentidos y te dejará sin aliento. Perfecto para toda la familia.',
+        remainingTickets: 400,
+        tiers: [
+            { id: 't8-1', name: 'Platea', price: 80, available: 100 },
+            { id: 't8-2', name: 'Balcón', price: 50, available: 300 },
+        ],
+    },
+];

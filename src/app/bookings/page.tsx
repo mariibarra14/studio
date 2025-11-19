@@ -9,4 +9,9 @@ export default function BookingsPage() {
       <main className="flex-1 p-4 md:p-8">
         <h1 className="text-3xl font-bold mb-6">Reservas</h1>
         <div className="flex items-center justify-center h-96 border-2 border-dashed rounded-lg">
-            <p className="text
+            <p className="text-muted-foreground">El contenido de las reservas va aquí</p>
+        </div>
+      </main>
+    </AuthenticatedLayout>
+  );
+}

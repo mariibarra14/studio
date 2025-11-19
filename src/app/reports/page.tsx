@@ -11,3 +11,7 @@ export default function ReportsPage() {
         <div className="flex items-center justify-center h-96 border-2 border-dashed rounded-lg">
             <p className="text-muted-foreground">El contenido de los reportes va aquí</p>
         </div>
+      </main>
+    </AuthenticatedLayout>
+  );
+}

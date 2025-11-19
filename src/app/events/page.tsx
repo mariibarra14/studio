@@ -1,3 +1,4 @@
+
 "use client";
 
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
@@ -83,4 +84,6 @@ export default function EventsPage() {
           onClose={() => setSelectedEvent(null)}
         />
       )}
-    </Authenticated
+    </AuthenticatedLayout>
+  );
+}
