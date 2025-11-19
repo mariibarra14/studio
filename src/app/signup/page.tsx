@@ -23,6 +23,7 @@ export default function SignupPage() {
           alt={concertBg.description}
           data-ai-hint={concertBg.imageHint}
           fill
+          sizes="100vw"
           priority
           className="object-cover -z-10 brightness-50"
         />
