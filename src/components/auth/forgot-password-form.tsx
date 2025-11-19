@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,7 +57,7 @@ export function ForgotPasswordForm() {
             <FormItem>
               <FormLabel>Dirección de Correo Electrónico</FormLabel>
               <FormControl>
-                <Input placeholder="nombre@ejemplo.com" {...field} autoComplete="email" />
+                <Input placeholder="nombre@ejemplo.com" {...field} value={field.value ?? ""} autoComplete="email" />
               </FormControl>
               <FormMessage />
             </FormItem>

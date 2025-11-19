@@ -76,26 +76,30 @@ export function EventReservationModal({
           <>
             <div className="grid grid-cols-1 md:grid-cols-2">
                 <div className="relative h-64 md:h-full min-h-[300px]">
-                    <Image
-                        src={event.image.imageUrl}
-                        alt={event.image.description}
-                        data-ai-hint={event.image.imageHint}
-                        fill
-                        className="object-cover rounded-l-lg"
-                    />
+                    {event?.image && (
+                        <Image
+                            src={event.image.imageUrl}
+                            alt={event.image.description}
+                            data-ai-hint={event.image.imageHint}
+                            fill
+                            className="object-cover rounded-l-lg"
+                        />
+                    )}
                 </div>
                 <div className="p-8 flex flex-col">
                     <DialogHeader className="text-left mb-4">
-                        <DialogTitle className="text-3xl font-bold mb-2">{event.name}</DialogTitle>
-                        <DialogDescription className="text-base text-muted-foreground">{event.date} &bull; {event.location}</DialogDescription>
+                        <DialogTitle className="text-3xl font-bold mb-2">{event?.name}</DialogTitle>
+                        <DialogDescription className="text-base text-muted-foreground">
+                            {event?.date} &bull; {event?.location}
+                        </DialogDescription>
                     </DialogHeader>
                     
                     <div className="flex items-center text-sm text-muted-foreground mb-6">
                         <Users className="mr-2 h-4 w-4"/>
-                        <span>Quedan {event.remainingTickets} entradas</span>
+                        <span>Quedan {event?.remainingTickets} entradas</span>
                     </div>
 
-                    <p className="text-foreground/80 text-base leading-relaxed flex-grow">{event.description}</p>
+                    <p className="text-foreground/80 text-base leading-relaxed flex-grow">{event?.description}</p>
                     
                     <DialogFooter className="mt-8">
                         <Button onClick={() => setStage("reservation")} className="w-full text-lg py-6">Reservar</Button>
@@ -106,7 +110,7 @@ export function EventReservationModal({
         ) : (
           <div className="p-8">
             <DialogHeader className="mb-6">
-              <DialogTitle className="text-3xl font-bold">Confirmar Reserva: {event.name}</DialogTitle>
+              <DialogTitle className="text-3xl font-bold">Confirmar Reserva: {event?.name}</DialogTitle>
               <DialogDescription>Seleccione el tipo de entrada y la cantidad.</DialogDescription>
             </DialogHeader>
             
@@ -118,7 +122,7 @@ export function EventReservationModal({
                             <SelectValue placeholder="Seleccione un tipo de entrada" />
                         </SelectTrigger>
                         <SelectContent>
-                            {event.tiers.map(tier => (
+                            {event?.tiers.map(tier => (
                                 <SelectItem key={tier.id} value={tier.id} className="text-base p-3">
                                     <div className="flex justify-between w-full">
                                         <span className="font-semibold">{tier.name}</span>

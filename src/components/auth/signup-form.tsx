@@ -59,7 +59,9 @@ export function SignupForm() {
       email: "",
       phoneNumber: "",
       address: "",
-      role: "usuario_final"
+      role: "usuario_final",
+      password: "",
+      confirmPassword: ""
     },
   });
 
@@ -127,7 +129,7 @@ export function SignupForm() {
                 <FormItem>
                   <FormLabel>Nombre</FormLabel>
                   <FormControl>
-                    <Input placeholder="John" {...field} />
+                    <Input placeholder="John" {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -140,7 +142,7 @@ export function SignupForm() {
                 <FormItem>
                   <FormLabel>Apellido</FormLabel>
                   <FormControl>
-                    <Input placeholder="Doe" {...field} />
+                    <Input placeholder="Doe" {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -154,7 +156,7 @@ export function SignupForm() {
               <FormItem>
                 <FormLabel>Dirección de Correo Electrónico</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="nombre@ejemplo.com" {...field} />
+                  <Input type="email" placeholder="nombre@ejemplo.com" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -213,7 +215,7 @@ export function SignupForm() {
                 <FormItem>
                   <FormLabel>Número de Teléfono</FormLabel>
                   <FormControl>
-                    <Input type="tel" placeholder="04142869306" {...field} />
+                    <Input type="tel" placeholder="04142869306" {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -227,7 +229,7 @@ export function SignupForm() {
               <FormItem>
                 <FormLabel>Dirección</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="123 Calle Principal, Cualquier Ciudad" {...field} />
+                  <Textarea placeholder="123 Calle Principal, Cualquier Ciudad" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -278,7 +280,7 @@ export function SignupForm() {
                   <FormLabel>Contraseña</FormLabel>
                   <div className="relative">
                     <FormControl>
-                      <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                      <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <Button
                       type="button"
@@ -303,7 +305,7 @@ export function SignupForm() {
                   <FormLabel>Confirmar Contraseña</FormLabel>
                   <div className="relative">
                     <FormControl>
-                      <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                      <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <Button
                       type="button"

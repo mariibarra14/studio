@@ -63,7 +63,7 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Dirección de correo electrónico</FormLabel>
               <FormControl>
-                <Input placeholder="nombre@ejemplo.com" {...field} autoComplete="email" />
+                <Input placeholder="nombre@ejemplo.com" {...field} value={field.value ?? ""} autoComplete="email" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -77,7 +77,7 @@ export function LoginForm() {
               <FormLabel>Contraseña</FormLabel>
               <div className="relative">
                 <FormControl>
-                  <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} autoComplete="current-password" />
+                  <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} value={field.value ?? ""} autoComplete="current-password" />
                 </FormControl>
                 <Button
                   type="button"
