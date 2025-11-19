@@ -41,16 +41,68 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
     
-    toast({
-      title: "Inicio de Sesión Exitoso",
-      description: "¡Bienvenido de nuevo! Redirigiendo...",
-    });
+    try {
+        const response = await fetch('http://localhost:44335/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                correo: values.email,
+                contrasena: values.password,
+            }),
+        });
 
-    router.push("/profile");
-    // No need to set isLoading to false as we are navigating away
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Store data securely
+            localStorage.setItem('accessToken', data.access_token);
+            localStorage.setItem('refreshToken', data.refresh_token);
+            localStorage.setItem('userEmail', data.email);
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('roleId', data.roleId);
+
+            toast({
+                title: "Inicio de Sesión Exitoso",
+                description: "¡Bienvenido de nuevo!",
+            });
+            
+            // Per requirement: "give a success message but don't redirect"
+            // If redirection is needed later, uncomment the line below.
+            // router.push("/profile");
+
+        } else {
+            const errorData = await response.json();
+            const errorMessage = errorData.message || response.statusText;
+            let userFriendlyMessage = "Ha ocurrido un error inesperado al iniciar sesión. Por favor, inténtelo de nuevo.";
+
+            if (errorMessage.includes("Credenciales inválidas") || errorMessage.includes("Error de autenticación en Keycloak")) {
+                userFriendlyMessage = "Correo o contraseña incorrectos.";
+            } else if (errorMessage.includes("No se pudo obtener el ID del usuario")) {
+                userFriendlyMessage = "Error de configuración. No se pudo obtener la identidad del usuario.";
+            } else if (errorMessage.includes("Error interno en el servidor")) {
+                userFriendlyMessage = "Error interno del servidor. Por favor, intente iniciar sesión más tarde.";
+            } else if (errorMessage.includes("Error inesperado en la infraestructura de Keycloak")) {
+                userFriendlyMessage = "Ocurrió un error inesperado. Por favor, inténtelo de nuevo.";
+            }
+
+            toast({
+                variant: "destructive",
+                title: "Error de Inicio de Sesión",
+                description: userFriendlyMessage,
+            });
+        }
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Error de Conexión",
+            description: "No se pudo conectar con el servidor. Por favor, inténtelo más tarde.",
+        });
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (
