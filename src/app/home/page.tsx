@@ -1,3 +1,4 @@
+
 "use client";
 
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";

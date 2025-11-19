@@ -1,3 +1,4 @@
+
 "use client";
 
 import { ActivityHistory } from "@/components/profile/activity-history";

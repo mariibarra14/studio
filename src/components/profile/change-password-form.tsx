@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,11 +19,11 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 const formSchema = z.object({
-  currentPassword: z.string().min(1, { message: "Current password is required." }),
-  newPassword: z.string().min(8, { message: "New password must be at least 8 characters." }),
+  currentPassword: z.string().min(1, { message: "La contraseña actual es obligatoria." }),
+  newPassword: z.string().min(8, { message: "La nueva contraseña debe tener al menos 8 caracteres." }),
   confirmPassword: z.string(),
 }).refine(data => data.newPassword === data.confirmPassword, {
-  message: "New passwords do not match.",
+  message: "Las contraseñas nuevas no coinciden.",
   path: ["confirmPassword"],
 });
 
@@ -44,8 +45,8 @@ export function ChangePasswordForm() {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     
     toast({
-      title: "Password Updated",
-      description: "Your password has been changed successfully.",
+      title: "Contraseña Actualizada",
+      description: "Su contraseña ha sido cambiada exitosamente.",
     });
 
     setIsLoading(false);
@@ -60,7 +61,7 @@ export function ChangePasswordForm() {
           name="currentPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Current Password</FormLabel>
+              <FormLabel>Contraseña Actual</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -73,7 +74,7 @@ export function ChangePasswordForm() {
           name="newPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>New Password</FormLabel>
+              <FormLabel>Nueva Contraseña</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -86,7 +87,7 @@ export function ChangePasswordForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm New Password</FormLabel>
+              <FormLabel>Confirmar Nueva Contraseña</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -96,7 +97,7 @@ export function ChangePasswordForm() {
         />
         <div className="flex justify-end">
             <Button type="submit" disabled={isLoading}>
-            {isLoading ? <Loader2 className="animate-spin" /> : "Update Password"}
+            {isLoading ? <Loader2 className="animate-spin" /> : "Actualizar Contraseña"}
             </Button>
         </div>
       </form>

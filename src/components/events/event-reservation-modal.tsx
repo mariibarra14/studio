@@ -79,6 +79,7 @@ export function EventReservationModal({
                     <Image
                         src={event.image.imageUrl}
                         alt={event.image.description}
+                        data-ai-hint={event.image.imageHint}
                         fill
                         className="object-cover rounded-l-lg"
                     />
