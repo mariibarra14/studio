@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, Upload, Eye, EyeOff } from "lucide-react";
+import { CalendarIcon, Loader2, Upload, Eye, EyeOff, User, Briefcase } from "lucide-react";
 import { useState, useRef } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -84,7 +84,7 @@ export function SignupForm() {
     router.push("/login");
   }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, fieldChange: (file: File) => void) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -127,8 +127,13 @@ export function SignupForm() {
                   type="file"
                   className="hidden"
                   accept="image/*"
-                  ref={fileInputRef}
-                  onChange={(e) => handleFileChange(e, field.onChange)}
+                  ref={(e) => {
+                    if (photoRef && typeof photoRef.ref === 'function') {
+                      photoRef.ref(e);
+                    }
+                    fileInputRef.current = e;
+                  }}
+                  onChange={handleFileChange}
                 />
                 <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="mr-2 h-4 w-4" />
@@ -192,16 +197,16 @@ export function SignupForm() {
                         <Button
                           variant={"outline"}
                           className={cn(
-                            "w-full pl-3 text-left font-normal",
+                            "w-full justify-start pl-3 text-left font-normal",
                             !field.value && "text-muted-foreground"
                           )}
                         >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
                           {field.value ? (
                             format(field.value, "dd/MM/yyyy", { locale: es })
                           ) : (
                             <span>DD/MM/YYYY</span>
                           )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -264,23 +269,19 @@ export function SignupForm() {
                             type="button"
                             variant={field.value === 'usuario_final' ? 'default' : 'outline'}
                             onClick={() => field.onChange('usuario_final')}
-                            className="h-auto py-4"
+                            className="h-auto py-4 text-base"
                         >
-                            <div className="flex flex-col items-center gap-2">
-                                <span className="text-sm font-bold">Usuario Final</span>
-                                <span className="text-xs text-muted-foreground data-[state=active]:text-primary-foreground">Para comprar tiquetes</span>
-                            </div>
+                          <User className="mr-2 h-5 w-5" />
+                          Usuario Final
                         </Button>
                         <Button
                             type="button"
                             variant={field.value === 'organizador' ? 'default' : 'outline'}
                             onClick={() => field.onChange('organizador')}
-                            className="h-auto py-4"
+                            className="h-auto py-4 text-base"
                         >
-                            <div className="flex flex-col items-center gap-2">
-                                <span className="text-sm font-bold">Organizador</span>
-                                <span className="text-xs text-muted-foreground data-[state=active]:text-primary-foreground">Para crear eventos</span>
-                            </div>
+                          <Briefcase className="mr-2 h-5 w-5" />
+                           Organizador
                         </Button>
                     </div>
                 </FormControl>
@@ -349,3 +350,5 @@ export function SignupForm() {
     </>
   );
 }
+
+    
