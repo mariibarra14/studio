@@ -43,19 +43,17 @@ export function LoginForm() {
     setIsLoading(true);
     
     try {
-        const response = await fetch('http://localhost:44335/login', {
+        const loginResponse = await fetch('http://localhost:44335/login', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 correo: values.email,
                 contrasena: values.password,
             }),
         });
 
-        if (response.ok) {
-            const data = await response.json();
+        if (loginResponse.ok) {
+            const data = await loginResponse.json();
             
             // Store data securely
             localStorage.setItem('accessToken', data.access_token);
@@ -68,14 +66,49 @@ export function LoginForm() {
                 title: "Inicio de Sesión Exitoso",
                 description: "¡Bienvenido de nuevo!",
             });
-            
-            // Per requirement: "give a success message but don't redirect"
-            // If redirection is needed later, uncomment the line below.
-            // router.push("/profile");
+
+            // Publish activity event
+            try {
+                const activityResponse = await fetch('http://localhost:44335/api/Usuarios/publishActivity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${data.access_token}`
+                    },
+                    body: JSON.stringify({
+                        idUsuario: data.userId,
+                        accion: "Log in"
+                    }),
+                });
+
+                if (!activityResponse.ok) {
+                    if (activityResponse.status === 401) {
+                         toast({
+                            variant: "destructive",
+                            title: "Error de sesión",
+                            description: "La sesión no está autorizada. Vuelva a iniciar sesión.",
+                        });
+                        // Do not redirect if unauthorized
+                        setIsLoading(false);
+                        return;
+                    } else {
+                        throw new Error("Failed to publish activity");
+                    }
+                }
+            } catch (activityError) {
+                 toast({
+                    variant: "destructive",
+                    title: "Fallo al registrar actividad.",
+                    description: "La aplicación continuará, pero hubo un fallo interno al registrar la actividad.",
+                });
+            }
+
+            // Redirect after successful login and activity publish attempt
+            router.push("/events");
 
         } else {
-            const errorData = await response.json();
-            const errorMessage = errorData.message || response.statusText;
+            const errorData = await loginResponse.json();
+            const errorMessage = errorData.message || loginResponse.statusText;
             let userFriendlyMessage = "Ha ocurrido un error inesperado al iniciar sesión. Por favor, inténtelo de nuevo.";
 
             if (errorMessage.includes("Credenciales inválidas") || errorMessage.includes("Error de autenticación en Keycloak")) {
@@ -93,6 +126,7 @@ export function LoginForm() {
                 title: "Error de Inicio de Sesión",
                 description: userFriendlyMessage,
             });
+            setIsLoading(false);
         }
     } catch (error) {
         toast({
@@ -100,9 +134,9 @@ export function LoginForm() {
             title: "Error de Conexión",
             description: "No se pudo conectar con el servidor. Por favor, inténtelo más tarde.",
         });
-    } finally {
         setIsLoading(false);
     }
+    // No need to set isLoading to false here if redirection happens
   }
 
   return (
