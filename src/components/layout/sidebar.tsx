@@ -10,9 +10,8 @@ import {
   BarChart2,
   Ticket,
   Menu,
-  Home,
   Settings,
-  LogOut,
+  User,
   CreditCard,
   ClipboardList,
   ConciergeBell,
@@ -38,7 +37,7 @@ export function Sidebar() {
               isSidebarOpen ? "justify-between px-4" : "justify-center"
             )}
           >
-            <Link href="/home" className={cn("flex items-center gap-2 font-semibold", !isSidebarOpen && "hidden")}>
+            <Link href="/events" className={cn("flex items-center gap-2 font-semibold", !isSidebarOpen && "hidden")}>
               <Ticket className="h-6 w-6 text-primary" />
               <span className="">VivoPass</span>
             </Link>
@@ -54,18 +53,6 @@ export function Sidebar() {
           </div>
           <nav className="flex-1 overflow-y-auto px-2 py-4">
             <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/home"
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    !isSidebarOpen && "justify-center"
-                  )}
-                >
-                  <Home className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Inicio</span>
-                </Link>
-              </li>
               <li>
                 <Link
                   href="/events"
@@ -142,7 +129,7 @@ export function Sidebar() {
           </nav>
           <div className="mt-auto border-t p-2">
              <Link
-                href="/profile"
+                href="/settings"
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
                   !isSidebarOpen && "justify-center"
@@ -152,14 +139,14 @@ export function Sidebar() {
                 <span className={cn(!isSidebarOpen && "hidden")}>Ajustes</span>
               </Link>
               <Link
-                  href="/login"
+                  href="/profile"
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
                     !isSidebarOpen && "justify-center"
                   )}
                 >
-                  <LogOut className="h-5 w-5" />
-                  <span className={cn(!isSidebarOpen && "hidden")}>Cerrar Sesión</span>
+                  <User className="h-5 w-5" />
+                  <span className={cn(!isSidebarOpen && "hidden")}>Ver Perfil</span>
               </Link>
           </div>
         </div>
