@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   newPassword: z.string().min(8, { message: "La nueva contraseña debe tener al menos 8 caracteres." }),
@@ -28,6 +29,7 @@ const formSchema = z.object({
 
 export function ChangePasswordForm() {
   const { toast } = useToast();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -44,7 +46,9 @@ export function ChangePasswordForm() {
     setIsLoading(true);
 
     const token = localStorage.getItem('accessToken');
-    if (!token) {
+    const userId = localStorage.getItem('userId');
+
+    if (!token || !userId) {
       toast({
         variant: "destructive",
         title: "Error de sesión",
@@ -72,6 +76,51 @@ export function ChangePasswordForm() {
           description: "Su contraseña ha sido cambiada exitosamente.",
         });
         form.reset();
+
+        // Publish activity event after successful password change
+        try {
+            const activityResponse = await fetch('http://localhost:44335/api/Usuarios/publishActivity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    idUsuario: userId,
+                    accion: "Contraseña Actualizada."
+                }),
+            });
+
+            if (activityResponse.ok) {
+                 toast({
+                    title: "Actividad Registrada y Sesión Cerrada",
+                    description: "Por seguridad, su sesión ha sido cerrada. Por favor, inicie sesión de nuevo.",
+                });
+                // Clear session data on successful activity publish
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('roleId');
+            } else {
+                 let description = "Contraseña cambiada. Fallo menor al registrar su actividad.";
+                 if(activityResponse.status === 401) {
+                    description = "Alerta: Contraseña cambiada, pero falló el registro de actividad.";
+                 }
+                toast({
+                    variant: "destructive",
+                    title: "Fallo al Registrar Actividad",
+                    description: description
+                });
+            }
+        } catch (activityError) {
+             toast({
+                variant: "destructive",
+                title: "Fallo de Conexión en Actividad",
+                description: "Contraseña cambiada. Fallo menor al registrar su actividad.",
+            });
+        }
+
       } else {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.message || "Error inesperado.";
