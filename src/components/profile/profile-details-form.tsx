@@ -41,7 +41,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
   const { refetchUser } = useApp();
   const [isLoading, setIsLoading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(user?.fotoPerfil || null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   
   const [imageToCrop, setImageToCrop] = useState<string | undefined>(undefined);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
@@ -332,5 +332,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
     </>
   );
 }
+
+    
 
     
