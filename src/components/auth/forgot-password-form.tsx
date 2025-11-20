@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor, introduce una dirección de correo electrónico válida." }),
@@ -25,6 +26,7 @@ const formSchema = z.object({
 export function ForgotPasswordForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -35,16 +37,46 @@ export function ForgotPasswordForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
     
-    toast({
-      title: "Enlace de Restablecimiento Enviado",
-      description: `Si existe una cuenta para ${values.email}, recibirás un enlace en breve.`,
-    });
+    try {
+      const response = await fetch(`http://localhost:44335/reset-password/${values.email}`, {
+        method: 'POST',
+      });
 
-    setIsLoading(false);
-    form.reset();
+      const responseText = await response.text();
+
+      if (response.ok) {
+        toast({
+          title: "Correo de Restablecimiento Enviado",
+          description: "Se ha enviado un correo con instrucciones a su dirección. Por favor, revise su bandeja de entrada.",
+        });
+        router.push("/login");
+      } else {
+        let userFriendlyMessage = "Fallo al enviar el correo: No se pudo completar la solicitud. Por favor, inténtelo de nuevo más tarde.";
+
+        if (responseText.includes("User not Found")) {
+          userFriendlyMessage = "Error: El correo electrónico ingresado no está registrado en el sistema.";
+        } else if (response.status === 404) {
+          userFriendlyMessage = "Error: El correo electrónico ingresado no fue proporcionado.";
+        } else if (response.status === 401) {
+          userFriendlyMessage = "Error de Servicio: Hubo un problema de autenticación al procesar la solicitud.";
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "Error al Restablecer Contraseña",
+          description: userFriendlyMessage,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error de Conexión",
+        description: "No se pudo conectar con el servidor. Por favor, inténtelo más tarde.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
