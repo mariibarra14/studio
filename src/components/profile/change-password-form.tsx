@@ -42,15 +42,62 @@ export function ChangePasswordForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    toast({
-      title: "Contraseña Actualizada",
-      description: "Su contraseña ha sido cambiada exitosamente.",
-    });
 
-    setIsLoading(false);
-    form.reset();
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      toast({
+        variant: "destructive",
+        title: "Error de sesión",
+        description: "Su sesión expiró. Vuelva a iniciar sesión e inténtelo de nuevo.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:44335/update-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          contrasena: values.newPassword
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Contraseña Actualizada",
+          description: "Su contraseña ha sido cambiada exitosamente.",
+        });
+        form.reset();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || "Error inesperado.";
+        let userFriendlyMessage = "Error inesperado: No se pudo actualizar la contraseña. Por favor, inténtelo de nuevo más tarde.";
+
+        if (response.status === 401) {
+            userFriendlyMessage = "Error de sesión: Su sesión expiró. Vuelva a iniciar sesión e inténtelo de nuevo.";
+        } else if (errorMessage.includes("Error al actualizar la contraseña en Keycloak")) {
+            userFriendlyMessage = "Error al cambiar contraseña: Hubo un problema con el servicio de autenticación.";
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "Error al Cambiar Contraseña",
+          description: userFriendlyMessage,
+        });
+      }
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Error de Conexión",
+        description: "No se pudo conectar con el servidor. Por favor, intente más tarde.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
