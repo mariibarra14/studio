@@ -120,9 +120,9 @@ export function ActivityHistory() {
   }
 
   return (
-    <div className="border rounded-lg">
+    <div className="relative max-h-96 overflow-y-auto border rounded-lg">
       <Table>
-        <TableHeader>
+        <TableHeader className="sticky top-0 bg-background z-10">
           <TableRow>
             <TableHead>Actividad</TableHead>
             <TableHead className="text-right">Fecha</TableHead>
