@@ -102,6 +102,7 @@ export function ChangePasswordForm() {
                 localStorage.removeItem('userEmail');
                 localStorage.removeItem('userId');
                 localStorage.removeItem('roleId');
+                router.push('/login');
             } else {
                  let description = "Contraseña cambiada. Fallo menor al registrar su actividad.";
                  if(activityResponse.status === 401) {
