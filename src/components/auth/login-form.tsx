@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import { useApp } from "@/context/app-context";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor, introduce una dirección de correo electrónico válida." }),
@@ -30,6 +31,7 @@ export function LoginForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { prefetchUser } = useApp();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,12 +57,8 @@ export function LoginForm() {
         if (loginResponse.ok) {
             const data = await loginResponse.json();
             
-            // Store data securely
-            localStorage.setItem('accessToken', data.access_token);
-            localStorage.setItem('refreshToken', data.refresh_token);
-            localStorage.setItem('userEmail', data.email);
-            localStorage.setItem('userId', data.userId);
-            localStorage.setItem('roleId', data.roleId);
+            // Prefetch user data before redirecting
+            await prefetchUser(data.access_token, data.userId, data.roleId);
 
             toast({
                 title: "Inicio de Sesión Exitoso",
@@ -88,7 +86,6 @@ export function LoginForm() {
                             title: "Error de sesión",
                             description: "La sesión no está autorizada. Vuelva a iniciar sesión.",
                         });
-                        // Do not redirect if unauthorized
                         setIsLoading(false);
                         return;
                     } else {
@@ -107,7 +104,6 @@ export function LoginForm() {
                 });
             }
 
-            // Redirect after successful login and activity publish attempt
             router.push("/events");
 
         } else {

@@ -23,9 +23,13 @@ type AppContextType = {
   user: User | null;
   isLoadingUser: boolean;
   refetchUser: () => Promise<void>;
+  prefetchUser: (token: string, userId: string, roleId: string) => Promise<void>;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+// Store prefetched data temporarily
+let prefetchedUserData: User | null = null;
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -33,62 +37,85 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const { toast } = useToast();
   
-  const fetchUserAndRole = useCallback(async () => {
-    setIsLoadingUser(true);
+  const fetchUserAndRole = useCallback(async (
+    token: string,
+    userId: string,
+    roleId: string,
+    isPrefetch: boolean = false
+  ): Promise<User | null> => {
+    if (!isPrefetch) setIsLoadingUser(true);
+    
+    try {
+      const userResponse = await fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!userResponse.ok) {
+        throw new Error(`User fetch failed with status ${userResponse.status}`);
+      }
+      const userData = await userResponse.json();
+
+      let finalUserData: User = { ...userData, nombreRol: userData.rol };
+
+      if (roleId) {
+        const roleResponse = await fetch(`http://localhost:44335/api/Usuarios/getRolById?id=${roleId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (roleResponse.ok) {
+          const roleData = await roleResponse.json();
+          finalUserData = { ...userData, nombreRol: roleData.nombreRol };
+        }
+      }
+      
+      return finalUserData;
+
+    } catch (error) {
+      if (!isPrefetch) {
+        toast({
+          variant: "destructive",
+          title: "Error de Carga de Perfil",
+          description: "No se pudo cargar la información del usuario. Por favor, recargue la página.",
+        });
+      }
+      return null;
+    } finally {
+      if (!isPrefetch) setIsLoadingUser(false);
+    }
+  }, [toast]);
+
+  const prefetchUser = async (token: string, userId: string, roleId: string) => {
+    localStorage.setItem('accessToken', token);
+    localStorage.setItem('userId', userId);
+    localStorage.setItem('roleId', roleId);
+    
+    const prefetched = await fetchUserAndRole(token, userId, roleId, true);
+    if (prefetched) {
+      prefetchedUserData = prefetched;
+    }
+  };
+
+  const loadUser = useCallback(async () => {
+    if (prefetchedUserData) {
+      setUser(prefetchedUserData);
+      setIsLoadingUser(false);
+      prefetchedUserData = null; // Clear after use
+      return;
+    }
+
     const token = localStorage.getItem('accessToken');
     const userId = localStorage.getItem('userId');
     const roleId = localStorage.getItem('roleId');
 
-    if (token && userId) {
-      try {
-        const userResponse = await fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!userResponse.ok) {
-          const errorText = await userResponse.text();
-          let friendlyMessage = "Error al cargar el perfil.";
-          if (userResponse.status === 401) friendlyMessage = "Error de autorización: Su sesión expiró. Por favor, inicie sesión de nuevo.";
-          else if (userResponse.status === 400) friendlyMessage = "Error de datos: Faltó el identificador del usuario. Vuelva a iniciar sesión si el problema persiste.";
-          else if (errorText.includes("El usuario especificado no existe")) friendlyMessage = "Usuario no encontrado. El perfil no existe en la base de datos.";
-          
-          toast({ variant: "destructive", title: "Error de Perfil", description: friendlyMessage });
-          setUser(null);
-          setIsLoadingUser(false);
-          return;
-        }
-
-        const userData = await userResponse.json();
-
-        if (roleId) {
-          const roleResponse = await fetch(`http://localhost:44335/api/Usuarios/getRolById?id=${roleId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-
-          if (roleResponse.ok) {
-            const roleData = await roleResponse.json();
-            setUser({ ...userData, nombreRol: roleData.nombreRol });
-          } else {
-            toast({ variant: "destructive", title: "Error de Rol", description: "No se pudo cargar el nombre del rol, se usará el ID." });
-            setUser({ ...userData, nombreRol: userData.rol });
-          }
-        } else {
-           setUser({ ...userData, nombreRol: userData.rol });
-        }
-
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error de Conexión",
-          description: "No se pudo conectar con el servidor para cargar el perfil.",
-        });
-        setUser(null);
+    if (token && userId && roleId) {
+      const loadedUser = await fetchUserAndRole(token, userId, roleId);
+      if (loadedUser) {
+        setUser(loadedUser);
       }
+    } else {
+      setIsLoadingUser(false);
     }
-    setIsLoadingUser(false);
-  }, [toast]);
+  }, [fetchUserAndRole]);
 
 
   useEffect(() => {
@@ -102,21 +129,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
 
-    fetchUserAndRole();
+    loadUser();
     
     return () => window.removeEventListener('resize', checkScreenSize);
-  }, [fetchUserAndRole]);
+  }, [loadUser]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => !prev);
   };
   
   const refetchUser = async () => {
-    await fetchUserAndRole();
+    await loadUser();
   };
 
   return (
-    <AppContext.Provider value={{ isSidebarOpen, toggleSidebar, user, isLoadingUser, refetchUser }}>
+    <AppContext.Provider value={{ isSidebarOpen, toggleSidebar, user, isLoadingUser, refetchUser, prefetchUser }}>
       {children}
     </AppContext.Provider>
   );
