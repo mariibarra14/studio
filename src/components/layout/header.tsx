@@ -15,19 +15,61 @@ import {
 import { User, LogOut, Ticket, Menu, Gem } from "lucide-react";
 import { useApp } from "@/context/app-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export function Header() {
   const { toggleSidebar, user, isLoadingUser } = useApp();
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const handleLogout = () => {
-    // Clear all relevant local storage items
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('roleId');
-    // We can also just clear the whole local storage if the app doesn't store anything else
-    // localStorage.clear();
+  const handleLogout = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault(); // Prevent the Link from navigating immediately
+    
+    const token = localStorage.getItem('accessToken');
+    const userId = localStorage.getItem('userId');
+
+    try {
+      if (token && userId) {
+        const activityResponse = await fetch('http://localhost:44335/api/Usuarios/publishActivity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                idUsuario: userId,
+                accion: "Log out."
+            }),
+        });
+
+        if (!activityResponse.ok) {
+           let description = "Cierre de sesión: Hubo un fallo menor al registrar su actividad.";
+           if(activityResponse.status === 401) {
+                description = "Cierre de sesión forzado: Fallo al registrar la actividad.";
+           }
+            toast({
+                variant: "destructive",
+                title: "Fallo al Registrar Actividad",
+                description: description
+            });
+        }
+      }
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Fallo de Conexión",
+            description: "No se pudo registrar la actividad de cierre de sesión. Se procederá a cerrar la sesión."
+        });
+    } finally {
+        // Always clear local storage and redirect
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('roleId');
+        router.push('/login');
+    }
   };
 
 

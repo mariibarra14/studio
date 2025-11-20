@@ -92,7 +92,11 @@ export function LoginForm() {
                         setIsLoading(false);
                         return;
                     } else {
-                        throw new Error("Failed to publish activity");
+                        toast({
+                            variant: "destructive",
+                            title: "Fallo al registrar actividad.",
+                            description: "La aplicación continuará, pero hubo un fallo interno al registrar la actividad.",
+                        });
                     }
                 }
             } catch (activityError) {
@@ -136,7 +140,6 @@ export function LoginForm() {
         });
         setIsLoading(false);
     }
-    // No need to set isLoading to false here if redirection happens
   }
 
   return (
