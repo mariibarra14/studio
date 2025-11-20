@@ -79,7 +79,7 @@ export function Header() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem disabled>
                          <Gem className="mr-2 h-4 w-4" />
-                         <span>{user.rol}</span>
+                         <span>{user.nombreRol || user.rol}</span>
                     </DropdownMenuItem>
                 </>
             ) : (
@@ -103,4 +103,3 @@ export function Header() {
     </header>
   );
 }
-

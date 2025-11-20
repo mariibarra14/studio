@@ -14,6 +14,7 @@ export type User = {
   direccion: string;
   fotoPerfil: string;
   rol: string;
+  nombreRol: string;
 };
 
 type AppContextType = {
@@ -42,40 +43,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
 
-    const fetchUser = async () => {
+    const fetchUserAndRole = async () => {
       const token = localStorage.getItem('accessToken');
       const userId = localStorage.getItem('userId');
+      const roleId = localStorage.getItem('roleId');
 
       if (token && userId) {
         try {
-          const response = await fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${userId}`, {
+          const userResponse = await fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${userId}`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
           });
 
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
-          } else {
-            const errorText = await response.text();
+          if (!userResponse.ok) {
+            // Handle user fetch error
+            const errorText = await userResponse.text();
             let friendlyMessage = "Error al cargar el perfil.";
-
-            if (response.status === 401) {
-              friendlyMessage = "Error de autorización: Su sesión expiró. Por favor, inicie sesión de nuevo.";
-            } else if (response.status === 400) {
-              friendlyMessage = "Error de datos: Faltó el identificador del usuario. Vuelva a iniciar sesión si el problema persiste.";
-            } else if (errorText.includes("El usuario especificado no existe")) {
-              friendlyMessage = "Usuario no encontrado. El perfil no existe en la base de datos.";
-            }
+            if (userResponse.status === 401) friendlyMessage = "Error de autorización: Su sesión expiró. Por favor, inicie sesión de nuevo.";
+            else if (userResponse.status === 400) friendlyMessage = "Error de datos: Faltó el identificador del usuario. Vuelva a iniciar sesión si el problema persiste.";
+            else if (errorText.includes("El usuario especificado no existe")) friendlyMessage = "Usuario no encontrado. El perfil no existe en la base de datos.";
             
-            toast({
-              variant: "destructive",
-              title: "Error de Perfil",
-              description: friendlyMessage,
-            });
+            toast({ variant: "destructive", title: "Error de Perfil", description: friendlyMessage });
             setUser(null);
+            setIsLoadingUser(false);
+            return;
           }
+
+          const userData = await userResponse.json();
+
+          // Fetch Role Name
+          if (roleId) {
+            const roleResponse = await fetch(`http://localhost:44335/api/Usuarios/getRolById?id=${roleId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (roleResponse.ok) {
+              const roleData = await roleResponse.json();
+              // Combine user and role data
+              setUser({ ...userData, nombreRol: roleData.nombreRol });
+            } else {
+              // Handle role fetch error but still set user data
+              toast({ variant: "destructive", title: "Error de Rol", description: "No se pudo cargar el nombre del rol, se usará el ID." });
+              setUser({ ...userData, nombreRol: userData.rol }); // Fallback to roleId
+            }
+          } else {
+             setUser({ ...userData, nombreRol: userData.rol }); // Fallback if no roleId in storage
+          }
+
         } catch (error) {
           toast({
             variant: "destructive",
@@ -88,7 +103,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsLoadingUser(false);
     };
 
-    fetchUser();
+    fetchUserAndRole();
     
     return () => window.removeEventListener('resize', checkScreenSize);
   }, [toast]);

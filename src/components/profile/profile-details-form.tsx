@@ -91,8 +91,8 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
                         <Input value={user.correo} readOnly disabled />
                     </div>
                     <div className="space-y-2">
-                        <FormLabel>Fecha de Nacimiento</FormLabel>
-                        <Input value={format(new Date(user.fechaNacimiento), "dd/MM/yyyy")} readOnly disabled />
+                        <FormLabel>Rol de Usuario</FormLabel>
+                        <Input value={user.nombreRol || user.rol} readOnly disabled />
                     </div>
                 </div>
                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -123,19 +123,25 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
                         )}
                     />
                 </div>
-                <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Número de Teléfono</FormLabel>
-                    <FormControl>
-                        <Input type="tel" placeholder="04142869306" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Número de Teléfono</FormLabel>
+                        <FormControl>
+                            <Input type="tel" placeholder="04142869306" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <div className="space-y-2">
+                        <FormLabel>Fecha de Nacimiento</FormLabel>
+                        <Input value={format(new Date(user.fechaNacimiento), "dd/MM/yyyy")} readOnly disabled />
+                    </div>
+                </div>
                 <FormField
                 control={form.control}
                 name="address"

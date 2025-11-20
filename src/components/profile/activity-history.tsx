@@ -61,7 +61,7 @@ export function ActivityHistory() {
       }
 
       try {
-        const response = await fetch(`http://localhost:44335/api/Usuarios/activity?userId=${userId}`, {
+        const response = await fetch(`http://localhost:44335/api/Usuarios/activity?Id=${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
