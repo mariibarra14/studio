@@ -112,7 +112,45 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
           title: "Perfil Actualizado",
           description: "¡Su información ha sido actualizada con éxito!",
         });
-        await refetchUser(); // Trigger data refresh
+        await refetchUser();
+
+        // Publish activity event
+        try {
+            const activityResponse = await fetch('http://localhost:44335/api/Usuarios/publishActivity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    idUsuario: userId,
+                    accion: "Datos del perfil modificados."
+                }),
+            });
+
+            if (activityResponse.ok) {
+                 toast({
+                    title: "Actividad Registrada",
+                    description: "La modificación del perfil se ha registrado en su historial.",
+                });
+            } else {
+                if (activityResponse.status === 401) {
+                    toast({
+                        variant: "destructive",
+                        title: "Error de sesión",
+                        description: "No se pudo registrar la actividad. Por favor, vuelva a iniciar sesión.",
+                    });
+                } else {
+                    throw new Error("Failed to publish activity");
+                }
+            }
+        } catch (activityError) {
+             toast({
+                variant: "destructive",
+                title: "Fallo menor",
+                description: "El perfil se guardó, pero no se pudo registrar la actividad de auditoría.",
+            });
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.message || response.statusText;
@@ -294,3 +332,5 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
     </>
   );
 }
+
+    
