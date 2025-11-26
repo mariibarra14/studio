@@ -28,6 +28,7 @@ const CARD_ELEMENT_OPTIONS: StripeCardElementOptions = {
       iconColor: "hsl(var(--destructive))",
     },
   },
+  hidePostalCode: true,
 };
 
 type AddPaymentMethodFormProps = {
