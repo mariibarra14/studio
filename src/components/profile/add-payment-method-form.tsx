@@ -49,6 +49,16 @@ export function AddPaymentMethodForm({ user, onSuccessfulAdd }: AddPaymentMethod
     setIsLoading(true);
     setErrorMessage(null);
 
+    const token = localStorage.getItem('accessToken');
+    const userId = localStorage.getItem('userId');
+
+    if (!token || !userId) {
+        setErrorMessage("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
+        setIsLoading(false);
+        router.push("/login");
+        return;
+    }
+
     if (!stripe || !elements) {
       setErrorMessage("Stripe no se ha cargado correctamente. Intente de nuevo.");
       setIsLoading(false);
@@ -75,16 +85,7 @@ export function AddPaymentMethodForm({ user, onSuccessfulAdd }: AddPaymentMethod
     }
 
     const idMPagoStripe = paymentMethod.id;
-    const token = localStorage.getItem('accessToken');
-    const userId = localStorage.getItem('userId');
-
-    if (!token || !userId) {
-        setErrorMessage("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
-        setIsLoading(false);
-        router.push("/login");
-        return;
-    }
-
+    
     // 2. Send to Backend API
     try {
       const response = await fetch('http://localhost:44335/api/Pagos/agregarMPago', {
