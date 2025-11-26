@@ -65,45 +65,6 @@ export function LoginForm() {
                 description: "¡Bienvenido de nuevo!",
             });
 
-            // Publish activity event
-            try {
-                const activityResponse = await fetch('http://localhost:44335/api/Usuarios/publishActivity', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${data.access_token}`
-                    },
-                    body: JSON.stringify({
-                        idUsuario: data.userId,
-                        accion: "Log in"
-                    }),
-                });
-
-                if (!activityResponse.ok) {
-                    if (activityResponse.status === 401) {
-                         toast({
-                            variant: "destructive",
-                            title: "Error de sesión",
-                            description: "La sesión no está autorizada. Vuelva a iniciar sesión.",
-                        });
-                        setIsLoading(false);
-                        return;
-                    } else {
-                        toast({
-                            variant: "destructive",
-                            title: "Fallo al registrar actividad.",
-                            description: "La aplicación continuará, pero hubo un fallo interno al registrar la actividad.",
-                        });
-                    }
-                }
-            } catch (activityError) {
-                 toast({
-                    variant: "destructive",
-                    title: "Fallo al registrar actividad.",
-                    description: "La aplicación continuará, pero hubo un fallo interno al registrar la actividad.",
-                });
-            }
-
             router.push("/events");
 
         } else {

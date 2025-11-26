@@ -73,54 +73,16 @@ export function ChangePasswordForm() {
       if (response.ok) {
         toast({
           title: "Contraseña Actualizada",
-          description: "Su contraseña ha sido cambiada exitosamente.",
+          description: "Su contraseña ha sido cambiada exitosamente. Por seguridad, su sesión ha sido cerrada. Por favor, inicie sesión de nuevo.",
         });
         form.reset();
 
-        // Publish activity event after successful password change
-        try {
-            const activityResponse = await fetch('http://localhost:44335/api/Usuarios/publishActivity', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    idUsuario: userId,
-                    accion: "Contraseña Actualizada."
-                }),
-            });
-
-            if (activityResponse.ok) {
-                 toast({
-                    title: "Actividad Registrada y Sesión Cerrada",
-                    description: "Por seguridad, su sesión ha sido cerrada. Por favor, inicie sesión de nuevo.",
-                });
-                // Clear session data on successful activity publish
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('userEmail');
-                localStorage.removeItem('userId');
-                localStorage.removeItem('roleId');
-                router.push('/login');
-            } else {
-                 let description = "Contraseña cambiada. Fallo menor al registrar su actividad.";
-                 if(activityResponse.status === 401) {
-                    description = "Alerta: Contraseña cambiada, pero falló el registro de actividad.";
-                 }
-                toast({
-                    variant: "destructive",
-                    title: "Fallo al Registrar Actividad",
-                    description: description
-                });
-            }
-        } catch (activityError) {
-             toast({
-                variant: "destructive",
-                title: "Fallo de Conexión en Actividad",
-                description: "Contraseña cambiada. Fallo menor al registrar su actividad.",
-            });
-        }
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('roleId');
+        router.push('/login');
 
       } else {
         const errorData = await response.json().catch(() => ({}));

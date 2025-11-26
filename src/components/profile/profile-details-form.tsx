@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import type { User } from "@/context/app-context";
@@ -114,43 +114,6 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
         });
         await refetchUser();
 
-        // Publish activity event
-        try {
-            const activityResponse = await fetch('http://localhost:44335/api/Usuarios/publishActivity', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    idUsuario: userId,
-                    accion: "Datos del perfil modificados."
-                }),
-            });
-
-            if (activityResponse.ok) {
-                 toast({
-                    title: "Actividad Registrada",
-                    description: "La modificación del perfil se ha registrado en su historial.",
-                });
-            } else {
-                if (activityResponse.status === 401) {
-                    toast({
-                        variant: "destructive",
-                        title: "Error de sesión",
-                        description: "No se pudo registrar la actividad. Por favor, vuelva a iniciar sesión.",
-                    });
-                } else {
-                    throw new Error("Failed to publish activity");
-                }
-            }
-        } catch (activityError) {
-             toast({
-                variant: "destructive",
-                title: "Fallo menor",
-                description: "El perfil se guardó, pero no se pudo registrar la actividad de auditoría.",
-            });
-        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.message || response.statusText;
@@ -200,6 +163,11 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
     setPhotoPreview(URL.createObjectURL(croppedFile));
     setIsCropperOpen(false);
   };
+  
+  const combinedRef = useCallback((element: HTMLInputElement) => {
+    photoRef.ref(element);
+    fileInputRef.current = element;
+  }, [photoRef]);
 
   const getInitials = (firstName?: string, lastName?: string) => {
     return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
@@ -309,10 +277,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
                               <input
                                 type="file"
                                 className="hidden"
-                                ref={(e) => {
-                                  photoRef.ref(e);
-                                  fileInputRef.current = e;
-                                }}
+                                ref={combinedRef}
                                 accept="image/*"
                                 onChange={handleFileChange}
                               />
@@ -332,7 +297,3 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
     </>
   );
 }
-
-    
-
-    
