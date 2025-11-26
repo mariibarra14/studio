@@ -3,7 +3,7 @@
 
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { Button } from "@/components/ui/button";
-import { Filter, Search, AlertCircle, Calendar, MapPin } from "lucide-react";
+import { Filter, Search, AlertCircle, Calendar, MapPin, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import {
   Card,
@@ -123,12 +123,6 @@ export default function EventsPage() {
               <Filter className="mr-2 h-4 w-4" />
               Filtrar
             </Button>
-            {(userRole === 'organizador' || userRole === 'administrador') && (
-              <Button className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Añadir Evento
-              </Button>
-            )}
           </div>
         </div>
         
