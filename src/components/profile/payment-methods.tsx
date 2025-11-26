@@ -25,6 +25,18 @@ import { Badge } from "@/components/ui/badge";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { AddPaymentMethodForm } from "./add-payment-method-form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 
 type PaymentMethod = {
   idMPago: string;
@@ -86,7 +98,8 @@ export function PaymentMethods() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useApp();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isSettingPrimary, setIsSettingPrimary] = useState(false);
+  const [isSettingPrimary, setIsSettingPrimary] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const fetchPaymentMethods = useCallback(async () => {
     setIsLoading(true);
@@ -134,24 +147,49 @@ export function PaymentMethods() {
     fetchPaymentMethods();
   };
 
-  const handleRemove = (id: string) => {
-    // API call to delete would go here
-    setPaymentMethods(prev => prev.filter(pm => pm.idMPago !== id));
-    toast({
-      title: "Método de Pago Eliminado",
-      description: `La tarjeta seleccionada ha sido eliminada.`,
-      variant: "destructive"
-    });
+  const handleRemove = async (id: string) => {
+    setIsDeleting(id);
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        toast({ variant: "destructive", title: "Error", description: "Tu sesión ha expirado." });
+        setIsDeleting(null);
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:44335/api/Pagos/eliminarMPago?idMPago=${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            toast({
+                title: "Método de Pago Eliminado",
+                description: `La tarjeta seleccionada ha sido eliminada.`
+            });
+            setPaymentMethods(prev => prev.filter(pm => pm.idMPago !== id));
+        } else {
+            let errorMessage = "No se pudo eliminar el método de pago.";
+            if (response.status === 401) errorMessage = "Tu sesión ha expirado.";
+            if (response.status === 404) errorMessage = "El método de pago no fue encontrado.";
+            toast({ variant: "destructive", title: "Error", description: errorMessage });
+        }
+    } catch (error) {
+        toast({ variant: "destructive", title: "Error de Conexión", description: "No se pudo conectar al servidor." });
+    } finally {
+        setIsDeleting(null);
+    }
   };
 
+
   const handleSetPrimary = async (paymentMethodId: string) => {
-    setIsSettingPrimary(true);
+    setIsSettingPrimary(paymentMethodId);
     const userId = localStorage.getItem('userId');
     const token = localStorage.getItem('accessToken');
 
     if (!userId || !token) {
         toast({ variant: "destructive", title: "Error", description: "Tu sesión ha expirado." });
-        setIsSettingPrimary(false);
+        setIsSettingPrimary(null);
         return;
     }
 
@@ -190,7 +228,7 @@ export function PaymentMethods() {
             description: "No se pudo conectar con el servidor.",
         });
     } finally {
-        setIsSettingPrimary(false);
+        setIsSettingPrimary(null);
     }
   };
 
@@ -285,19 +323,33 @@ export function PaymentMethods() {
                       </div>
                       <DialogFooter className="sm:justify-between flex-wrap gap-2">
                       {!method.predeterminado && (
-                          <DialogClose asChild>
-                              <Button variant="outline" onClick={() => handleSetPrimary(method.idMPago)} disabled={isSettingPrimary}>
-                                  {isSettingPrimary ? <Loader2 className="animate-spin mr-2"/> : null}
-                                  Marcar como Principal
-                              </Button>
-                          </DialogClose>
-                      )}
-                      <DialogClose asChild>
-                          <Button variant="destructive" onClick={() => handleRemove(method.idMPago)}>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Eliminar Tarjeta
+                          <Button variant="outline" onClick={() => handleSetPrimary(method.idMPago)} disabled={!!isSettingPrimary}>
+                              {isSettingPrimary === method.idMPago ? <Loader2 className="animate-spin mr-2"/> : <Star className="mr-2 h-4 w-4" />}
+                              Marcar como Principal
                           </Button>
-                      </DialogClose>
+                      )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" disabled={!!isDeleting}>
+                            {isDeleting === method.idMPago ? <Loader2 className="animate-spin mr-2" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                            Eliminar Tarjeta
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta acción es permanente y eliminará tu método de pago. No podrás deshacer esta acción.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleRemove(method.idMPago)}>
+                                    Continuar
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                       </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -343,3 +395,5 @@ const AddPaymentMethodDialog = ({ onSuccessfulAdd }: { onSuccessfulAdd: () => vo
         </DialogContent>
     );
 };
+
+    
