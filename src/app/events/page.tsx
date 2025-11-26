@@ -3,7 +3,7 @@
 
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { Button } from "@/components/ui/button";
-import { Filter, Search, AlertCircle } from "lucide-react";
+import { Filter, Search, AlertCircle, Calendar, MapPin } from "lucide-react";
 import Image from "next/image";
 import {
   Card,
@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Calendar, MapPin } from "lucide-react";
 import { EventReservationModal } from "@/components/events/event-reservation-modal";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -124,6 +123,12 @@ export default function EventsPage() {
               <Filter className="mr-2 h-4 w-4" />
               Filtrar
             </Button>
+            {(userRole === 'organizador' || userRole === 'administrador') && (
+              <Button className="w-full sm:w-auto">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Añadir Evento
+              </Button>
+            )}
           </div>
         </div>
         
