@@ -22,6 +22,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/context/app-context";
 import { Badge } from "@/components/ui/badge";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import { AddPaymentMethodForm } from "./add-payment-method-form";
 
 type PaymentMethod = {
   idMPago: string;
@@ -32,6 +35,9 @@ type PaymentMethod = {
   predeterminado: boolean;
   fechaRegistro: string;
 };
+
+const STRIPE_PUBLIC_KEY = "pk_test_51RbrjtRKEQAOXjwp02QqVDCwVbfw6y8NM7pW5QkxO25bm1WY7qAlTcBB8yvjW7ABumuQodttdrB7VZNSrvRmN9RO00ITLC6ytk";
+const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 const formatCardBrand = (brand: string) => {
     const lowerBrand = brand.toLowerCase();
@@ -79,6 +85,7 @@ export function PaymentMethods() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useApp();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const fetchPaymentMethods = useCallback(async () => {
     setIsLoading(true);
@@ -120,6 +127,11 @@ export function PaymentMethods() {
   useEffect(() => {
     fetchPaymentMethods();
   }, [fetchPaymentMethods]);
+  
+  const handleSuccess = () => {
+    setIsAddDialogOpen(false);
+    fetchPaymentMethods();
+  };
 
   const handleRemove = (id: string) => {
     // API call to delete would go here
@@ -179,14 +191,14 @@ export function PaymentMethods() {
               Aún no tienes métodos de pago
             </p>
             <p className="text-sm text-muted-foreground mb-6">Agrega una tarjeta para realizar tus compras de forma más rápida.</p>
-            <Dialog>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
                     <Button>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Agregar Primer Método
                     </Button>
                 </DialogTrigger>
-                <AddPaymentMethodDialog />
+                <AddPaymentMethodDialog onSuccessfulAdd={handleSuccess} />
             </Dialog>
         </div>
     );
@@ -197,107 +209,95 @@ export function PaymentMethods() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {paymentMethods.map((method) => (
                 <Dialog key={method.idMPago}>
-                <DialogTrigger asChild>
-                    <button className={cn(
-                        "relative w-full max-w-sm rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 justify-self-center",
-                        method.predeterminado && "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                        )}>
-                        <CardComponent method={method} />
-                        {method.predeterminado && (
-                            <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                                <Star className="h-3 w-3" />
-                                Principal
-                            </div>
-                        )}
-                    </button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                    <DialogTitle>Detalles de la Tarjeta</DialogTitle>
-                    <DialogDescription>Detalles para tu tarjeta {formatCardBrand(method.marca)} que termina en {method.ultimos4}.</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label>Número de Tarjeta</Label>
-                            <Input value={`•••• •••• •••• ${method.ultimos4}`} readOnly />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Fecha de Expiración</Label>
-                                <Input value={`${method.mesExpiracion}/${method.anioExpiracion}`} readOnly />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>CVC</Label>
-                                <Input value="•••" readOnly />
-                            </div>
-                        </div>
-                    </div>
-                    <DialogFooter className="sm:justify-between flex-wrap gap-2">
-                    {!method.predeterminado && (
-                        <DialogClose asChild>
-                            <Button variant="outline" onClick={() => handleSetPrimary(method.idMPago)}>Marcar como Principal</Button>
-                        </DialogClose>
-                    )}
-                    <DialogClose asChild>
-                        <Button variant="destructive" onClick={() => handleRemove(method.idMPago)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Eliminar Tarjeta
-                        </Button>
-                    </DialogClose>
-                    </DialogFooter>
-                </DialogContent>
+                  <DialogTrigger asChild>
+                      <button className={cn(
+                          "relative w-full max-w-sm rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 justify-self-center",
+                          method.predeterminado && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                          )}>
+                          <CardComponent method={method} />
+                          {method.predeterminado && (
+                              <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                                  <Star className="h-3 w-3" />
+                                  Principal
+                              </div>
+                          )}
+                      </button>
+                  </DialogTrigger>
+                  <DialogContent>
+                      <DialogHeader>
+                      <DialogTitle>Detalles de la Tarjeta</DialogTitle>
+                      <DialogDescription>Detalles para tu tarjeta {formatCardBrand(method.marca)} que termina en {method.ultimos4}.</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                              <Label>Número de Tarjeta</Label>
+                              <Input value={`•••• •••• •••• ${method.ultimos4}`} readOnly />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                  <Label>Fecha de Expiración</Label>
+                                  <Input value={`${String(method.mesExpiracion).padStart(2, '0')}/${String(method.anioExpiracion).slice(-2)}`} readOnly />
+                              </div>
+                              <div className="space-y-2">
+                                  <Label>CVC</Label>
+                                  <Input value="•••" readOnly />
+                              </div>
+                          </div>
+                      </div>
+                      <DialogFooter className="sm:justify-between flex-wrap gap-2">
+                      {!method.predeterminado && (
+                          <DialogClose asChild>
+                              <Button variant="outline" onClick={() => handleSetPrimary(method.idMPago)}>Marcar como Principal</Button>
+                          </DialogClose>
+                      )}
+                      <DialogClose asChild>
+                          <Button variant="destructive" onClick={() => handleRemove(method.idMPago)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Eliminar Tarjeta
+                          </Button>
+                      </DialogClose>
+                      </DialogFooter>
+                  </DialogContent>
                 </Dialog>
             ))}
         </div>
 
-        <Dialog>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
                 <Button variant="outline" className="w-full">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Agregar Nuevo Método
                 </Button>
             </DialogTrigger>
-            <AddPaymentMethodDialog />
+            <AddPaymentMethodDialog onSuccessfulAdd={handleSuccess} />
         </Dialog>
     </div>
   );
 }
 
-const AddPaymentMethodDialog = () => (
-    <DialogContent>
-        <DialogHeader>
-            <DialogTitle>Agregar Nuevo Método de Pago</DialogTitle>
-            <DialogDescription>Ingresa los detalles de tu nueva tarjeta.</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-            <div className="space-y-2">
-                <Label htmlFor="new-card-number">Número de Tarjeta</Label>
-                <Input id="new-card-number" placeholder="•••• •••• •••• ••••" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="new-expiry-date">Fecha de Expiración</Label>
-                    <Input id="new-expiry-date" placeholder="MM/AA" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="new-cvc">CVC</Label>
-                    <Input id="new-cvc" placeholder="•••" />
-                </div>
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="new-billing-address">Dirección de Facturación</Label>
-                <Input id="new-billing-address" placeholder="123 Calle Principal, Cualquier Ciudad" />
-            </div>
-        </div>
-        <DialogFooter>
-            <DialogClose asChild>
-                <Button type="button" variant="secondary">Cancelar</Button>
-            </DialogClose>
-            <Button type="submit">Agregar Tarjeta</Button>
-        </DialogFooter>
-    </DialogContent>
-);
+const AddPaymentMethodDialog = ({ onSuccessfulAdd }: { onSuccessfulAdd: () => void }) => {
+    const { user } = useApp();
 
+    if (!user) {
+        return (
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Error</DialogTitle>
+                    <DialogDescription>Debe iniciar sesión para agregar un método de pago.</DialogDescription>
+                </DialogHeader>
+            </DialogContent>
+        );
+    }
     
-
-    
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Agregar Nuevo Método de Pago</DialogTitle>
+                <DialogDescription>Ingresa los detalles de tu nueva tarjeta. Tu información de pago es procesada de forma segura por Stripe.</DialogDescription>
+            </DialogHeader>
+            <Elements stripe={stripePromise}>
+                <AddPaymentMethodForm user={user} onSuccessfulAdd={onSuccessfulAdd} />
+            </Elements>
+        </DialogContent>
+    );
+};
