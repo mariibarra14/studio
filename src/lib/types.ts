@@ -32,9 +32,9 @@ export type Venue = {
   ubicacion: string;
   ciudad: string;
   estado: string;
-  aforo: number;
   descripcion: string;
-  imagenUrl: string;
+  capacidadTotal: number;
+  activo: boolean;
 };
 
 export type Organizer = {
