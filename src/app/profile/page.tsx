@@ -13,7 +13,9 @@ import { useApp } from "@/context/app-context";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePage() {
-  const { user, isLoadingUser } = useApp();
+  const { user, isLoadingUser, userRole } = useApp();
+
+  const showPaymentMethods = userRole === 'usuario_final' || userRole === 'administrador';
 
   return (
     <AuthenticatedLayout>
@@ -25,10 +27,12 @@ export default function ProfilePage() {
               <User className="mr-2 h-4 w-4" />
               Perfil
             </TabsTrigger>
-            <TabsTrigger value="payment">
-              <CreditCard className="mr-2 h-4 w-4" />
-              Métodos de Pago
-            </TabsTrigger>
+            {showPaymentMethods && (
+              <TabsTrigger value="payment">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Métodos de Pago
+              </TabsTrigger>
+            )}
             <TabsTrigger value="activity">
               <History className="mr-2 h-4 w-4" />
               Historial de Actividad
@@ -69,19 +73,21 @@ export default function ProfilePage() {
               </Card>
             </div>
           </TabsContent>
-          <TabsContent value="payment">
-            <div className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Métodos de Pago</CardTitle>
-                  <CardDescription>Administre sus métodos de pago guardados.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <PaymentMethods />
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+          {showPaymentMethods && (
+            <TabsContent value="payment">
+              <div className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Métodos de Pago</CardTitle>
+                    <CardDescription>Administre sus métodos de pago guardados.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <PaymentMethods />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          )}
           <TabsContent value="activity">
             <div className="mt-6">
               <Card>
