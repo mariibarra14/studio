@@ -21,13 +21,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/context/app-context";
+import { Badge } from "@/components/ui/badge";
 
 type PaymentMethod = {
-  id: string;
+  idMPago: string;
   marca: string;
   ultimos4: string;
   mesExpiracion: string;
-  anioExpiracion: string;
+  anioExpiracion: number;
   predeterminado: boolean;
   fechaRegistro: string;
 };
@@ -58,7 +59,7 @@ const CardComponent = ({ method }: { method: PaymentMethod }) => {
                     </div>
                     <div>
                         <p className="text-xs uppercase">Expira</p>
-                        <p className="text-sm font-medium">{method.mesExpiracion}/{method.anioExpiracion.slice(-2)}</p>
+                        <p className="text-sm font-medium">{String(method.mesExpiracion).padStart(2, '0')}/{String(method.anioExpiracion).slice(-2)}</p>
                     </div>
                 </div>
             </div>
@@ -122,7 +123,7 @@ export function PaymentMethods() {
 
   const handleRemove = (id: string) => {
     // API call to delete would go here
-    setPaymentMethods(prev => prev.filter(pm => pm.id !== id));
+    setPaymentMethods(prev => prev.filter(pm => pm.idMPago !== id));
     toast({
       title: "Método de Pago Eliminado",
       description: `La tarjeta seleccionada ha sido eliminada.`,
@@ -134,7 +135,7 @@ export function PaymentMethods() {
      // API call to set primary would go here
     setPaymentMethods(prev => prev.map(pm => ({
         ...pm,
-        predeterminado: pm.id === id,
+        predeterminado: pm.idMPago === id,
     })));
     toast({
         title: "Método Principal Actualizado",
@@ -195,7 +196,7 @@ export function PaymentMethods() {
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {paymentMethods.map((method) => (
-                <Dialog key={method.id}>
+                <Dialog key={method.idMPago}>
                 <DialogTrigger asChild>
                     <button className={cn(
                         "relative w-full max-w-sm rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 justify-self-center",
@@ -234,11 +235,11 @@ export function PaymentMethods() {
                     <DialogFooter className="sm:justify-between flex-wrap gap-2">
                     {!method.predeterminado && (
                         <DialogClose asChild>
-                            <Button variant="outline" onClick={() => handleSetPrimary(method.id)}>Marcar como Principal</Button>
+                            <Button variant="outline" onClick={() => handleSetPrimary(method.idMPago)}>Marcar como Principal</Button>
                         </DialogClose>
                     )}
                     <DialogClose asChild>
-                        <Button variant="destructive" onClick={() => handleRemove(method.id)}>
+                        <Button variant="destructive" onClick={() => handleRemove(method.idMPago)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Eliminar Tarjeta
                         </Button>
@@ -296,5 +297,7 @@ const AddPaymentMethodDialog = () => (
         </DialogFooter>
     </DialogContent>
 );
+
+    
 
     
