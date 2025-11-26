@@ -63,8 +63,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     
     try {
       const decodedToken = decodeJwt(token);
-      const role = decodedToken?.role || 'usuario_final'; // Default to 'usuario_final' if role is not in token
-      const roleId = decodedToken?.roleId || '';
+      const roles = decodedToken?.realm_access?.roles || [];
+      const role = roles.includes('administrador') ? 'administrador' :
+                   roles.includes('organizador') ? 'organizador' :
+                   roles.includes('soporte_tecnico') ? 'soporte_tecnico' : 'usuario_final';
 
       const userResponse = await fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -75,16 +77,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       const userData = await userResponse.json();
 
-      let finalUserData: User = { ...userData, nombreRol: userData.rol };
+      let finalUserData: User = { ...userData, nombreRol: userData.rol, rol: role };
 
-       if (roleId) {
-        const roleResponse = await fetch(`http://localhost:44335/api/Usuarios/getRolById?id=${roleId}`, {
+      if (userData.rol) {
+        const roleResponse = await fetch(`http://localhost:44335/api/Usuarios/getRolById?id=${userData.rol}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (roleResponse.ok) {
           const roleData = await roleResponse.json();
-          finalUserData = { ...userData, nombreRol: roleData.nombreRol };
+          finalUserData = { ...finalUserData, nombreRol: roleData.nombreRol };
         }
       }
       
@@ -130,10 +132,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const role = localStorage.getItem('userRole');
     
     if (token && userId) {
+        setUserRole(role);
         const loaded = await fetchUserAndRole(token, userId);
         if (loaded) {
             setUser(loaded.user);
-            setUserRole(loaded.role);
+            setUserRole(loaded.role); // Ensure role is updated from fresh fetch
         }
     } else {
       setIsLoadingUser(false);
