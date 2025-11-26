@@ -22,14 +22,11 @@ export function Header() {
   const router = useRouter();
 
   const handleLogout = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault(); // Prevent the Link from navigating immediately
+    event.preventDefault(); 
     
-    // Clear local storage and redirect
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userEmail');
     localStorage.removeItem('userId');
-    localStorage.removeItem('roleId');
+    localStorage.removeItem('userRole');
     router.push('/login');
   };
 
@@ -41,7 +38,7 @@ export function Header() {
             <span className="sr-only">Toggle Sidebar</span>
         </Button>
         <div className="flex items-center gap-2 md:hidden">
-            <Link href="/home" className="flex items-center gap-2 font-semibold">
+            <Link href="/profile" className="flex items-center gap-2 font-semibold">
                 <Ticket className="h-6 w-6 text-primary" />
                 <span className="">VivoPass</span>
             </Link>
@@ -59,7 +56,7 @@ export function Header() {
                         alt={user?.nombre || "User Avatar"}
                     />
                   <AvatarFallback>
-                      <User />
+                      {user ? `${user.nombre[0]}${user.apellido[0]}` : <User />}
                   </AvatarFallback>
                 </Avatar>
               )}

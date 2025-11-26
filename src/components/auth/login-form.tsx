@@ -57,15 +57,14 @@ export function LoginForm() {
         if (loginResponse.ok) {
             const data = await loginResponse.json();
             
-            // Prefetch user data before redirecting
-            await prefetchUser(data.access_token, data.userId, data.roleId);
+            await prefetchUser(data.access_token, data.userId);
 
             toast({
                 title: "Inicio de Sesión Exitoso",
                 description: "¡Bienvenido de nuevo!",
             });
 
-            router.push("/events");
+            router.push("/profile");
 
         } else {
             const errorData = await loginResponse.json();
