@@ -21,17 +21,22 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Ticket, Tag, Package, Plus, Minus, Loader2, AlertCircle } from "lucide-react";
+import { Users, Ticket, Tag, Package, Plus, Minus, Loader2, AlertCircle, Building, User } from "lucide-react";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ApiEvent, TicketTier } from "@/lib/types";
+import type { ApiEvent, TicketTier, Venue, Organizer } from "@/lib/types";
 
 type EventReservationModalProps = {
   event: ApiEvent;
   isOpen: boolean;
   onClose: () => void;
+};
+
+type DetailedEvent = ApiEvent & {
+  venue?: Venue | null;
+  organizer?: Organizer | null;
 };
 
 export function EventReservationModal({
@@ -42,7 +47,7 @@ export function EventReservationModal({
   const [stage, setStage] = useState<"details" | "reservation">("details");
   const [selectedTier, setSelectedTier] = useState<TicketTier | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [eventDetails, setEventDetails] = useState<ApiEvent | null>(null);
+  const [eventDetails, setEventDetails] = useState<DetailedEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,17 +63,32 @@ export function EventReservationModal({
     }
 
     try {
-        const response = await fetch(`http://localhost:44335/api/events/${eventId}`, {
+        const eventResponse = await fetch(`http://localhost:44335/api/events/${eventId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}: No se pudieron cargar los detalles del evento.`);
+        if (!eventResponse.ok) {
+            throw new Error(`Error ${eventResponse.status}: No se pudieron cargar los detalles del evento.`);
         }
-        const data: ApiEvent = await response.json();
-        setEventDetails(data);
-        if (data.localidades && data.localidades.length > 0) {
-          setSelectedTier(data.localidades[0]);
+        const eventData: ApiEvent = await eventResponse.json();
+
+        // Fetch organizer and venue in parallel
+        const [organizerResponse, venueResponse] = await Promise.all([
+          fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${eventData.organizadorId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`http://localhost:44335/api/events/escenarios/${eventData.escenarioId}`, { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+
+        const organizerData = organizerResponse.ok ? await organizerResponse.json() : null;
+        const venueData = venueResponse.ok ? await venueResponse.json() : null;
+        
+        setEventDetails({
+          ...eventData,
+          organizer: organizerData,
+          venue: venueData,
+        });
+
+        if (eventData.localidades && eventData.localidades.length > 0) {
+          setSelectedTier(eventData.localidades[0]);
         }
     } catch (err: unknown) {
         if (err instanceof Error) {
@@ -123,26 +143,20 @@ export function EventReservationModal({
   };
   
   const DetailsViewSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2">
-      <div className="relative h-64 md:h-full min-h-[300px]">
-        <Skeleton className="h-full w-full rounded-l-lg" />
-      </div>
-      <div className="p-8 flex flex-col">
+    <div className="p-8">
         <DialogHeader className="text-left mb-4">
           <Skeleton className="h-8 w-3/4 mb-2" />
           <Skeleton className="h-5 w-1/2" />
         </DialogHeader>
-        <Skeleton className="h-4 w-1/3 mb-6" />
-        <div className="space-y-2 flex-grow">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
+        <div className="space-y-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
         </div>
         <DialogFooter className="mt-8">
           <Skeleton className="h-12 w-full" />
         </DialogFooter>
       </div>
-    </div>
   );
 
   const renderContent = () => {
@@ -167,30 +181,55 @@ export function EventReservationModal({
 
     if (stage === "details") {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="relative h-64 md:h-full min-h-[300px]">
+        <div className="p-0">
+          <div className="relative h-56 w-full">
             <Image
               src={eventDetails.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
               alt={eventDetails.nombre}
               fill
-              className="object-cover md:rounded-l-lg"
+              className="object-cover rounded-t-lg"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           </div>
-          <div className="p-8 flex flex-col">
-            <DialogHeader className="text-left mb-4">
+
+          <div className="p-6">
+            <DialogHeader className="text-left mb-6">
               <DialogTitle className="text-3xl font-bold mb-2">{eventDetails.nombre}</DialogTitle>
               <DialogDescription className="text-base text-muted-foreground">
                 {format(new Date(eventDetails.inicio), "EEEE, dd 'de' MMMM 'de' yyyy, h:mm a", { locale: es })}
               </DialogDescription>
             </DialogHeader>
             
-            <div className="flex items-center text-sm text-muted-foreground mb-6">
-                <Users className="mr-2 h-4 w-4"/>
-                <span>Aforo máximo de {eventDetails.aforoMaximo} personas</span>
+            <div className="space-y-4 text-sm text-foreground/80">
+              <p className="leading-relaxed">{eventDetails.descripcion}</p>
+              
+              {eventDetails.venue && (
+                 <div className="flex items-start gap-3 pt-2">
+                    <Building className="h-5 w-5 mt-0.5 text-primary" />
+                    <div>
+                        <h4 className="font-semibold text-foreground">Escenario</h4>
+                        <p>{eventDetails.venue.nombre} - {eventDetails.venue.ubicacion}</p>
+                    </div>
+                </div>
+              )}
+               {eventDetails.organizer && (
+                 <div className="flex items-start gap-3 pt-2">
+                    <User className="h-5 w-5 mt-0.5 text-primary" />
+                    <div>
+                        <h4 className="font-semibold text-foreground">Organizador</h4>
+                        <p>{eventDetails.organizer.nombre} {eventDetails.organizer.apellido}</p>
+                    </div>
+                </div>
+              )}
+               <div className="flex items-start gap-3 pt-2">
+                    <Users className="h-5 w-5 mt-0.5 text-primary"/>
+                    <div>
+                        <h4 className="font-semibold text-foreground">Aforo</h4>
+                        <p>Capacidad para {eventDetails.aforoMaximo} personas</p>
+                    </div>
+                </div>
             </div>
-
-            <p className="text-foreground/80 text-base leading-relaxed flex-grow">{eventDetails.descripcion}</p>
             
             <DialogFooter className="mt-8">
                 <Button onClick={() => setStage("reservation")} className="w-full text-lg py-6" disabled={!eventDetails.localidades || eventDetails.localidades.length === 0}>
@@ -264,9 +303,11 @@ export function EventReservationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl p-0">
+      <DialogContent className="max-w-2xl p-0">
         {renderContent()}
       </DialogContent>
     </Dialog>
   );
 }
+
+    

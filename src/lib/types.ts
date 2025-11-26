@@ -25,3 +25,24 @@ export type ApiEvent = {
   updatedAt: string;
   localidades: TicketTier[];
 };
+
+export type Venue = {
+  id: string;
+  nombre: string;
+  ubicacion: string;
+  ciudad: string;
+  estado: string;
+  aforo: number;
+  descripcion: string;
+  imagenUrl: string;
+};
+
+export type Organizer = {
+    id: string;
+    nombre: string;
+    apellido: string;
+    correo: string;
+    fotoPerfil: string;
+};
+
+    
