@@ -86,6 +86,7 @@ export function PaymentMethods() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useApp();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isSettingPrimary, setIsSettingPrimary] = useState(false);
 
   const fetchPaymentMethods = useCallback(async () => {
     setIsLoading(true);
@@ -143,16 +144,54 @@ export function PaymentMethods() {
     });
   };
 
-  const handleSetPrimary = (id: string) => {
-     // API call to set primary would go here
-    setPaymentMethods(prev => prev.map(pm => ({
-        ...pm,
-        predeterminado: pm.idMPago === id,
-    })));
-    toast({
-        title: "Método Principal Actualizado",
-        description: "Tu método de pago principal ha sido cambiado."
-    });
+  const handleSetPrimary = async (paymentMethodId: string) => {
+    setIsSettingPrimary(true);
+    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('accessToken');
+
+    if (!userId || !token) {
+        toast({ variant: "destructive", title: "Error", description: "Tu sesión ha expirado." });
+        setIsSettingPrimary(false);
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:44335/api/Pagos/actualizarMPagoPredeterminado?idMPago=${paymentMethodId}&idUsuario=${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            toast({
+                title: "Método Principal Actualizado",
+                description: "Tu método de pago principal ha sido cambiado."
+            });
+            await fetchPaymentMethods(); // Refresh the list
+        } else {
+            const errorText = await response.text();
+            let errorMessage = "Ocurrió un error al actualizar. Intenta de nuevo.";
+            if (response.status === 401) errorMessage = "Tu sesión ha expirado.";
+            if (response.status === 404) errorMessage = "El método de pago no fue encontrado.";
+            if (response.status === 500) errorMessage = "Error del servidor. Por favor, intenta nuevamente más tarde.";
+            
+            toast({
+                variant: "destructive",
+                title: "Error al actualizar",
+                description: errorMessage,
+            });
+        }
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Error de Conexión",
+            description: "No se pudo conectar con el servidor.",
+        });
+    } finally {
+        setIsSettingPrimary(false);
+    }
   };
 
   if (isLoading) {
@@ -247,7 +286,10 @@ export function PaymentMethods() {
                       <DialogFooter className="sm:justify-between flex-wrap gap-2">
                       {!method.predeterminado && (
                           <DialogClose asChild>
-                              <Button variant="outline" onClick={() => handleSetPrimary(method.idMPago)}>Marcar como Principal</Button>
+                              <Button variant="outline" onClick={() => handleSetPrimary(method.idMPago)} disabled={isSettingPrimary}>
+                                  {isSettingPrimary ? <Loader2 className="animate-spin mr-2"/> : null}
+                                  Marcar como Principal
+                              </Button>
                           </DialogClose>
                       )}
                       <DialogClose asChild>
