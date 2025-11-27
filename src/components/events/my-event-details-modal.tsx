@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Calendar, Users, MapPin, Tag, FileText, Building, AlertCircle, Clock, Link as LinkIcon, Info, ArrowLeft, Trash2, Loader2, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import type { ApiEvent, Venue } from "@/lib/types";
+import type { ApiEvent, Venue, Zone } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +36,7 @@ type MyEventDetailsModalProps = {
 
 type DetailedEvent = ApiEvent & {
   venue?: Venue;
+  zonas?: Zone[];
 };
 
 export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditSuccess }: MyEventDetailsModalProps) {
@@ -57,11 +58,15 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
     }
 
     try {
-      const eventRes = await fetch(`http://localhost:44335/api/events/${eventId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const [eventRes, zonasRes] = await Promise.all([
+        fetch(`http://localhost:44335/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`http://localhost:44335/api/events/${eventId}/zonas`, { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+
       if (!eventRes.ok) throw new Error("No se pudo cargar el evento.");
       const eventData: ApiEvent = await eventRes.json();
+      
+      const zonasData = zonasRes.ok ? await zonasRes.json() : [];
 
       let venueData: Venue | undefined = undefined;
       if (eventData.escenarioId) {
@@ -73,7 +78,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
         }
       }
 
-      setDetails({ ...eventData, venue: venueData });
+      setDetails({ ...eventData, venue: venueData, zonas: zonasData });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -223,8 +228,8 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                                             className="object-cover"
                                         />
                                     ) : (
-                                        <div className="flex h-full w-full items-center justify-center bg-primary/20">
-                                            <p className="text-center font-bold text-primary text-2xl p-4">{details.nombre}</p>
+                                        <div className="flex h-full w-full items-center justify-center bg-primary">
+                                            <p className="text-center font-bold text-primary-foreground text-2xl p-4">{details.nombre}</p>
                                         </div>
                                     )}
                                 </div>
@@ -232,6 +237,25 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                             <section className="space-y-3">
                                 <h3 className="font-semibold text-lg flex items-center"><Info className="mr-2 h-5 w-5 text-primary" />Descripción</h3>
                                 <p className="text-muted-foreground text-sm leading-relaxed">{details.descripcion || 'No hay descripción disponible.'}</p>
+                            </section>
+                            
+                            <section className="space-y-3 pt-4 border-t">
+                                <h3 className="font-semibold text-lg flex items-center"><Tag className="mr-2 h-5 w-5 text-primary" />Zonas del Evento</h3>
+                                {details.zonas && details.zonas.length > 0 ? (
+                                    <ul className="space-y-2 text-sm text-muted-foreground">
+                                        {details.zonas.map(zona => (
+                                            <li key={zona.id} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50">
+                                                <span>• {zona.nombre}</span>
+                                                <span className="text-xs text-right">
+                                                    Capacidad: {zona.capacidad.toLocaleString()} <br/>
+                                                    Precio: ${zona.precio.toFixed(2)}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">Este evento no tiene zonas definidas.</p>
+                                )}
                             </section>
 
                             {details.venue && (

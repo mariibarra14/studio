@@ -1,12 +1,19 @@
 
-
-
 export type TicketTier = {
   id: string;
   nombre: string;
   precio: number;
   // 'available' is not in the API response for now, but might be useful later.
-  // available: number; 
+  // available: number;
+};
+
+export type Zone = {
+  id: string;
+  nombre: string;
+  capacidad: number;
+  precio: number;
+  tipo: string;
+  estado: string;
 };
 
 export type ApiEvent = {
@@ -25,7 +32,8 @@ export type ApiEvent = {
   escenarioId: string;
   createdAt: string;
   updatedAt: string;
-  localidades?: TicketTier[];
+  localidades?: TicketTier[]; // Kept for backward compatibility if needed, but new logic will use zonas.
+  zonas?: Zone[];
   categoriaId: string;
 };
 
@@ -42,11 +50,9 @@ export type Venue = {
 };
 
 export type Organizer = {
-    id: string;
-    nombre: string;
-    apellido: string;
-    correo: string;
-    fotoPerfil: string;
+  id: string;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  fotoPerfil: string;
 };
-
-    

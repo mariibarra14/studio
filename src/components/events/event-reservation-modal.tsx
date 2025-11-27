@@ -26,7 +26,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ApiEvent, TicketTier, Venue, Organizer } from "@/lib/types";
+import type { ApiEvent, Zone, Venue, Organizer } from "@/lib/types";
 
 type EventReservationModalProps = {
   event: ApiEvent;
@@ -37,6 +37,7 @@ type EventReservationModalProps = {
 type DetailedEvent = ApiEvent & {
   venue?: Venue | null;
   organizer?: Organizer | null;
+  zonas?: Zone[];
 };
 
 export function EventReservationModal({
@@ -45,7 +46,7 @@ export function EventReservationModal({
   onClose,
 }: EventReservationModalProps) {
   const [stage, setStage] = useState<"details" | "reservation">("details");
-  const [selectedTier, setSelectedTier] = useState<TicketTier | null>(null);
+  const [selectedTier, setSelectedTier] = useState<Zone | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [eventDetails, setEventDetails] = useState<DetailedEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,32 +64,31 @@ export function EventReservationModal({
     }
 
     try {
-        const eventResponse = await fetch(`http://localhost:44335/api/events/${eventId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const [eventResponse, organizerResponse, venueResponse, zonasResponse] = await Promise.all([
+          fetch(`http://localhost:44335/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${event.organizadorId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`http://localhost:44335/api/events/escenarios/${event.escenarioId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`http://localhost:44335/api/events/${eventId}/zonas`, { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
 
         if (!eventResponse.ok) {
             throw new Error(`Error ${eventResponse.status}: No se pudieron cargar los detalles del evento.`);
         }
         const eventData: ApiEvent = await eventResponse.json();
 
-        // Fetch organizer and venue in parallel
-        const [organizerResponse, venueResponse] = await Promise.all([
-          fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${eventData.organizadorId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`http://localhost:44335/api/events/escenarios/${eventData.escenarioId}`, { headers: { 'Authorization': `Bearer ${token}` } })
-        ]);
-
         const organizerData = organizerResponse.ok ? await organizerResponse.json() : null;
         const venueData = venueResponse.ok ? await venueResponse.json() : null;
+        const zonasData = zonasResponse.ok ? await zonasResponse.json() : [];
         
         setEventDetails({
           ...eventData,
           organizer: organizerData,
           venue: venueData,
+          zonas: zonasData,
         });
 
-        if (eventData.localidades && eventData.localidades.length > 0) {
-          setSelectedTier(eventData.localidades[0]);
+        if (zonasData && zonasData.length > 0) {
+          setSelectedTier(zonasData[0]);
         }
     } catch (err: unknown) {
         if (err instanceof Error) {
@@ -99,7 +99,7 @@ export function EventReservationModal({
     } finally {
         setIsLoading(false);
     }
-  }, []);
+  }, [event.organizadorId, event.escenarioId]);
 
   useEffect(() => {
     if (isOpen && event?.id) {
@@ -109,17 +109,15 @@ export function EventReservationModal({
 
 
   const handleTierChange = (tierId: string) => {
-    const tier = eventDetails?.localidades?.find(t => t.id === tierId) || null;
+    const tier = eventDetails?.zonas?.find(t => t.id === tierId) || null;
     setSelectedTier(tier);
     setQuantity(1);
   };
 
   const incrementQuantity = () => {
-    // Note: 'available' is not in ApiEvent's TicketTier, this is a placeholder
-    // if (selectedTier && quantity < selectedTier.available) {
-    //   setQuantity(q => q + 1);
-    // }
-    setQuantity(q => q + 1);
+    if (selectedTier && quantity < selectedTier.capacidad) {
+      setQuantity(q => q + 1);
+    }
   };
 
   const decrementQuantity = () => {
@@ -198,7 +196,7 @@ export function EventReservationModal({
                       sizes="(max-width: 768px) 100vw, 50vw"
                   />
               ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-600 to-orange-500 rounded-t-lg">
+                  <div className="flex h-full w-full items-center justify-center bg-primary rounded-t-lg">
                       <p className="text-center font-bold text-white text-lg p-4">{eventDetails.nombre}</p>
                   </div>
               )}
@@ -258,8 +256,8 @@ export function EventReservationModal({
             </div>
             
             <DialogFooter className="mt-8">
-                <Button onClick={() => setStage("reservation")} className="w-full text-lg py-6" disabled={!eventDetails.localidades || eventDetails.localidades.length === 0}>
-                  {eventDetails.localidades && eventDetails.localidades.length > 0 ? 'Reservar' : 'Entradas no disponibles'}
+                <Button onClick={() => setStage("reservation")} className="w-full text-lg py-6" disabled={!eventDetails.zonas || eventDetails.zonas.length === 0}>
+                  {eventDetails.zonas && eventDetails.zonas.length > 0 ? 'Reservar' : 'Entradas no disponibles'}
                 </Button>
             </DialogFooter>
           </div>
@@ -283,7 +281,7 @@ export function EventReservationModal({
                             <SelectValue placeholder="Seleccione un tipo de entrada" />
                         </SelectTrigger>
                         <SelectContent>
-                          {eventDetails.localidades?.map(tier => (
+                          {eventDetails.zonas?.map(tier => (
                             <SelectItem key={tier.id} value={tier.id} className="text-base p-3">
                               <div className="flex justify-between w-full">
                                 <span className="font-semibold">{tier.nombre}</span>
@@ -302,7 +300,7 @@ export function EventReservationModal({
                             <Minus className="h-4 w-4" />
                         </Button>
                         <Input id="quantity" type="number" value={quantity} readOnly className="w-20 text-center text-lg font-bold" />
-                         <Button variant="outline" size="icon" onClick={incrementQuantity}>
+                         <Button variant="outline" size="icon" onClick={incrementQuantity} disabled={!!(selectedTier && quantity >= selectedTier.capacidad)}>
                             <Plus className="h-4 w-4" />
                         </Button>
                     </div>
