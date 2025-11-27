@@ -15,9 +15,10 @@ type AddZoneModalProps = {
   onClose: () => void;
   onSuccess: () => void;
   eventId: string;
+  escenarioId: string;
 };
 
-export function AddZoneModal({ isOpen, onClose, onSuccess, eventId }: AddZoneModalProps) {
+export function AddZoneModal({ isOpen, onClose, onSuccess, eventId, escenarioId }: AddZoneModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -27,7 +28,12 @@ export function AddZoneModal({ isOpen, onClose, onSuccess, eventId }: AddZoneMod
             Completa la información para crear una nueva zona para tu evento. Los asientos se generarán automáticamente.
           </DialogDescription>
         </DialogHeader>
-        <AddZoneForm eventId={eventId} onSuccess={onSuccess} onCancel={onClose} />
+        <AddZoneForm 
+          eventId={eventId} 
+          escenarioId={escenarioId}
+          onSuccess={onSuccess} 
+          onCancel={onClose} 
+        />
       </DialogContent>
     </Dialog>
   );

@@ -14,87 +14,59 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { Venue } from "@/lib/types";
 
 const formSchema = z.object({
     nombre: z.string().min(1, "El nombre de la zona es requerido."),
     precio: z.coerce.number().min(0, "El precio debe ser 0 o mayor."),
-    escenarioId: z.string().min(1, "Debes seleccionar un escenario."),
-    capacidad: z.coerce.number().min(1, "La capacidad debe ser al menos 1."),
     filas: z.coerce.number().min(1, "Debe haber al menos 1 fila."),
     columnas: z.coerce.number().min(1, "Debe haber al menos 1 asiento por fila."),
+    capacidad: z.coerce.number().min(1, "La capacidad debe ser mayor que 0."),
     prefijoFila: z.string().min(1, "El prefijo de fila es requerido.").max(5),
     prefijoAsiento: z.string().max(5).optional(),
-}).refine(data => data.filas * data.columnas === data.capacidad, {
-    message: "La capacidad total debe ser igual al número de filas multiplicado por las columnas.",
-    path: ["capacidad"],
 });
 
 type AddZoneFormProps = {
   eventId: string;
+  escenarioId: string;
   onSuccess: () => void;
   onCancel: () => void;
 };
 
-export function AddZoneForm({ eventId, onSuccess, onCancel }: AddZoneFormProps) {
+export function AddZoneForm({ eventId, escenarioId, onSuccess, onCancel }: AddZoneFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [venues, setVenues] = useState<Venue[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       nombre: "",
       precio: 0,
-      escenarioId: "",
-      capacidad: 1,
       filas: 1,
       columnas: 1,
+      capacidad: 1,
       prefijoFila: "F",
       prefijoAsiento: "",
     },
   });
 
+  const { watch, setValue } = form;
+  const watchedFilas = watch("filas");
+  const watchedColumnas = watch("columnas");
+
   useEffect(() => {
-    const fetchVenues = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return;
-      try {
-        const response = await fetch('http://localhost:44335/api/events/escenarios', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setVenues(data.items || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch venues", error);
-      }
-    };
-    fetchVenues();
-  }, []);
+    const newCapacity = (watchedFilas || 0) * (watchedColumnas || 0);
+    setValue("capacidad", newCapacity, { shouldValidate: true });
+  }, [watchedFilas, watchedColumnas, setValue]);
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     setError(null);
-    
-    if (values.filas * values.columnas !== values.capacidad) {
-      form.setError("capacidad", { type: "manual", message: "La capacidad no coincide con filas x columnas." });
-      setIsLoading(false);
-      return;
-    }
 
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -105,7 +77,7 @@ export function AddZoneForm({ eventId, onSuccess, onCancel }: AddZoneFormProps) 
 
     const submissionData = {
         eventId: eventId,
-        escenarioId: values.escenarioId,
+        escenarioId: escenarioId,
         nombre: values.nombre,
         tipo: "sentado",
         capacidad: values.capacidad,
@@ -142,7 +114,7 @@ export function AddZoneForm({ eventId, onSuccess, onCancel }: AddZoneFormProps) 
             throw new Error(errorData?.message || "No se pudo crear la zona.");
         }
         
-        const result = await response.json();
+        await response.json();
         toast({ title: "✅ Zona Creada", description: `La zona "${values.nombre}" ha sido añadida.` });
         onSuccess();
 
@@ -153,9 +125,6 @@ export function AddZoneForm({ eventId, onSuccess, onCancel }: AddZoneFormProps) 
         setIsLoading(false);
     }
   }
-
-  const watchedValues = form.watch();
-  const capacityMatch = watchedValues.filas * watchedValues.columnas === watchedValues.capacidad;
 
   return (
     <Form {...form}>
@@ -176,19 +145,6 @@ export function AddZoneForm({ eventId, onSuccess, onCancel }: AddZoneFormProps) 
             </FormItem>
           )} />
         </div>
-        
-        <FormField control={form.control} name="escenarioId" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Escenario</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un escenario" /></SelectTrigger></FormControl>
-              <SelectContent>
-                {venues.map(venue => <SelectItem key={venue.id} value={venue.id}>{venue.nombre}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )} />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <FormField control={form.control} name="filas" render={({ field }) => (
@@ -208,22 +164,11 @@ export function AddZoneForm({ eventId, onSuccess, onCancel }: AddZoneFormProps) 
           <FormField control={form.control} name="capacidad" render={({ field }) => (
             <FormItem>
               <FormLabel>Capacidad Total</FormLabel>
-              <FormControl><Input type="number" min="1" {...field} /></FormControl>
+              <FormControl><Input type="number" {...field} readOnly className="bg-muted/50" /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
         </div>
-
-        {watchedValues.filas > 0 && watchedValues.columnas > 0 && watchedValues.capacidad > 0 && (
-            <Alert variant={capacityMatch ? "default" : "destructive"} className={capacityMatch ? "bg-green-50 border-green-200 text-green-800" : ""}>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>{capacityMatch ? "Configuración Correcta" : "Atención"}</AlertTitle>
-                <AlertDescription>
-                    {watchedValues.filas} filas × {watchedValues.columnas} columnas = {watchedValues.filas * watchedValues.columnas} asientos. 
-                    {capacityMatch ? " Coincide con la capacidad." : " No coincide con la capacidad especificada."}
-                </AlertDescription>
-            </Alert>
-        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <FormField control={form.control} name="prefijoFila" render={({ field }) => (

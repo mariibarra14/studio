@@ -323,6 +323,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                     onClose={() => setIsAddZoneModalOpen(false)}
                     onSuccess={handleAddZoneSuccess}
                     eventId={details.id}
+                    escenarioId={details.escenarioId}
                 />
               </>
             )}
