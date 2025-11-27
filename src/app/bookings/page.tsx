@@ -1,70 +1,155 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
-import { mockBookings, MockBooking } from "@/lib/mock-data";
 import { BookingDetailsModal } from "@/components/bookings/booking-details-modal";
 import { TicketStub } from "@/components/bookings/ticket-stub";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import type { ApiBooking } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Ticket, WifiOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BookingsPage() {
-  const [selectedBooking, setSelectedBooking] = useState<MockBooking | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedBooking, setSelectedBooking] = useState<ApiBooking | null>(null);
+  const [bookings, setBookings] = useState<ApiBooking[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<{ title: string; message: string } | null>(null);
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const handleBookingSelect = (booking: MockBooking) => {
+  const fetchBookings = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const token = localStorage.getItem('accessToken');
+    const userId = localStorage.getItem('userId');
+
+    if (!token || !userId) {
+      toast({
+        variant: "destructive",
+        title: "Sesión expirada",
+        description: "Redirigiendo al login...",
+      });
+      localStorage.clear();
+      router.push("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:44335/api/Reservas/usuario/${userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.status === 401) {
+        throw new Error("401");
+      }
+      if (response.status === 404) {
+        setBookings([]);
+        return;
+      }
+      if (!response.ok) {
+        throw new Error("Server Error");
+      }
+
+      const data: ApiBooking[] = await response.json();
+      setBookings(data);
+    } catch (err: any) {
+      if (err.message === "401") {
+        toast({
+          variant: "destructive",
+          title: "Sesión expirada",
+          description: "Redirigiendo al login...",
+        });
+        localStorage.clear();
+        router.push("/login");
+      } else if (err.message === "Server Error") {
+        setError({
+          title: "Error del servidor",
+          message: "No se pudieron cargar las reservas. Por favor, intenta nuevamente más tarde.",
+        });
+      } else {
+        setError({
+          title: "Error de conexión",
+          message: "Verifica tu conexión a internet e intenta de nuevo.",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [router, toast]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
+  const handleBookingSelect = (booking: ApiBooking) => {
     setSelectedBooking(booking);
   };
 
   const handleCloseModal = () => {
     setSelectedBooking(null);
   };
-
-  const filteredBookings = useMemo(() => {
-    if (!searchQuery) {
-      return mockBookings;
+  
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-96 w-full rounded-lg" />
+          ))}
+        </div>
+      );
     }
-    return mockBookings.filter((booking) =>
-      booking.event.name.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    if (error) {
+       return (
+        <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4">
+          <Alert variant="destructive" className="max-w-md border-0 bg-transparent">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{error.title}</AlertTitle>
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+          <Button onClick={fetchBookings} className="mt-6">Reintentar</Button>
+        </div>
+      );
+    }
+
+    if (bookings.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4">
+          <Ticket className="h-16 w-16 text-muted-foreground mb-4" />
+          <p className="text-2xl font-semibold text-muted-foreground mb-2">
+            No tienes reservas activas
+          </p>
+          <p className="text-muted-foreground">
+            Cuando reserves un tiquete para un evento, aparecerá aquí.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {bookings.map((booking) => (
+          <TicketStub key={booking.reservaId} booking={booking} onSelect={handleBookingSelect} />
+        ))}
+      </div>
     );
-  }, [searchQuery]);
+  }
 
   return (
     <AuthenticatedLayout>
       <main className="flex-1 p-4 md:p-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
           <h1 className="text-3xl font-bold">Mis Reservas</h1>
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar por evento..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
         </div>
+        
+        {renderContent()}
 
-        {filteredBookings.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredBookings.map((booking) => (
-              <TicketStub key={booking.id} booking={booking} onSelect={handleBookingSelect} />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4">
-            <p className="text-2xl font-semibold text-muted-foreground mb-4">
-              {searchQuery ? "No se encontraron reservas" : "No tienes reservas activas"}
-            </p>
-            <p className="text-muted-foreground">
-              {searchQuery
-                ? "Intenta con otro término de búsqueda."
-                : "Cuando reserves un tiquete para un evento, aparecerá aquí."}
-            </p>
-          </div>
-        )}
       </main>
 
       {selectedBooking && (

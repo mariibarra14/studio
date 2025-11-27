@@ -3,8 +3,6 @@ export type TicketTier = {
   id: string;
   nombre: string;
   precio: number;
-  // 'available' is not in the API response for now, but might be useful later.
-  // available: number;
 };
 
 export type Zone = {
@@ -18,7 +16,7 @@ export type Zone = {
 
 export type ApiEvent = {
   id: string;
-  nombre: string;
+  nombre:string;
   descripcion: string | null;
   inicio: string;
   fin: string | null;
@@ -32,7 +30,6 @@ export type ApiEvent = {
   escenarioId: string;
   createdAt: string;
   updatedAt: string;
-  localidades?: TicketTier[]; // Kept for backward compatibility if needed, but new logic will use zonas.
   zonas?: Zone[];
   categoriaId: string;
 };
@@ -56,3 +53,21 @@ export type Organizer = {
   correo: string;
   fotoPerfil: string;
 };
+
+export interface Seat {
+  asientoId: string;
+  precioUnitario: number;
+  label: string;
+}
+
+export interface ApiBooking {
+  reservaId: string;
+  eventId: string;
+  zonaEventoId: string;
+  usuarioId: string;
+  estado: string;
+  creadaEn: string;
+  expiraEn: string;
+  precioTotal: number;
+  asientos: Seat[];
+}
