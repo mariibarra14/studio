@@ -58,9 +58,9 @@ export function EditEventModal({ isOpen, onClose, event, onUpdateSuccess }: Edit
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar Evento</DialogTitle>
+          <DialogTitle className="text-2xl">Editar Evento</DialogTitle>
           <DialogDescription>
             Realiza cambios en la información de tu evento. Haz clic en "Guardar Cambios" cuando termines.
           </DialogDescription>
