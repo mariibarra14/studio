@@ -28,7 +28,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { ApiEvent, Venue } from "@/lib/types";
 import type { Category } from "@/lib/categories";
 import Image from "next/image";
-import { ImageCropperModal } from "./image-cropper-modal";
+import { ImageCropperModal } from "../auth/image-cropper-modal";
 
 const formSchema = z.object({
   nombre: z.string().min(1, "El nombre es requerido"),
@@ -76,7 +76,7 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
   const [folletoFileName, setFolletoFileName] = useState<string | null>(null);
   
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [tempImageFile, setTempImageFile] = useState<File | null>(null);
+  const [imageToCrop, setImageToCrop] = useState<string | undefined>(undefined);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -107,8 +107,12 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
       }
       
       setError(prev => ({ ...prev, image: null}));
-      setTempImageFile(file);
-      setIsCropperOpen(true);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageToCrop(reader.result as string);
+        setIsCropperOpen(true);
+      };
+      reader.readAsDataURL(file);
     }
   };
   
@@ -116,7 +120,7 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
     setSelectedImage(croppedFile);
     setImagePreview(URL.createObjectURL(croppedFile));
     setIsCropperOpen(false);
-    setTempImageFile(null);
+    setImageToCrop(undefined);
   };
 
 
@@ -453,16 +457,15 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
           </div>
         </form>
       </Form>
-      {tempImageFile && (
+      {imageToCrop && (
         <ImageCropperModal
           isOpen={isCropperOpen}
           onClose={() => {
             setIsCropperOpen(false);
-            setTempImageFile(null);
+            setImageToCrop(undefined);
           }}
-          imageFile={tempImageFile}
+          imageSrc={imageToCrop}
           onCropComplete={handleCropComplete}
-          aspectRatio={16/9}
         />
       )}
     </>
