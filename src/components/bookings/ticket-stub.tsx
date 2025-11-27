@@ -25,8 +25,7 @@ const getEstadoDisplay = (estado: string, expiraEn?: string) => {
   const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
   const estados: { [key: string]: string } = {
     'Hold': 'Por Pagar',
-    'Confirmed': 'Confirmada',
-    'Cancelled': 'Cancelada',
+    'Confirmada': 'Confirmada',
     'Expired': 'Expirada'
   };
   return estados[estadoReal] || estadoReal;
@@ -36,9 +35,8 @@ const getEstadoColor = (estado: string, expiraEn?: string) => {
   const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
   const colores: { [key: string]: string } = {
     'Hold': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    'Confirmed': 'bg-green-100 text-green-800 border-green-200',
-    'Cancelled': 'bg-red-100 text-red-800 border-red-200',
-    'Expired': 'bg-gray-100 text-gray-800 border-gray-200'
+    'Confirmada': 'bg-green-100 text-green-800 border-green-200',
+    'Expired': 'bg-red-100 text-red-800 border-red-200'
   };
   return colores[estadoReal] || 'bg-gray-100 text-gray-800';
 };

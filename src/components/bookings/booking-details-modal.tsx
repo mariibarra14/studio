@@ -12,12 +12,20 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, Clock } from "lucide-react";
+import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, Clock, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { ApiBooking, Seat } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { generateBookingPDF } from "@/lib/pdf-generator";
+
+
+type BookingDetailsModalProps = {
+    booking: ApiBooking;
+    isOpen: boolean;
+    onClose: () => void;
+  };
 
 const getEstadoReal = (estado: string, expiraEn: string): string => {
   if (estado === 'Hold' && new Date(expiraEn) < new Date()) {
@@ -30,8 +38,7 @@ const getEstadoDisplay = (estado: string, expiraEn?: string) => {
   const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
   const estados: { [key: string]: string } = {
     'Hold': 'Por Pagar',
-    'Confirmed': 'Confirmada', 
-    'Cancelled': 'Cancelada',
+    'Confirmada': 'Confirmada', 
     'Expired': 'Expirada'
   };
   return estados[estadoReal] || estadoReal;
@@ -41,9 +48,8 @@ const getEstadoColor = (estado: string, expiraEn?: string) => {
   const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
   const colores: { [key: string]: string } = {
     'Hold': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    'Confirmed': 'bg-green-100 text-green-800 border-green-200',
-    'Cancelled': 'bg-red-100 text-red-800 border-red-200',
-    'Expired': 'bg-gray-100 text-gray-800 border-gray-200'
+    'Confirmada': 'bg-green-100 text-green-800 border-green-200',
+    'Expired': 'bg-red-100 text-red-800 border-red-200'
   };
   return colores[estadoReal] || 'bg-gray-100 text-gray-800 border-gray-200';
 };
@@ -67,6 +73,23 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
     const handleAction = () => {
         // Lógica de pago o cancelación
         toast({ title: "Función no implementada" });
+    };
+
+    const handleGeneratePdf = async () => {
+        try {
+            await generateBookingPDF(booking);
+            toast({
+                title: "PDF Generado",
+                description: "El comprobante de tu reserva se ha descargado.",
+            });
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            toast({
+                variant: "destructive",
+                title: "Error al generar PDF",
+                description: "No se pudo crear el archivo PDF. Inténtalo de nuevo.",
+            });
+        }
     };
 
     const estadoReal = getEstadoReal(booking.estado, booking.expiraEn);
@@ -190,11 +213,17 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                         </Button>
                     </>
                 )}
-                {estadoReal === 'Confirmed' && (
-                    <Button className="w-full sm:w-auto" onClick={handleAction}>
-                        <QrCode className="mr-2 h-4 w-4" />
-                        Ver Tiquete (QR)
-                    </Button>
+                {estadoReal === 'Confirmada' && (
+                   <>
+                        <Button className="w-full sm:w-auto" onClick={handleAction}>
+                            <QrCode className="mr-2 h-4 w-4" />
+                            Ver Tiquete (QR)
+                        </Button>
+                        <Button variant="outline" className="w-full sm:w-auto" onClick={handleGeneratePdf}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Imprimir PDF
+                        </Button>
+                   </>
                 )}
                 {(estadoReal === 'Cancelled' || estadoReal === 'Expired') && (
                     <p className="text-sm text-center w-full">
