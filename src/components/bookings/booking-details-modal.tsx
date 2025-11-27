@@ -215,10 +215,6 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                 )}
                 {estadoReal === 'Confirmada' && (
                    <>
-                        <Button className="w-full sm:w-auto" onClick={handleAction}>
-                            <QrCode className="mr-2 h-4 w-4" />
-                            Ver Tiquete (QR)
-                        </Button>
                         <Button variant="outline" className="w-full sm:w-auto" onClick={handleGeneratePdf}>
                             <FileText className="mr-2 h-4 w-4" />
                             Imprimir PDF
