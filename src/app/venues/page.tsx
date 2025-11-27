@@ -6,12 +6,25 @@ import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Building, RefreshCw, PlusCircle } from "lucide-react";
+import { AlertCircle, Building, RefreshCw, PlusCircle, Trash2, Edit } from "lucide-react";
 import { VenueCard } from "@/components/venues/venue-card";
 import { VenueDetailsModal } from "@/components/venues/venue-details-modal";
 import { AddVenueModal } from "@/components/venues/add-venue-modal";
 import type { Venue } from "@/lib/types";
 import { useApp } from "@/context/app-context";
+import { useToast } from "@/hooks/use-toast";
+import { EditVenueModal } from "@/components/venues/edit-venue-modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function VenuesPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -19,7 +32,9 @@ export default function VenuesPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [isAddVenueOpen, setIsAddVenueOpen] = useState(false);
+  const [isEditVenueOpen, setIsEditVenueOpen] = useState(false);
   const { userRole } = useApp();
+  const { toast } = useToast();
 
   const fetchVenues = useCallback(async () => {
     setIsLoading(true);
@@ -44,7 +59,9 @@ export default function VenuesPage() {
         if (response.status === 401) {
           errorMessage = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.";
         } else if (response.status === 404) {
-          errorMessage = "No se encontraron escenarios.";
+          setVenues([]);
+          setIsLoading(false);
+          return;
         } else if (response.status === 500) {
           errorMessage = "Error interno del servidor. Inténtalo más tarde.";
         }
@@ -86,6 +103,16 @@ export default function VenuesPage() {
     fetchVenues();
   };
 
+  const handleEditSuccess = () => {
+    setIsEditVenueOpen(false);
+    setSelectedVenue(null);
+    fetchVenues();
+  };
+  
+  const handleDeleteSuccess = () => {
+    setSelectedVenue(null);
+    fetchVenues();
+  };
 
   const renderContent = () => {
     if (isLoading) {
@@ -119,7 +146,13 @@ export default function VenuesPage() {
         <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4">
           <Building className="h-16 w-16 text-muted-foreground mb-4" />
           <p className="text-2xl font-semibold text-muted-foreground mb-2">No hay escenarios disponibles</p>
-          <p className="text-muted-foreground">No se encontraron escenarios registrados en este momento.</p>
+          <p className="text-muted-foreground mb-6">No se encontraron escenarios registrados en este momento.</p>
+           {userRole === 'administrador' && (
+              <Button onClick={() => setIsAddVenueOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Crear Primer Escenario
+              </Button>
+            )}
         </div>
       );
     }
@@ -159,7 +192,12 @@ export default function VenuesPage() {
         <VenueDetailsModal 
           venue={selectedVenue} 
           isOpen={!!selectedVenue} 
-          onClose={handleCloseModal} 
+          onClose={handleCloseModal}
+          onEdit={() => {
+            handleCloseModal();
+            setIsEditVenueOpen(true);
+          }}
+          onDeleteSuccess={handleDeleteSuccess}
         />
       )}
       
@@ -168,6 +206,15 @@ export default function VenuesPage() {
           isOpen={isAddVenueOpen}
           onClose={() => setIsAddVenueOpen(false)}
           onSuccess={handleAddSuccess}
+        />
+      )}
+      
+      {userRole === 'administrador' && selectedVenue && (
+        <EditVenueModal
+            isOpen={isEditVenueOpen}
+            onClose={() => setIsEditVenueOpen(false)}
+            onSuccess={handleEditSuccess}
+            venue={selectedVenue}
         />
       )}
 
