@@ -22,7 +22,7 @@ export function MyEventCard({ event, onEventClick }: MyEventCardProps) {
   const getDisplayStatus = (status: string) => {
     const statusMap: { [key: string]: string } = {
       'Activo': 'Activo',
-      'Draft': 'Privado',
+      'Draft': 'Activo',
     };
     return statusMap[status] || status;
   };
@@ -46,7 +46,7 @@ export function MyEventCard({ event, onEventClick }: MyEventCardProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           <Badge 
-            variant={event.estado === 'Activo' ? 'default' : 'secondary'} 
+            variant={event.estado === 'Activo' || event.estado === 'Draft' ? 'default' : 'secondary'}
             className="absolute top-3 right-3 capitalize"
           >
             {displayStatus}

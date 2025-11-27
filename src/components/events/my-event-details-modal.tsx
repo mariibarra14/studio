@@ -141,7 +141,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
   const getDisplayStatus = (status: string) => {
     const statusMap: { [key: string]: string } = {
       'Activo': 'Activo',
-      'Draft': 'Privado',
+      'Draft': 'Activo',
     };
     return statusMap[status] || status;
   };
@@ -256,7 +256,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                             <div className="p-4 border rounded-lg space-y-4">
                                 <h3 className="font-semibold text-lg border-b pb-2">Detalles del Evento</h3>
                                 <div className="space-y-3 text-sm">
-                                    <div className="flex justify-between items-center"><span className="font-semibold text-muted-foreground">Estado</span><Badge variant={details.estado === 'Activo' ? 'default' : 'secondary'} className="capitalize">{displayStatus}</Badge></div>
+                                    <div className="flex justify-between items-center"><span className="font-semibold text-muted-foreground">Estado</span><Badge variant={details.estado === 'Activo' || details.estado === 'Draft' ? 'default' : 'secondary'} className="capitalize">{displayStatus}</Badge></div>
                                     <div className="flex flex-col"><span className="font-semibold text-muted-foreground">Inicio</span><span className="text-foreground text-right">{formatDate(details.inicio)}</span></div>
                                     <div className="flex flex-col"><span className="font-semibold text-muted-foreground">Fin</span><span className="text-foreground text-right">{formatDate(details.fin)}</span></div>
                                     <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Aforo</span><span className="text-foreground">{details.aforoMaximo.toLocaleString()}</span></div>
