@@ -17,6 +17,16 @@ type MyEventCardProps = {
 export function MyEventCard({ event, onEventClick }: MyEventCardProps) {
   const startDate = new Date(event.inicio);
   const createdDate = new Date(event.createdAt);
+  
+  const getDisplayStatus = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'Activo': 'Activo',
+      'Draft': 'Privado',
+    };
+    return statusMap[status] || status;
+  };
+
+  const displayStatus = getDisplayStatus(event.estado);
 
   return (
     <Card 
@@ -34,10 +44,10 @@ export function MyEventCard({ event, onEventClick }: MyEventCardProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           <Badge 
-            variant={event.estado === 'Activo' ? 'default' : 'destructive'} 
+            variant={event.estado === 'Activo' ? 'default' : 'secondary'} 
             className="absolute top-3 right-3 capitalize"
           >
-            {event.estado}
+            {displayStatus}
           </Badge>
           <div className="absolute bottom-4 left-4 text-white">
             <CardTitle className="text-xl font-bold leading-tight drop-shadow-md">{event.nombre}</CardTitle>

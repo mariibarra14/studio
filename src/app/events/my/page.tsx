@@ -90,6 +90,16 @@ export default function MyEventsPage() {
         </div>
       );
     }
+    
+    if (selectedEventId) {
+        return (
+            <MyEventDetailsModal 
+              eventId={selectedEventId} 
+              isOpen={!!selectedEventId} 
+              onClose={handleCloseModal} 
+            />
+        );
+    }
 
     if (error) {
       return (
@@ -141,37 +151,31 @@ export default function MyEventsPage() {
   return (
     <AuthenticatedLayout>
       <main className="flex-1 p-4 md:p-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold">Mis Eventos</h1>
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-             <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Buscar mis eventos..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+        {!selectedEventId && (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <h1 className="text-3xl font-bold">Mis Eventos</h1>
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                <div className="relative w-full sm:max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Buscar mis eventos..."
+                    className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                </div>
+                {(userRole === 'organizador' || userRole === 'administrador') && (
+                <Button className="w-full sm:w-auto">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Añadir Evento
+                </Button>
+                )}
             </div>
-            {(userRole === 'organizador' || userRole === 'administrador') && (
-              <Button className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Añadir Evento
-              </Button>
-            )}
-          </div>
-        </div>
+            </div>
+        )}
         {renderContent()}
       </main>
-
-      {selectedEventId && (
-        <MyEventDetailsModal 
-          eventId={selectedEventId} 
-          isOpen={!!selectedEventId} 
-          onClose={handleCloseModal} 
-        />
-      )}
     </AuthenticatedLayout>
   );
 }
