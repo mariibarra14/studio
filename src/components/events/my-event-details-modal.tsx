@@ -6,27 +6,41 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Calendar, Users, MapPin, Tag, FileText, Building, AlertCircle, Clock, Link as LinkIcon, Info, ArrowLeft } from "lucide-react";
+import { Calendar, Users, MapPin, Tag, FileText, Building, AlertCircle, Clock, Link as LinkIcon, Info, ArrowLeft, Trash2, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { ApiEvent, Venue } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type MyEventDetailsModalProps = {
   eventId: string;
-  isOpen: boolean;
   onClose: () => void;
+  onDeleteSuccess: () => void;
 };
 
 type DetailedEvent = ApiEvent & {
   venue?: Venue;
 };
 
-export function MyEventDetailsModal({ eventId, isOpen, onClose }: MyEventDetailsModalProps) {
+export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess }: MyEventDetailsModalProps) {
   const [details, setDetails] = useState<DetailedEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
 
   const fetchDetails = useCallback(async () => {
     setIsLoading(true);
@@ -64,10 +78,46 @@ export function MyEventDetailsModal({ eventId, isOpen, onClose }: MyEventDetails
   }, [eventId]);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchDetails();
+    fetchDetails();
+  }, [fetchDetails]);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+      toast({
+        variant: "destructive",
+        title: "Error de Sesión",
+        description: "Tu sesión ha expirado. Por favor, inicia sesión de nuevo."
+      });
+      setIsDeleting(false);
+      return;
     }
-  }, [isOpen, fetchDetails]);
+
+    try {
+      const response = await fetch(`http://localhost:44335/api/events/${eventId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.status === 204 || response.ok) {
+        onDeleteSuccess();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || "No se pudo eliminar el evento.";
+        throw new Error(errorMessage);
+      }
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Error al Eliminar",
+        description: err.message || "Ocurrió un error inesperado.",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleClose = () => {
     onClose();
@@ -109,12 +159,40 @@ export function MyEventDetailsModal({ eventId, isOpen, onClose }: MyEventDetails
     return (
         <Card className="w-full">
             <CardHeader>
-                <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={handleClose}>
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className="sr-only">Volver</span>
-                    </Button>
-                    <CardTitle className="text-2xl">{details.nombre}</CardTitle>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                      <Button variant="outline" size="icon" onClick={handleClose}>
+                          <ArrowLeft className="h-4 w-4" />
+                          <span className="sr-only">Volver</span>
+                      </Button>
+                      <CardTitle className="text-2xl">{details.nombre}</CardTitle>
+                  </div>
+                  <div className="flex items-center gap-2">
+                      <Button variant="outline">Editar Evento</Button>
+                      <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                              <Button variant="destructive" disabled={isDeleting}>
+                                  {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4" />}
+                                  Eliminar
+                              </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                              <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Estás seguro de que quieres eliminar este evento?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                      Esta acción es permanente y no se puede deshacer. Toda la información asociada al evento
+                                      "{details.nombre}" será eliminada.
+                                  </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                                      {isDeleting ? 'Eliminando...' : 'Sí, eliminar evento'}
+                                  </AlertDialogAction>
+                              </AlertDialogFooter>
+                          </AlertDialogContent>
+                      </AlertDialog>
+                  </div>
                 </div>
             </CardHeader>
             <CardContent>
@@ -170,7 +248,6 @@ export function MyEventDetailsModal({ eventId, isOpen, onClose }: MyEventDetails
                                 <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Tipo</span><span className="text-foreground capitalize">{details.tipo}</span></div>
                             </div>
                         </div>
-                         <Button className="w-full">Editar Evento</Button>
                     </div>
                 </div>
             </CardContent>
@@ -180,16 +257,21 @@ export function MyEventDetailsModal({ eventId, isOpen, onClose }: MyEventDetails
 
   const DetailsViewSkeleton = () => (
     <div className="p-0">
-      <Skeleton className="h-64 w-full rounded-t-lg" />
-      <div className="p-6 space-y-6">
-        <Skeleton className="h-6 w-3/4" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-2/3" />
-        <div className="grid md:grid-cols-2 gap-4 pt-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
+      <div className="p-6 border-b">
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+                <Skeleton className="h-10 w-10" />
+                <Skeleton className="h-8 w-64" />
+            </div>
+            <Skeleton className="h-10 w-48" />
         </div>
-        <Skeleton className="h-24 w-full" />
+      </div>
+      <div className="p-6 space-y-6">
+        <Skeleton className="h-80 w-full" />
+        <div className="grid md:grid-cols-2 gap-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+        </div>
       </div>
     </div>
   );

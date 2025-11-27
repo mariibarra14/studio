@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { ApiEvent } from "@/lib/types";
 import { MyEventCard } from "@/components/events/my-event-card";
 import { MyEventDetailsModal } from "@/components/events/my-event-details-modal";
+import { useToast } from "@/hooks/use-toast";
 
 export default function MyEventsPage() {
   const { user, userRole, isLoadingUser } = useApp();
@@ -20,6 +21,8 @@ export default function MyEventsPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const { toast } = useToast();
+
 
   const fetchEvents = useCallback(async () => {
     setIsLoading(true);
@@ -79,6 +82,16 @@ export default function MyEventsPage() {
   const handleCloseModal = () => {
     setSelectedEventId(null);
   };
+  
+  const handleDeleteSuccess = () => {
+    toast({
+        title: "Evento Eliminado",
+        description: "El evento ha sido eliminado exitosamente.",
+    });
+    setSelectedEventId(null); // Cierra la vista de detalles
+    fetchEvents(); // Recarga la lista de eventos
+  };
+
 
   const renderContent = () => {
     if (isLoading || isLoadingUser) {
@@ -95,8 +108,8 @@ export default function MyEventsPage() {
         return (
             <MyEventDetailsModal 
               eventId={selectedEventId} 
-              isOpen={!!selectedEventId} 
-              onClose={handleCloseModal} 
+              onClose={handleCloseModal}
+              onDeleteSuccess={handleDeleteSuccess}
             />
         );
     }
