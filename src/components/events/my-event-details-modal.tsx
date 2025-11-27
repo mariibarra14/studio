@@ -120,6 +120,16 @@ export function MyEventDetailsModal({ eventId, isOpen, onClose }: MyEventDetails
             <CardContent>
                 <div className="grid md:grid-cols-3 gap-8">
                     <div className="md:col-span-2 space-y-6">
+                        <section>
+                            <div className="relative h-80 w-full rounded-lg overflow-hidden mb-6">
+                                <Image
+                                    src={details.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
+                                    alt={details.nombre}
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+                        </section>
                         <section className="space-y-3">
                             <h3 className="font-semibold text-lg flex items-center"><Info className="mr-2 h-5 w-5 text-primary" />Descripción</h3>
                             <p className="text-muted-foreground text-sm leading-relaxed">{details.descripcion || 'No hay descripción disponible.'}</p>
