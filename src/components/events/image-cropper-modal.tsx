@@ -1,18 +1,8 @@
-
 "use client";
 
 import { useState, useRef } from 'react';
-import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
 import { Button } from '@/components/ui/button';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter,
-  DialogDescription
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 
 interface ImageCropperModalProps {
@@ -27,128 +17,160 @@ export function ImageCropperModal({
   isOpen, 
   onClose, 
   imageFile, 
-  onCropComplete, 
-  aspectRatio = 16/9 
+  onCropComplete,
+  aspectRatio = 16/9
 }: ImageCropperModalProps) {
-  const [crop, setCrop] = useState<Crop>();
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
-  const [isCropping, setIsCropping] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const [zoom, setZoom] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const generateCroppedImage = async (): Promise<File | null> => {
-    if (!imgRef.current || !completedCrop || completedCrop.width === 0 || completedCrop.height === 0) {
-      return null;
+  const handleProcessImage = async () => {
+    setIsProcessing(true);
+    try {
+      // For simplicity, we are just resizing the image. 
+      // A more advanced version could use the zoom/pan values to crop.
+      const resizedFile = await resizeImage(imageFile, 1200, 1200 / aspectRatio);
+      onCropComplete(resizedFile);
+      onClose();
+    } catch (error) {
+      console.error('Error processing image:', error);
+      alert('Error al procesar la imagen. Por favor, inténtelo de nuevo.');
+    } finally {
+      setIsProcessing(false);
     }
+  };
 
-    const image = imgRef.current;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
 
-    if (!ctx) {
-      return null;
-    }
-
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-
-    canvas.width = completedCrop.width;
-    canvas.height = completedCrop.height;
-
-    ctx.drawImage(
-      image,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
-      0,
-      0,
-      completedCrop.width,
-      completedCrop.height
-    );
-
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const croppedFile = new File([blob], imageFile.name, {
-            type: 'image/jpeg',
-            lastModified: Date.now(),
-          });
-          resolve(croppedFile);
-        } else {
-          resolve(null);
+        if (!ctx) {
+          return reject(new Error('Failed to get canvas context'));
         }
-      }, 'image/jpeg', 0.9);
+
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const resizedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(resizedFile);
+          } else {
+            reject(new Error('Canvas to Blob failed'));
+          }
+        }, 'image/jpeg', 0.9);
+      };
+      img.onerror = () => {
+        reject(new Error('Image failed to load'));
+      };
     });
   };
 
-  const handleApplyCrop = async () => {
-    if (!completedCrop) {
-      return;
-    }
-
-    setIsCropping(true);
-    try {
-      const croppedFile = await generateCroppedImage();
-      if (croppedFile) {
-        onCropComplete(croppedFile);
-      }
-      onClose();
-    } catch (error) {
-      console.error('Error cropping image:', error);
-    } finally {
-      setIsCropping(false);
-    }
-  };
+  if (!imageFile) return null;
 
   const imageUrl = URL.createObjectURL(imageFile);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Recortar Imagen del Evento</DialogTitle>
-          <DialogDescription>
-            Ajusta el recuadro para seleccionar la parte de la imagen que quieres mostrar.
-          </DialogDescription>
+          <DialogTitle>Ajustar Imagen del Evento</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            La imagen se ajustará automáticamente para el evento.
+          </p>
         </DialogHeader>
 
-        <div className="flex-grow flex items-center justify-center min-h-0 p-4 bg-muted/50 rounded-lg">
-          <ReactCrop
-            crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => setCompletedCrop(c)}
-            aspect={aspectRatio}
-            minWidth={200}
+        <div className="space-y-4 py-4">
+          <div 
+            className="border rounded-lg p-4 bg-muted/50 max-h-[50vh] overflow-hidden flex items-center justify-center"
           >
             <img
-              ref={imgRef}
               src={imageUrl}
-              alt="Recortar"
-              style={{ maxHeight: '65vh', objectFit: 'contain' }}
-              onLoad={(e) => {
-                const { width, height } = e.currentTarget;
-                const newCrop: Crop = {
-                  unit: '%',
-                  width: 80,
-                  height: (80 * height) / width / aspectRatio,
-                  x: 10,
-                  y: 10,
-                };
-                setCrop(newCrop);
+              alt="Vista previa"
+              className="max-w-full max-h-[40vh] object-contain transition-transform duration-200 ease-out"
+              style={{
+                transform: `scale(${zoom}) translate(${position.x}px, ${position.y}px)`,
               }}
             />
-          </ReactCrop>
+          </div>
+
+          <div className="space-y-4 pt-4">
+            <div>
+              <label htmlFor="zoom-slider" className="text-sm font-medium">Zoom:</label>
+              <input
+                id="zoom-slider"
+                type="range"
+                min="0.5"
+                max="3"
+                step="0.1"
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+                className="w-full mt-1 accent-primary"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="pos-x-slider" className="text-sm font-medium">Posición Horizontal (X):</label>
+                <input
+                  id="pos-x-slider"
+                  type="range"
+                  min="-100"
+                  max="100"
+                  step="1"
+                  value={position.x}
+                  onChange={(e) => setPosition(prev => ({ ...prev, x: parseInt(e.target.value) }))}
+                  className="w-full mt-1 accent-primary"
+                />
+              </div>
+              <div>
+                <label htmlFor="pos-y-slider" className="text-sm font-medium">Posición Vertical (Y):</label>
+                <input
+                  id="pos-y-slider"
+                  type="range"
+                  min="-100"
+                  max="100"
+                  step="1"
+                  value={position.y}
+                  onChange={(e) => setPosition(prev => ({ ...prev, y: parseInt(e.target.value) }))}
+                  className="w-full mt-1 accent-primary"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isCropping}>
+          <Button variant="outline" onClick={onClose} disabled={isProcessing}>
             Cancelar
           </Button>
           <Button 
-            onClick={handleApplyCrop} 
-            disabled={!completedCrop || isCropping}
+            onClick={handleProcessImage} 
+            disabled={isProcessing}
           >
-            {isCropping ? <Loader2 className="animate-spin" /> : 'Aplicar Recorte'}
+            {isProcessing ? <Loader2 className="animate-spin" /> : 'Aplicar Ajustes'}
           </Button>
         </DialogFooter>
       </DialogContent>

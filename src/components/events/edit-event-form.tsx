@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, AlertCircle, Upload, FileUp, Paperclip, Save } from "lucide-react";
+import { Loader2, AlertCircle, Upload, FileUp, Paperclip } from "lucide-react";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { ApiEvent, Venue } from "@/lib/types";
@@ -98,12 +97,11 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validaciones
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
         setError(prev => ({ ...prev, image: 'Formato de imagen no válido. Use JPG, PNG o WEBP.'}));
         return;
       }
-      if (file.size > 5 * 1024 * 1024) { // 5MB
+      if (file.size > 5 * 1024 * 1024) {
         setError(prev => ({ ...prev, image: 'La imagen es muy grande. Máximo 5MB.'}));
         return;
       }
@@ -157,7 +155,7 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
 
         toast({ title: "Éxito", description: "La imagen del evento ha sido actualizada." });
         setSelectedImage(null);
-        onSuccess(); // Refresca los detalles
+        onSuccess();
     } catch (err: any) {
         setError(prev => ({...prev, image: err.message || "Ocurrió un error al subir la imagen."}));
     } finally {
@@ -455,7 +453,7 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
           </div>
         </form>
       </Form>
-      {tempImageFile && isCropperOpen && (
+      {tempImageFile && (
         <ImageCropperModal
           isOpen={isCropperOpen}
           onClose={() => {
