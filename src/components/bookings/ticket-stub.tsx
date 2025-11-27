@@ -3,7 +3,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Calendar, Clock, Ticket, Hash, MapPin, Tag } from "lucide-react";
+import { Calendar, Clock, Ticket, Hash, MapPin, Tag, Armchair } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { ApiBooking } from "@/lib/types";
@@ -37,6 +37,7 @@ const getEstadoColor = (estado: string) => {
 export function TicketStub({ booking, onSelect }: TicketStubProps) {
   const estadoDisplay = getEstadoDisplay(booking.estado);
   const estadoColor = getEstadoColor(booking.estado);
+  const seatLabels = booking.asientos.map(a => a.label).join(', ');
 
   return (
     <div
@@ -78,6 +79,12 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
          <div className="flex items-center text-sm text-muted-foreground">
           <Calendar className="h-4 w-4 mr-2" />
           <span>Inicia: {booking.eventoInicio ? format(new Date(booking.eventoInicio), "dd/MM/yyyy", { locale: es }) : 'N/A'}</span>
+        </div>
+         <div className="flex items-center text-sm text-muted-foreground">
+          <Armchair className="h-4 w-4 mr-2" />
+          <span className="truncate" title={seatLabels}>
+            {booking.asientos.length} Asiento(s): {seatLabels || 'N/A'}
+          </span>
         </div>
       </div>
 

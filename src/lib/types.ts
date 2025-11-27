@@ -58,6 +58,7 @@ export interface Seat {
   asientoId: string;
   precioUnitario: number;
   label: string;
+  estado?: string; // e.g., 'hold', 'available', 'sold'
 }
 
 export interface ApiBooking {
@@ -79,4 +80,3 @@ export interface ApiBooking {
   escenarioNombre?: string;
   escenarioUbicacion?: string;
 }
-

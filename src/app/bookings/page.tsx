@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { BookingDetailsModal } from "@/components/bookings/booking-details-modal";
 import { TicketStub } from "@/components/bookings/ticket-stub";
-import type { ApiBooking, ApiEvent } from "@/lib/types";
+import type { ApiBooking, ApiEvent, Seat } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -64,7 +64,7 @@ export default function BookingsPage() {
           let eventoFin = "";
           let escenarioNombre = "Ubicación no disponible";
           let escenarioUbicacion = "";
-
+          let enrichedAsientos: Seat[] = booking.asientos;
 
           try {
             const [zonaResponse, eventoResponse] = await Promise.all([
@@ -100,6 +100,28 @@ export default function BookingsPage() {
                   }
                 }
             }
+
+            // Enrich seats
+            enrichedAsientos = await Promise.all(
+              booking.asientos.map(async (asiento) => {
+                try {
+                  const asientoResponse = await fetch(`http://localhost:44335/api/events/${booking.eventId}/zonas/${booking.zonaEventoId}/asientos/${asiento.asientoId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (asientoResponse.ok) {
+                    const asientoData = await asientoResponse.json();
+                    return {
+                      ...asiento,
+                      label: asientoData.label || asiento.label,
+                      estado: asientoData.estado
+                    };
+                  }
+                  return { ...asiento, label: asiento.label || 'N/A', estado: 'error' };
+                } catch (e) {
+                   return { ...asiento, label: asiento.label || 'N/A', estado: 'error' };
+                }
+              })
+            );
             
           } catch (e) {
             console.error("Error fetching extra details for booking:", booking.reservaId, e);
@@ -115,6 +137,7 @@ export default function BookingsPage() {
             eventoFin,
             escenarioNombre,
             escenarioUbicacion,
+            asientos: enrichedAsientos,
           };
         })
       );

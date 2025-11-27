@@ -16,7 +16,7 @@ import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, 
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import type { ApiBooking } from "@/lib/types";
+import type { ApiBooking, Seat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type BookingDetailsModalProps = {
@@ -45,6 +45,18 @@ const getEstadoColor = (estado: string) => {
   return colores[estado] || 'bg-gray-100 text-gray-800 border-gray-200';
 };
 
+const getEstadoAsientoDisplay = (estado: string | undefined) => {
+    if (!estado) return "No disponible";
+    const estados: { [key: string]: string } = {
+      'hold': 'Reservado',
+      'available': 'Disponible',
+      'sold': 'Vendido',
+      'reserved': 'Reservado',
+      'blocked': 'Bloqueado',
+      'error': 'No disponible'
+    };
+    return estados[estado.toLowerCase()] || estado;
+};
 
 export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetailsModalProps) {
     const { toast } = useToast();
@@ -125,8 +137,13 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                         <div className="max-h-32 overflow-y-auto space-y-1 pr-2">
                         {booking.asientos.map(asiento => (
                             <div key={asiento.asientoId} className="flex justify-between items-center text-sm p-2 bg-muted/50 rounded-md">
-                                <p>Asiento <span className="font-semibold">{asiento.label}</span></p>
-                                <p className="text-muted-foreground text-xs">(ID: {asiento.asientoId.substring(0,8)})</p>
+                                <div>
+                                    <p>Asiento <span className="font-semibold">{asiento.label}</span></p>
+                                    <p className="text-xs text-muted-foreground">ID: {asiento.asientoId.substring(0,8)}... </p>
+                                </div>
+                                <Badge variant={asiento.estado === 'hold' ? 'default' : 'outline'} className="capitalize">
+                                    {getEstadoAsientoDisplay(asiento.estado)}
+                                </Badge>
                                 <p className="font-semibold">${asiento.precioUnitario.toFixed(2)}</p>
                             </div>
                         ))}
