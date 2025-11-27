@@ -144,19 +144,22 @@ export function EventReservationModal({
   
   const DetailsViewSkeleton = () => (
     <div className="p-8">
-        <DialogHeader className="text-left mb-4">
-          <Skeleton className="h-8 w-3/4 mb-2" />
-          <Skeleton className="h-5 w-1/2" />
-        </DialogHeader>
-        <div className="space-y-4">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-        </div>
-        <DialogFooter className="mt-8">
-          <Skeleton className="h-12 w-full" />
-        </DialogFooter>
+      <DialogHeader className="sr-only">
+        <DialogTitle>Cargando evento...</DialogTitle>
+      </DialogHeader>
+      <div className="text-left mb-4">
+        <Skeleton className="h-8 w-3/4 mb-2" />
+        <Skeleton className="h-5 w-1/2" />
       </div>
+      <div className="space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+      </div>
+      <DialogFooter className="mt-8">
+        <Skeleton className="h-12 w-full" />
+      </DialogFooter>
+    </div>
   );
 
   const renderContent = () => {
@@ -167,6 +170,9 @@ export function EventReservationModal({
     if (error || !eventDetails) {
       return (
         <div className="flex flex-col items-center justify-center p-8 min-h-[400px]">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Error al cargar evento</DialogTitle>
+            </DialogHeader>
             <Alert variant="destructive" className="max-w-md">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Error al Cargar Detalles</AlertTitle>
@@ -192,9 +198,9 @@ export function EventReservationModal({
                     sizes="(max-width: 768px) 100vw, 50vw"
                 />
             ) : (
-                <div className="flex h-full w-full items-center justify-center bg-primary/20 rounded-t-lg">
-                    <p className="text-center font-bold text-primary text-2xl p-4">{eventDetails.nombre}</p>
-                </div>
+              <div className="flex h-full w-full items-center justify-center bg-primary rounded-t-lg">
+                  <p className="text-center font-bold text-primary-foreground text-2xl p-4">{eventDetails.nombre}</p>
+              </div>
             )}
              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           </div>
@@ -323,7 +329,7 @@ export function EventReservationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl h-[700px] p-0 overflow-auto">
+      <DialogContent className="max-w-3xl p-0 overflow-auto">
         {renderContent()}
       </DialogContent>
     </Dialog>
