@@ -188,21 +188,21 @@ export function EventReservationModal({
     if (stage === "details") {
       return (
         <div className="p-0">
-          <div className="relative aspect-video w-full">
-            {eventDetails.imagenUrl ? (
-                <Image
-                    src={eventDetails.imagenUrl}
-                    alt={eventDetails.nombre}
-                    fill
-                    className="object-cover rounded-t-lg"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-primary rounded-t-lg">
-                  <p className="text-center font-bold text-primary-foreground text-2xl p-4">{eventDetails.nombre}</p>
-              </div>
-            )}
-             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+          <div className={`relative w-full ${eventDetails.imagenUrl ? 'aspect-video' : 'h-48'}`}>
+              {eventDetails.imagenUrl ? (
+                  <Image
+                      src={eventDetails.imagenUrl}
+                      alt={eventDetails.nombre}
+                      fill
+                      className="object-cover rounded-t-lg"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+              ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-600 to-orange-500 rounded-t-lg">
+                      <p className="text-center font-bold text-white text-lg p-4">{eventDetails.nombre}</p>
+                  </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent" />
           </div>
 
           <div className="p-6">
@@ -329,7 +329,7 @@ export function EventReservationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl p-0 overflow-auto">
+      <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
         {renderContent()}
       </DialogContent>
     </Dialog>

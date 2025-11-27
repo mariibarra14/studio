@@ -147,8 +147,8 @@ export default function EventsPage() {
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                     />
                 ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-primary/20">
-                        <p className="text-center font-bold text-primary p-4">{event.nombre}</p>
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-600 to-orange-500/20">
+                        <p className="text-center font-bold text-white p-4">{event.nombre}</p>
                     </div>
                 )}
 
