@@ -59,7 +59,7 @@ const getEstadoAsientoDisplay = (estado: string | undefined) => {
     const estados: { [key: string]: string } = {
       'hold': 'Reservado',
       'available': 'Disponible',
-      'sold': 'Vendido',
+      'Ocupado': 'Vendido',
       'reserved': 'Reservado',
       'blocked': 'Bloqueado',
       'error': 'No disponible'
