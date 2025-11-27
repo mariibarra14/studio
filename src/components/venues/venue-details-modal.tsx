@@ -55,8 +55,8 @@ export function VenueDetailsModal({ venue, isOpen, onClose }: VenueDetailsModalP
             <div className="flex items-start gap-3">
               <Globe className="h-5 w-5 mt-0.5 text-primary" />
               <div>
-                <h4 className="font-semibold">Ciudad/Estado</h4>
-                <p className="text-muted-foreground">{venue.ciudad}, {venue.estado}</p>
+                <h4 className="font-semibold">Ubicación</h4>
+                <p className="text-muted-foreground">{venue.ciudad}, {venue.estado}, {venue.pais}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">

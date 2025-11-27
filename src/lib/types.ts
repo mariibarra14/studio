@@ -32,6 +32,7 @@ export type Venue = {
   ubicacion: string;
   ciudad: string;
   estado: string;
+  pais: string;
   descripcion: string;
   capacidadTotal: number;
   activo: boolean;

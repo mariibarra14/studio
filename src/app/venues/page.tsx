@@ -6,16 +6,20 @@ import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Building, RefreshCw } from "lucide-react";
+import { AlertCircle, Building, RefreshCw, PlusCircle } from "lucide-react";
 import { VenueCard } from "@/components/venues/venue-card";
 import { VenueDetailsModal } from "@/components/venues/venue-details-modal";
+import { AddVenueModal } from "@/components/venues/add-venue-modal";
 import type { Venue } from "@/lib/types";
+import { useApp } from "@/context/app-context";
 
 export default function VenuesPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const [isAddVenueOpen, setIsAddVenueOpen] = useState(false);
+  const { userRole } = useApp();
 
   const fetchVenues = useCallback(async () => {
     setIsLoading(true);
@@ -76,6 +80,12 @@ export default function VenuesPage() {
   const handleCloseModal = () => {
     setSelectedVenue(null);
   };
+  
+  const handleAddSuccess = () => {
+    setIsAddVenueOpen(false);
+    fetchVenues();
+  };
+
 
   const renderContent = () => {
     if (isLoading) {
@@ -128,11 +138,19 @@ export default function VenuesPage() {
       <main className="flex-1 p-4 md:p-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
             <h1 className="text-3xl font-bold">Escenarios</h1>
-            {!isLoading && !error && (
-              <p className="text-muted-foreground">
-                {venues.length} escenario{venues.length !== 1 ? 's' : ''} encontrado{venues.length !== 1 ? 's' : ''}
-              </p>
-            )}
+            <div className="flex items-center gap-4">
+              {!isLoading && !error && (
+                <p className="text-muted-foreground text-sm">
+                  {venues.length} escenario{venues.length !== 1 ? 's' : ''} encontrado{venues.length !== 1 ? 's' : ''}
+                </p>
+              )}
+              {userRole === 'administrador' && (
+                <Button onClick={() => setIsAddVenueOpen(true)}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Agregar Escenario
+                </Button>
+              )}
+            </div>
         </div>
         {renderContent()}
       </main>
@@ -144,6 +162,15 @@ export default function VenuesPage() {
           onClose={handleCloseModal} 
         />
       )}
+      
+      {userRole === 'administrador' && (
+        <AddVenueModal
+          isOpen={isAddVenueOpen}
+          onClose={() => setIsAddVenueOpen(false)}
+          onSuccess={handleAddSuccess}
+        />
+      )}
+
     </AuthenticatedLayout>
   );
 }
