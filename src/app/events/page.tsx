@@ -21,15 +21,9 @@ import type { ApiEvent } from "@/lib/types";
 import { useApp } from "@/context/app-context";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { getAllCategories, getCategoryNameById } from "@/lib/categories";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { getAllCategories } from "@/lib/categories";
+import { FiltersSheet } from "@/components/events/filters-sheet";
+import { Badge } from "@/components/ui/badge";
 
 export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<ApiEvent | null>(null);
@@ -41,6 +35,7 @@ export default function EventsPage() {
   
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const categories = getAllCategories();
 
@@ -123,6 +118,15 @@ export default function EventsPage() {
     setSelectedCategory("");
     setDateRange({ start: "", end: "" });
   };
+  
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (searchQuery) count++;
+    if (selectedCategory) count++;
+    if (dateRange.start || dateRange.end) count++;
+    return count;
+  }, [searchQuery, selectedCategory, dateRange]);
+
 
   const EventCard = ({ event }: { event: ApiEvent }) => {
     const eventDate = new Date(event.inicio);
@@ -195,72 +199,34 @@ export default function EventsPage() {
   return (
     <AuthenticatedLayout>
       <main className="flex-1 p-4 md:p-8">
-        <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Eventos Disponibles</h1>
-            <p className="text-muted-foreground">Encuentra tu próxima experiencia inolvidable.</p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <h1 className="text-3xl font-bold mb-1">Eventos Disponibles</h1>
+                <p className="text-muted-foreground">Encuentra tu próxima experiencia inolvidable.</p>
+            </div>
+            <div className="flex items-center gap-4">
+                <Button variant="outline" onClick={() => setIsFiltersOpen(true)} className="relative">
+                    <Filter className="mr-2 h-4 w-4"/>
+                    Filtrar
+                    {activeFiltersCount > 0 && (
+                        <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 justify-center p-0">{activeFiltersCount}</Badge>
+                    )}
+                </Button>
+            </div>
         </div>
 
-        <Card className="mb-8 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-                 <div className="lg:col-span-2 space-y-2">
-                    <Label htmlFor="search">Buscar Evento</Label>
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input
-                            id="search"
-                            type="search"
-                            placeholder="Buscar por nombre..."
-                            className="pl-10"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="category">Categoría</Label>
-                    <Select value={selectedCategory || "all"} onValueChange={(value) => setSelectedCategory(value === "all" ? "" : value)}>
-                        <SelectTrigger id="category">
-                            <SelectValue placeholder="Todas las categorías" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Todas las categorías</SelectItem>
-                            {categories.map((cat) => (
-                                <SelectItem key={cat._id} value={cat._id}>{cat.Nombre}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                
-                 <div className="space-y-2">
-                    <Label htmlFor="start-date">Fecha de Inicio</Label>
-                    <Input
-                        id="start-date"
-                        type="date"
-                        value={dateRange.start}
-                        onChange={(e) => setDateRange(prev => ({...prev, start: e.target.value}))}
-                    />
-                </div>
-                
-                <div className="space-y-2">
-                    <Label htmlFor="end-date">Fecha de Fin</Label>
-                    <Input
-                        id="end-date"
-                        type="date"
-                        value={dateRange.end}
-                        onChange={(e) => setDateRange(prev => ({...prev, end: e.target.value}))}
-                        min={dateRange.start}
-                    />
-                </div>
-
-                <div className="md:col-span-2 lg:col-span-3 flex justify-end">
-                    <Button variant="ghost" onClick={clearFilters} className="text-sm">
-                        <X className="mr-2 h-4 w-4"/>
-                        Limpiar Filtros
-                    </Button>
-                </div>
-            </div>
-        </Card>
+        <FiltersSheet
+            isOpen={isFiltersOpen}
+            onClose={() => setIsFiltersOpen(false)}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            categories={categories}
+            clearFilters={clearFilters}
+        />
         
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
