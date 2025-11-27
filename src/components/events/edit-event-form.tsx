@@ -266,7 +266,7 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
                       <FormLabel className="text-lg font-semibold">Imagen del Evento</FormLabel>
                       <div className="w-full aspect-video rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden">
                           {imagePreview ? (
-                              <Image src={imagePreview} alt="Vista previa" width={400} height={225} className="object-cover w-full h-full" />
+                              <Image src={imagePreview} alt="Vista previa" width={500} height={300} className="object-cover w-full h-full" />
                           ) : (
                               <span className="text-muted-foreground">Sin Imagen</span>
                           )}

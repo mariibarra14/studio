@@ -214,7 +214,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="md:col-span-2 space-y-6">
                             <section>
-                                <div className="relative h-80 w-full rounded-lg overflow-hidden mb-6">
+                                <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-6">
                                     <Image
                                         src={details.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
                                         alt={details.nombre}

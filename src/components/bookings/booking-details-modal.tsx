@@ -49,7 +49,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl p-0">
-            <div className="relative h-56 w-full">
+            <div className="relative aspect-video w-full">
                  <Image
                     src={booking.event.image.imageUrl}
                     alt={booking.event.image.description}

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Ticket, Tag, Package, Plus, Minus, Loader2, AlertCircle, Building, User } from "lucide-react";
+import { Users, Ticket, Tag, Package, Plus, Minus, Loader2, AlertCircle, Building, User, FileText, Link as LinkIcon } from "lucide-react";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -109,9 +109,9 @@ export function EventReservationModal({
 
 
   const handleTierChange = (tierId: string) => {
-    const tier = eventDetails?.localidades.find(t => t.id === tierId) || null;
+    const tier = eventDetails?.localidades?.find(t => t.id === tierId) || null;
     setSelectedTier(tier);
-    setQuantity(1); // Reset quantity when tier changes
+    setQuantity(1);
   };
 
   const incrementQuantity = () => {
@@ -182,7 +182,7 @@ export function EventReservationModal({
     if (stage === "details") {
       return (
         <div className="p-0">
-          <div className="relative h-56 w-full">
+          <div className="relative aspect-video w-full">
             <Image
               src={eventDetails.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
               alt={eventDetails.nombre}
@@ -222,6 +222,20 @@ export function EventReservationModal({
                     </div>
                 </div>
               )}
+               {eventDetails.folletoUrl && (
+                <div className="flex items-start gap-3 pt-2">
+                    <FileText className="h-5 w-5 mt-0.5 text-primary" />
+                    <div>
+                        <h4 className="font-semibold text-foreground">Folleto del Evento</h4>
+                        <Button variant="link" asChild className="p-0 h-auto text-base">
+                            <a href={eventDetails.folletoUrl} target="_blank" rel="noopener noreferrer">
+                                Ver Folleto (PDF)
+                                <LinkIcon className="ml-2 h-4 w-4" />
+                            </a>
+                        </Button>
+                    </div>
+                </div>
+               )}
                <div className="flex items-start gap-3 pt-2">
                     <Users className="h-5 w-5 mt-0.5 text-primary"/>
                     <div>
@@ -257,14 +271,14 @@ export function EventReservationModal({
                             <SelectValue placeholder="Seleccione un tipo de entrada" />
                         </SelectTrigger>
                         <SelectContent>
-                            {eventDetails.localidades.map(tier => (
-                                <SelectItem key={tier.id} value={tier.id} className="text-base p-3">
-                                    <div className="flex justify-between w-full">
-                                        <span className="font-semibold">{tier.nombre}</span>
-                                        <span className="text-muted-foreground ml-4">${tier.precio.toFixed(2)}</span>
-                                    </div>
-                                </SelectItem>
-                            ))}
+                          {eventDetails.localidades?.map(tier => (
+                            <SelectItem key={tier.id} value={tier.id} className="text-base p-3">
+                              <div className="flex justify-between w-full">
+                                <span className="font-semibold">{tier.nombre}</span>
+                                <span className="text-muted-foreground ml-4">${tier.precio.toFixed(2)}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -303,7 +317,7 @@ export function EventReservationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl p-0">
+      <DialogContent className="max-w-3xl h-[700px] p-0 overflow-auto">
         {renderContent()}
       </DialogContent>
     </Dialog>
@@ -311,3 +325,4 @@ export function EventReservationModal({
 }
 
     
+

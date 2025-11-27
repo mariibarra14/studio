@@ -36,7 +36,7 @@ export function MyEventCard({ event, onEventClick }: MyEventCardProps) {
       onClick={() => onEventClick(event.id)}
     >
       <CardHeader className="p-0">
-        <div className="relative h-48 w-full">
+        <div className="relative aspect-video w-full">
           <Image
             src={event.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
             alt={event.nombre}
