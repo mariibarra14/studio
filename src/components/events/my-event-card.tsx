@@ -35,11 +35,18 @@ const statusVariantMap: { [key: string]: "default" | "secondary" | "destructive"
 };
 
 const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return {
-      day: date.getDate(),
-      month: date.toLocaleString('es', { month: 'short' }),
-    };
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            throw new Error("Invalid date");
+        }
+        return {
+          day: date.getDate(),
+          month: date.toLocaleString('es', { month: 'short' }),
+        };
+    } catch (e) {
+        return { day: '??', month: '???'}
+    }
 };
 
 export function MyEventCard({ event }: MyEventCardProps) {
@@ -80,15 +87,15 @@ export function MyEventCard({ event }: MyEventCardProps) {
         <div className="space-y-3 text-sm text-muted-foreground">
             <div className="flex justify-between items-center">
                 <span className="font-semibold text-foreground">Localidades:</span>
-                <span className="font-mono text-foreground">{event.localidades.length}</span>
+                <span className="font-mono text-foreground">{event.localidades?.length || 0}</span>
             </div>
             <div className="flex justify-between items-center">
                 <span className="font-semibold text-foreground">Aforo Máximo:</span>
-                 <span className="font-mono text-foreground">{event.aforoMaximo.toLocaleString()}</span>
+                 <span className="font-mono text-foreground">{(event.aforoMaximo || 0).toLocaleString()}</span>
             </div>
              <div className="flex justify-between items-center">
                 <span className="font-semibold text-foreground">Creado:</span>
-                <span className="font-mono text-foreground">{format(new Date(event.createdAt), 'dd/MM/yy')}</span>
+                <span className="font-mono text-foreground">{event.createdAt ? format(new Date(event.createdAt), 'dd/MM/yy') : 'N/A'}</span>
             </div>
         </div>
 
@@ -127,4 +134,3 @@ export function MyEventCard({ event }: MyEventCardProps) {
     </Card>
   );
 }
-
