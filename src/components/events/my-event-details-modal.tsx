@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Calendar, Users, MapPin, Tag, FileText, Building, AlertCircle, Clock, Link as LinkIcon, Info, ArrowLeft, Trash2, Loader2, Edit } from "lucide-react";
+import { Calendar, Users, MapPin, Tag, FileText, Building, AlertCircle, Clock, Link as LinkIcon, Info, ArrowLeft, Trash2, Loader2, Edit, PlusCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { ApiEvent, Venue, Zone } from "@/lib/types";
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { getCategoryNameById } from "@/lib/categories";
 import { EditEventModal } from "./edit-event-modal";
+import { AddZoneModal } from "./add-zone-modal";
 
 type MyEventDetailsModalProps = {
   eventId: string;
@@ -46,6 +47,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddZoneModalOpen, setIsAddZoneModalOpen] = useState(false);
 
   const fetchDetails = useCallback(async () => {
     setIsLoading(true);
@@ -130,9 +132,14 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
   
   const handleEditSuccessAndClose = () => {
     setIsEditModalOpen(false);
-    fetchDetails(); // Refetch details after edit
+    fetchDetails();
     onEditSuccess();
   }
+
+  const handleAddZoneSuccess = () => {
+    setIsAddZoneModalOpen(false);
+    fetchDetails(); // Refetch event details to show the new zone
+  };
 
   const handleClose = () => {
     onClose();
@@ -240,7 +247,13 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                             </section>
                             
                             <section className="space-y-3 pt-4 border-t">
-                                <h3 className="font-semibold text-lg flex items-center"><Tag className="mr-2 h-5 w-5 text-primary" />Zonas del Evento</h3>
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-semibold text-lg flex items-center"><Tag className="mr-2 h-5 w-5 text-primary" />Zonas del Evento</h3>
+                                    <Button size="sm" variant="outline" onClick={() => setIsAddZoneModalOpen(true)}>
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Añadir Zona
+                                    </Button>
+                                </div>
                                 {details.zonas && details.zonas.length > 0 ? (
                                     <ul className="space-y-2 text-sm text-muted-foreground">
                                         {details.zonas.map(zona => (
@@ -297,12 +310,22 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                     </div>
                 </CardContent>
             </Card>
-            <EditEventModal
-                isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
-                event={details}
-                onUpdateSuccess={handleEditSuccessAndClose}
-            />
+            {details && (
+              <>
+                <EditEventModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    event={details}
+                    onUpdateSuccess={handleEditSuccessAndClose}
+                />
+                <AddZoneModal
+                    isOpen={isAddZoneModalOpen}
+                    onClose={() => setIsAddZoneModalOpen(false)}
+                    onSuccess={handleAddZoneSuccess}
+                    eventId={details.id}
+                />
+              </>
+            )}
         </>
     );
   };
