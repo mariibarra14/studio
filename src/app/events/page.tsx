@@ -219,12 +219,12 @@ export default function EventsPage() {
 
                 <div className="space-y-2">
                     <Label htmlFor="category">Categoría</Label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <Select value={selectedCategory || "all"} onValueChange={(value) => setSelectedCategory(value === "all" ? "" : value)}>
                         <SelectTrigger id="category">
                             <SelectValue placeholder="Todas las categorías" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">Todas las categorías</SelectItem>
+                            <SelectItem value="all">Todas las categorías</SelectItem>
                             {categories.map((cat) => (
                                 <SelectItem key={cat._id} value={cat._id}>{cat.Nombre}</SelectItem>
                             ))}
