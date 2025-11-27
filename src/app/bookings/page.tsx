@@ -44,19 +44,34 @@ export default function BookingsPage() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (response.status === 401) {
-        throw new Error("401");
-      }
+      if (response.status === 401) throw new Error("401");
       if (response.status === 404) {
         setBookings([]);
         return;
       }
-      if (!response.ok) {
-        throw new Error("Server Error");
-      }
+      if (!response.ok) throw new Error("Server Error");
 
-      const data: ApiBooking[] = await response.json();
-      setBookings(data);
+      const initialBookings: ApiBooking[] = await response.json();
+      
+      // Enrich bookings with zone names
+      const enrichedBookings = await Promise.all(
+        initialBookings.map(async (booking) => {
+          try {
+            const zonaResponse = await fetch(`http://localhost:44335/api/events/${booking.eventId}/zonas/${booking.zonaEventoId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (zonaResponse.ok) {
+              const zonaData = await zonaResponse.json();
+              return { ...booking, zonaNombre: zonaData.nombre };
+            }
+            return { ...booking, zonaNombre: "No disponible" };
+          } catch (e) {
+            return { ...booking, zonaNombre: "Error al cargar" };
+          }
+        })
+      );
+      setBookings(enrichedBookings);
+
     } catch (err: any) {
       if (err.message === "401") {
         toast({

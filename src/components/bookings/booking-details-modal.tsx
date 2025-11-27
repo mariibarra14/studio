@@ -73,7 +73,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                         <div>
                             <h4 className="font-semibold">Información General</h4>
                             <p className="text-sm text-muted-foreground">Evento ID: {booking.eventId}</p>
-                            <p className="text-sm text-muted-foreground">Zona ID: {booking.zonaEventoId}</p>
+                            <p className="text-sm text-muted-foreground">Zona: {booking.zonaNombre || 'Cargando...'}</p>
                         </div>
                     </div>
                     

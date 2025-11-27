@@ -70,4 +70,5 @@ export interface ApiBooking {
   expiraEn: string;
   precioTotal: number;
   asientos: Seat[];
+  zonaNombre?: string;
 }
