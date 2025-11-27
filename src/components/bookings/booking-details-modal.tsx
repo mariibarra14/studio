@@ -122,6 +122,15 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                         </div>
                     </div>
 
+                     {/* Expiration Date */}
+                     <div className="flex items-start gap-3">
+                        <Clock className="h-5 w-5 mt-1 text-primary" />
+                        <div>
+                            <h4 className="font-semibold">Expiración de la Reserva</h4>
+                            <p className="text-muted-foreground">{formatDate(booking.expiraEn)}</p>
+                        </div>
+                    </div>
+
                     {/* Booking Details */}
                     <div className="flex items-start gap-3">
                         <Info className="h-5 w-5 mt-1 text-primary" />
