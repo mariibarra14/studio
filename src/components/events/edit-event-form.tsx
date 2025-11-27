@@ -29,6 +29,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { ApiEvent, Venue } from "@/lib/types";
 import type { Category } from "@/lib/categories";
 import Image from "next/image";
+import { ImageCropperModal } from "./image-cropper-modal";
 
 const formSchema = z.object({
   nombre: z.string().min(1, "El nombre es requerido"),
@@ -74,6 +75,9 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
   const [selectedFolleto, setSelectedFolleto] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(event.imagenUrl);
   const [folletoFileName, setFolletoFileName] = useState<string | null>(null);
+  
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [tempImageFile, setTempImageFile] = useState<File | null>(null);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -94,14 +98,29 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImagePreview(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      // Validaciones
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        setError(prev => ({ ...prev, image: 'Formato de imagen no válido. Use JPG, PNG o WEBP.'}));
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB
+        setError(prev => ({ ...prev, image: 'La imagen es muy grande. Máximo 5MB.'}));
+        return;
+      }
+      
+      setError(prev => ({ ...prev, image: null}));
+      setTempImageFile(file);
+      setIsCropperOpen(true);
     }
   };
+  
+  const handleCropComplete = (croppedFile: File) => {
+    setSelectedImage(croppedFile);
+    setImagePreview(URL.createObjectURL(croppedFile));
+    setIsCropperOpen(false);
+    setTempImageFile(null);
+  };
+
 
   const handleFolletoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -113,7 +132,7 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
 
   const handleSaveImage = async () => {
     if (!selectedImage) {
-        setError(prev => ({...prev, image: 'Por favor, selecciona una imagen primero.'}));
+        setError(prev => ({...prev, image: 'Por favor, selecciona y recorta una imagen primero.'}));
         return;
     }
     setIsLoading(prev => ({ ...prev, image: true }));
@@ -235,204 +254,219 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 py-4">
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 space-y-8">
-                <FormItem>
-                    <FormLabel className="text-lg font-semibold">Imagen del Evento</FormLabel>
-                    <div className="w-full aspect-video rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden">
-                        {imagePreview ? (
-                            <Image src={imagePreview} alt="Vista previa" width={400} height={225} className="object-cover w-full h-full" />
-                        ) : (
-                            <span className="text-muted-foreground">Sin Imagen</span>
-                        )}
-                    </div>
-                    <FormControl>
-                        <Input type="file" accept="image/*" onChange={handleImageChange} />
-                    </FormControl>
-                    {error.image && <Alert variant="destructive" className="text-xs p-2 mt-2"><AlertDescription>{error.image}</AlertDescription></Alert>}
-                    <Button type="button" onClick={handleSaveImage} disabled={!selectedImage || isLoading.image} className="w-full" variant="outline">
-                        {isLoading.image ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-                        {isLoading.image ? 'Guardando...' : 'Guardar Imagen'}
-                    </Button>
-                </FormItem>
-                <FormItem>
-                    <FormLabel className="text-lg font-semibold">Folleto del Evento (PDF)</FormLabel>
-                     <div className="p-3 bg-muted/50 rounded-lg text-sm">
-                        {event.folletoUrl && !folletoFileName ? (
-                            <p className="text-green-600 flex items-center gap-2">
-                                <Paperclip className="h-4 w-4"/> Folleto cargado actualmente.
-                            </p>
-                        ) : (
-                            <p className="text-muted-foreground">{folletoFileName || "No hay folleto cargado."}</p>
-                        )}
-                    </div>
-                    <FormControl>
-                        <Input type="file" accept=".pdf" onChange={handleFolletoChange} />
-                    </FormControl>
-                     {error.folleto && <Alert variant="destructive" className="text-xs p-2 mt-2"><AlertDescription>{error.folleto}</AlertDescription></Alert>}
-                    <Button type="button" onClick={handleSaveFolleto} disabled={!selectedFolleto || isLoading.folleto} className="w-full" variant="outline">
-                        {isLoading.folleto ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
-                        {isLoading.folleto ? 'Guardando...' : 'Guardar Folleto'}
-                    </Button>
-                </FormItem>
-            </div>
-            
-            <div className="lg:col-span-2 space-y-6">
-                <FormField
-                    control={form.control}
-                    name="nombre"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Nombre del Evento</FormLabel>
-                        <FormControl><Input {...field} /></FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                
-                <FormField
-                    control={form.control}
-                    name="descripcion"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Descripción</FormLabel>
-                        <FormControl><Textarea {...field} rows={5} /></FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 py-4">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1 space-y-8">
+                  <FormItem>
+                      <FormLabel className="text-lg font-semibold">Imagen del Evento</FormLabel>
+                      <div className="w-full aspect-video rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden">
+                          {imagePreview ? (
+                              <Image src={imagePreview} alt="Vista previa" width={400} height={225} className="object-cover w-full h-full" />
+                          ) : (
+                              <span className="text-muted-foreground">Sin Imagen</span>
+                          )}
+                      </div>
+                      <FormControl>
+                          <Input type="file" accept="image/*" onChange={handleImageChange} />
+                      </FormControl>
+                      <p className="text-sm text-blue-600">Se abrirá un editor para que puedas recortar la imagen.</p>
+                      {error.image && <Alert variant="destructive" className="text-xs p-2 mt-2"><AlertDescription>{error.image}</AlertDescription></Alert>}
+                      <Button type="button" onClick={handleSaveImage} disabled={!selectedImage || isLoading.image} className="w-full" variant="outline">
+                          {isLoading.image ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                          {isLoading.image ? 'Guardando...' : 'Guardar Imagen'}
+                      </Button>
+                  </FormItem>
+                  <FormItem>
+                      <FormLabel className="text-lg font-semibold">Folleto del Evento (PDF)</FormLabel>
+                       <div className="p-3 bg-muted/50 rounded-lg text-sm">
+                          {event.folletoUrl && !folletoFileName ? (
+                              <p className="text-green-600 flex items-center gap-2">
+                                  <Paperclip className="h-4 w-4"/> Folleto cargado actualmente.
+                              </p>
+                          ) : (
+                              <p className="text-muted-foreground">{folletoFileName || "No hay folleto cargado."}</p>
+                          )}
+                      </div>
+                      <FormControl>
+                          <Input type="file" accept=".pdf" onChange={handleFolletoChange} />
+                      </FormControl>
+                       {error.folleto && <Alert variant="destructive" className="text-xs p-2 mt-2"><AlertDescription>{error.folleto}</AlertDescription></Alert>}
+                      <Button type="button" onClick={handleSaveFolleto} disabled={!selectedFolleto || isLoading.folleto} className="w-full" variant="outline">
+                          {isLoading.folleto ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
+                          {isLoading.folleto ? 'Guardando...' : 'Guardar Folleto'}
+                      </Button>
+                  </FormItem>
+              </div>
+              
+              <div className="lg:col-span-2 space-y-6">
+                  <FormField
+                      control={form.control}
+                      name="nombre"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Nombre del Evento</FormLabel>
+                          <FormControl><Input {...field} /></FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+                  
+                  <FormField
+                      control={form.control}
+                      name="descripcion"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Descripción</FormLabel>
+                          <FormControl><Textarea {...field} rows={5} /></FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="categoriaId"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Categoría</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger><SelectValue placeholder="Selecciona una categoría" /></SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {categories.map(cat => <SelectItem key={cat._id} value={cat._id}>{cat.Nombre}</SelectItem>)}
-                            </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="tipo"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Tipo de Evento</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger><SelectValue placeholder="Selecciona un tipo" /></SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="Presencial">Presencial</SelectItem>
-                                <SelectItem value="Virtual">Virtual</SelectItem>
-                            </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                </div>
-                
-                <FormField
-                    control={form.control}
-                    name="escenarioId"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Escenario</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Selecciona un escenario" /></SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                            {venues.map(venue => <SelectItem key={venue.id} value={venue.id}>{venue.nombre}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                          control={form.control}
+                          name="categoriaId"
+                          render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>Categoría</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                  <SelectTrigger><SelectValue placeholder="Selecciona una categoría" /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                  {categories.map(cat => <SelectItem key={cat._id} value={cat._id}>{cat.Nombre}</SelectItem>)}
+                              </SelectContent>
+                              </Select>
+                              <FormMessage />
+                          </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="tipo"
+                          render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>Tipo de Evento</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                  <SelectTrigger><SelectValue placeholder="Selecciona un tipo" /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                  <SelectItem value="Presencial">Presencial</SelectItem>
+                                  <SelectItem value="Virtual">Virtual</SelectItem>
+                              </SelectContent>
+                              </Select>
+                              <FormMessage />
+                          </FormItem>
+                          )}
+                      />
+                  </div>
+                  
+                  <FormField
+                      control={form.control}
+                      name="escenarioId"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Escenario</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                              <SelectTrigger><SelectValue placeholder="Selecciona un escenario" /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                              {venues.map(venue => <SelectItem key={venue.id} value={venue.id}>{venue.nombre}</SelectItem>)}
+                              </SelectContent>
+                          </Select>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
 
-                <FormField
-                    control={form.control}
-                    name="lugar"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Lugar (Dirección)</FormLabel>
-                        <FormControl><Input {...field} placeholder="Dirección detallada del evento" /></FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                  <FormField
+                      control={form.control}
+                      name="lugar"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Lugar (Dirección)</FormLabel>
+                          <FormControl><Input {...field} placeholder="Dirección detallada del evento" /></FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="inicio"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Fecha y Hora de Inicio</FormLabel>
-                            <FormControl><Input type="datetime-local" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="fin"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Fecha y Hora de Fin</FormLabel>
-                            <FormControl><Input type="datetime-local" {...field} min={form.watch('inicio')} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                          control={form.control}
+                          name="inicio"
+                          render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>Fecha y Hora de Inicio</FormLabel>
+                              <FormControl><Input type="datetime-local" {...field} /></FormControl>
+                              <FormMessage />
+                          </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="fin"
+                          render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>Fecha y Hora de Fin</FormLabel>
+                              <FormControl><Input type="datetime-local" {...field} min={form.watch('inicio')} /></FormControl>
+                              <FormMessage />
+                          </FormItem>
+                          )}
+                      />
+                  </div>
 
-                <FormField
-                    control={form.control}
-                    name="aforoMaximo"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Aforo Máximo</FormLabel>
-                        <FormControl><Input type="number" {...field} /></FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
-        </div>
-        
-        {error.general && (
-            <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error al Guardar</AlertTitle>
-                <AlertDescription>{error.general}</AlertDescription>
-            </Alert>
-        )}
+                  <FormField
+                      control={form.control}
+                      name="aforoMaximo"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Aforo Máximo</FormLabel>
+                          <FormControl><Input type="number" {...field} /></FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+              </div>
+          </div>
+          
+          {error.general && (
+              <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error al Guardar</AlertTitle>
+                  <AlertDescription>{error.general}</AlertDescription>
+              </Alert>
+          )}
 
-        <div className="flex justify-end gap-4 pt-8 border-t">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={Object.values(isLoading).some(v => v)}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isLoading.general}>
-            {isLoading.general && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isLoading.general ? "Guardando..." : "Guardar Información"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+          <div className="flex justify-end gap-4 pt-8 border-t">
+            <Button type="button" variant="outline" onClick={onCancel} disabled={Object.values(isLoading).some(v => v)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading.general}>
+              {isLoading.general && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading.general ? "Guardando..." : "Guardar Información"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+      {tempImageFile && isCropperOpen && (
+        <ImageCropperModal
+          isOpen={isCropperOpen}
+          onClose={() => {
+            setIsCropperOpen(false);
+            setTempImageFile(null);
+          }}
+          imageFile={tempImageFile}
+          onCropComplete={handleCropComplete}
+          aspectRatio={16/9}
+        />
+      )}
+    </>
   );
 }
