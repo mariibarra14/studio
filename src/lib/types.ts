@@ -1,5 +1,6 @@
 
 
+
 export type TicketTier = {
   id: string;
   nombre: string;
@@ -24,7 +25,7 @@ export type ApiEvent = {
   escenarioId: string;
   createdAt: string;
   updatedAt: string;
-  localidades: TicketTier[];
+  localidades?: TicketTier[];
   categoriaId: string;
 };
 

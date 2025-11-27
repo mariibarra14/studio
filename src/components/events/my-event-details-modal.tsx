@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Calendar, Users, MapPin, Tag, FileText, Building, AlertCircle, Clock, Link as LinkIcon, Info, ArrowLeft, Trash2, Loader2 } from "lucide-react";
+import { Calendar, Users, MapPin, Tag, FileText, Building, AlertCircle, Clock, Link as LinkIcon, Info, ArrowLeft, Trash2, Loader2, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { ApiEvent, Venue } from "@/lib/types";
@@ -25,23 +25,26 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { getCategoryNameById } from "@/lib/categories";
+import { EditEventModal } from "./edit-event-modal";
 
 type MyEventDetailsModalProps = {
   eventId: string;
   onClose: () => void;
   onDeleteSuccess: () => void;
+  onEditSuccess: () => void;
 };
 
 type DetailedEvent = ApiEvent & {
   venue?: Venue;
 };
 
-export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess }: MyEventDetailsModalProps) {
+export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditSuccess }: MyEventDetailsModalProps) {
   const [details, setDetails] = useState<DetailedEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const fetchDetails = useCallback(async () => {
     setIsLoading(true);
@@ -119,6 +122,12 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess }: MyEve
       setIsDeleting(false);
     }
   };
+  
+  const handleEditSuccessAndClose = () => {
+    setIsEditModalOpen(false);
+    fetchDetails(); // Refetch details after edit
+    onEditSuccess();
+  }
 
   const handleClose = () => {
     onClose();
@@ -159,101 +168,112 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess }: MyEve
     const categoryName = getCategoryNameById(details.categoriaId);
 
     return (
-        <Card className="w-full">
-            <CardHeader>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                      <Button variant="outline" size="icon" onClick={handleClose}>
-                          <ArrowLeft className="h-4 w-4" />
-                          <span className="sr-only">Volver</span>
-                      </Button>
-                      <CardTitle className="text-2xl">{details.nombre}</CardTitle>
-                  </div>
-                  <div className="flex items-center gap-2">
-                      <Button variant="outline">Editar Evento</Button>
-                      <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                              <Button variant="destructive" disabled={isDeleting}>
-                                  {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4" />}
-                                  Eliminar
-                              </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                              <AlertDialogHeader>
-                                  <AlertDialogTitle>¿Estás seguro de que quieres eliminar este evento?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                      Esta acción es permanente y no se puede deshacer. Toda la información asociada al evento
-                                      "{details.nombre}" será eliminada.
-                                  </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-                                      {isDeleting ? 'Eliminando...' : 'Sí, eliminar evento'}
-                                  </AlertDialogAction>
-                              </AlertDialogFooter>
-                          </AlertDialogContent>
-                      </AlertDialog>
-                  </div>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <div className="grid md:grid-cols-3 gap-8">
-                    <div className="md:col-span-2 space-y-6">
-                        <section>
-                            <div className="relative h-80 w-full rounded-lg overflow-hidden mb-6">
-                                <Image
-                                    src={details.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
-                                    alt={details.nombre}
-                                    fill
-                                    className="object-cover"
-                                />
-                            </div>
-                        </section>
-                        <section className="space-y-3">
-                            <h3 className="font-semibold text-lg flex items-center"><Info className="mr-2 h-5 w-5 text-primary" />Descripción</h3>
-                            <p className="text-muted-foreground text-sm leading-relaxed">{details.descripcion || 'No hay descripción disponible.'}</p>
-                        </section>
-
-                        {details.venue && (
-                            <section className="space-y-3 pt-4 border-t">
-                                <h3 className="font-semibold text-lg flex items-center"><Building className="mr-2 h-5 w-5 text-primary" />Escenario</h3>
-                                <div className="p-4 bg-muted/50 rounded-lg">
-                                    <h4 className="font-bold">{details.venue.nombre}</h4>
-                                    <p className="text-sm text-muted-foreground flex items-center"><MapPin className="h-3 w-3 mr-1.5"/>{details.venue.ubicacion}, {details.venue.ciudad}</p>
-                                    <p className="text-xs text-muted-foreground mt-2">{details.venue.descripcion}</p>
+        <>
+            <Card className="w-full">
+                <CardHeader>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                          <Button variant="outline" size="icon" onClick={handleClose}>
+                              <ArrowLeft className="h-4 w-4" />
+                              <span className="sr-only">Volver</span>
+                          </Button>
+                          <CardTitle className="text-2xl">{details.nombre}</CardTitle>
+                      </div>
+                      <div className="flex items-center gap-2">
+                          <Button variant="outline" onClick={() => setIsEditModalOpen(true)}>
+                              <Edit className="mr-2 h-4 w-4"/>
+                              Editar Evento
+                          </Button>
+                          <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" disabled={isDeleting}>
+                                      {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4" />}
+                                      Eliminar
+                                  </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                      <AlertDialogTitle>¿Estás seguro de que quieres eliminar este evento?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                          Esta acción es permanente y no se puede deshacer. Toda la información asociada al evento
+                                          "{details.nombre}" será eliminada.
+                                      </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                                          {isDeleting ? 'Eliminando...' : 'Sí, eliminar evento'}
+                                      </AlertDialogAction>
+                                  </AlertDialogFooter>
+                              </AlertDialogContent>
+                          </AlertDialog>
+                      </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2 space-y-6">
+                            <section>
+                                <div className="relative h-80 w-full rounded-lg overflow-hidden mb-6">
+                                    <Image
+                                        src={details.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
+                                        alt={details.nombre}
+                                        fill
+                                        className="object-cover"
+                                    />
                                 </div>
                             </section>
-                        )}
-                         {details.folletoUrl && (
-                             <section className="space-y-3 pt-4 border-t">
-                                 <h3 className="font-semibold text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-primary" />Folleto</h3>
-                                 <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                                     <p className="text-sm text-muted-foreground">Documento informativo adjunto.</p>
-                                     <Button asChild size="sm" variant="outline">
-                                        <a href={details.folletoUrl} target="_blank" rel="noopener noreferrer">
-                                            <LinkIcon className="mr-2 h-4 w-4"/>Ver PDF
-                                        </a>
-                                    </Button>
-                                 </div>
-                             </section>
-                        )}
-                    </div>
-                    <div className="space-y-6">
-                        <div className="p-4 border rounded-lg space-y-4">
-                            <h3 className="font-semibold text-lg border-b pb-2">Detalles del Evento</h3>
-                            <div className="space-y-3 text-sm">
-                                <div className="flex justify-between items-center"><span className="font-semibold text-muted-foreground">Estado</span><Badge variant={details.estado === 'Activo' ? 'default' : 'secondary'} className="capitalize">{displayStatus}</Badge></div>
-                                <div className="flex flex-col"><span className="font-semibold text-muted-foreground">Inicio</span><span className="text-foreground text-right">{formatDate(details.inicio)}</span></div>
-                                <div className="flex flex-col"><span className="font-semibold text-muted-foreground">Fin</span><span className="text-foreground text-right">{formatDate(details.fin)}</span></div>
-                                <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Aforo</span><span className="text-foreground">{details.aforoMaximo.toLocaleString()}</span></div>
-                                <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Categoría</span><span className="text-foreground capitalize">{categoryName}</span></div>
+                            <section className="space-y-3">
+                                <h3 className="font-semibold text-lg flex items-center"><Info className="mr-2 h-5 w-5 text-primary" />Descripción</h3>
+                                <p className="text-muted-foreground text-sm leading-relaxed">{details.descripcion || 'No hay descripción disponible.'}</p>
+                            </section>
+
+                            {details.venue && (
+                                <section className="space-y-3 pt-4 border-t">
+                                    <h3 className="font-semibold text-lg flex items-center"><Building className="mr-2 h-5 w-5 text-primary" />Escenario</h3>
+                                    <div className="p-4 bg-muted/50 rounded-lg">
+                                        <h4 className="font-bold">{details.venue.nombre}</h4>
+                                        <p className="text-sm text-muted-foreground flex items-center"><MapPin className="h-3 w-3 mr-1.5"/>{details.venue.ubicacion}, {details.venue.ciudad}</p>
+                                        <p className="text-xs text-muted-foreground mt-2">{details.venue.descripcion}</p>
+                                    </div>
+                                </section>
+                            )}
+                             {details.folletoUrl && (
+                                 <section className="space-y-3 pt-4 border-t">
+                                     <h3 className="font-semibold text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-primary" />Folleto</h3>
+                                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                         <p className="text-sm text-muted-foreground">Documento informativo adjunto.</p>
+                                         <Button asChild size="sm" variant="outline">
+                                            <a href={details.folletoUrl} target="_blank" rel="noopener noreferrer">
+                                                <LinkIcon className="mr-2 h-4 w-4"/>Ver PDF
+                                            </a>
+                                        </Button>
+                                     </div>
+                                 </section>
+                            )}
+                        </div>
+                        <div className="space-y-6">
+                            <div className="p-4 border rounded-lg space-y-4">
+                                <h3 className="font-semibold text-lg border-b pb-2">Detalles del Evento</h3>
+                                <div className="space-y-3 text-sm">
+                                    <div className="flex justify-between items-center"><span className="font-semibold text-muted-foreground">Estado</span><Badge variant={details.estado === 'Activo' ? 'default' : 'secondary'} className="capitalize">{displayStatus}</Badge></div>
+                                    <div className="flex flex-col"><span className="font-semibold text-muted-foreground">Inicio</span><span className="text-foreground text-right">{formatDate(details.inicio)}</span></div>
+                                    <div className="flex flex-col"><span className="font-semibold text-muted-foreground">Fin</span><span className="text-foreground text-right">{formatDate(details.fin)}</span></div>
+                                    <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Aforo</span><span className="text-foreground">{details.aforoMaximo.toLocaleString()}</span></div>
+                                    <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Categoría</span><span className="text-foreground capitalize">{categoryName}</span></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </CardContent>
-        </Card>
+                </CardContent>
+            </Card>
+            <EditEventModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                event={details}
+                onUpdateSuccess={handleEditSuccessAndClose}
+            />
+        </>
     );
   };
 

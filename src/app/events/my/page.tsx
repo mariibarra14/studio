@@ -126,6 +126,14 @@ export default function MyEventsPage() {
     setSelectedEventId(null);
     fetchEvents();
   };
+  
+  const handleEditSuccess = () => {
+    toast({
+        title: "Evento Actualizado",
+        description: "La información del evento ha sido actualizada.",
+    });
+    fetchEvents(); 
+  };
 
 
   const renderContent = () => {
@@ -145,6 +153,7 @@ export default function MyEventsPage() {
               eventId={selectedEventId} 
               onClose={handleCloseModal}
               onDeleteSuccess={handleDeleteSuccess}
+              onEditSuccess={handleEditSuccess}
             />
         );
     }
