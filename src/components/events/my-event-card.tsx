@@ -37,13 +37,19 @@ export function MyEventCard({ event, onEventClick }: MyEventCardProps) {
     >
       <CardHeader className="p-0">
         <div className="relative aspect-video w-full">
-          <Image
-            src={event.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
-            alt={event.nombre}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-          />
+            {event.imagenUrl ? (
+                <Image
+                    src={event.imagenUrl}
+                    alt={event.nombre}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                />
+            ) : (
+                <div className="flex h-full w-full items-center justify-center bg-primary/20">
+                    <p className="text-center font-bold text-primary p-4">{event.nombre}</p>
+                </div>
+            )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           <Badge 
             variant={event.estado === 'Activo' || event.estado === 'Draft' ? 'default' : 'secondary'}

@@ -137,14 +137,21 @@ export default function EventsPage() {
         >
             <CardHeader className="p-0">
                 <div className="relative aspect-video w-full">
-                <Image
-                    src={event.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
-                    alt={event.descripcion || event.nombre}
-                    data-ai-hint="event cover"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                />
+                {event.imagenUrl ? (
+                    <Image
+                        src={event.imagenUrl}
+                        alt={event.descripcion || event.nombre}
+                        data-ai-hint="event cover"
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-primary/20">
+                        <p className="text-center font-bold text-primary p-4">{event.nombre}</p>
+                    </div>
+                )}
+
                 <div className="absolute top-3 left-3 bg-background/90 rounded-lg p-2 text-center shadow-md">
                     <p className="text-xs font-bold uppercase text-primary">
                         {format(eventDate, "MMM", { locale: es })}

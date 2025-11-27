@@ -183,13 +183,19 @@ export function EventReservationModal({
       return (
         <div className="p-0">
           <div className="relative aspect-video w-full">
-            <Image
-              src={eventDetails.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
-              alt={eventDetails.nombre}
-              fill
-              className="object-cover rounded-t-lg"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
+            {eventDetails.imagenUrl ? (
+                <Image
+                    src={eventDetails.imagenUrl}
+                    alt={eventDetails.nombre}
+                    fill
+                    className="object-cover rounded-t-lg"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                />
+            ) : (
+                <div className="flex h-full w-full items-center justify-center bg-primary/20 rounded-t-lg">
+                    <p className="text-center font-bold text-primary text-2xl p-4">{eventDetails.nombre}</p>
+                </div>
+            )}
              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           </div>
 
@@ -323,6 +329,3 @@ export function EventReservationModal({
     </Dialog>
   );
 }
-
-    
-

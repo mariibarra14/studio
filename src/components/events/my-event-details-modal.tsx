@@ -215,12 +215,18 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                         <div className="md:col-span-2 space-y-6">
                             <section>
                                 <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-6">
-                                    <Image
-                                        src={details.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
-                                        alt={details.nombre}
-                                        fill
-                                        className="object-cover"
-                                    />
+                                    {details.imagenUrl ? (
+                                        <Image
+                                            src={details.imagenUrl}
+                                            alt={details.nombre}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex h-full w-full items-center justify-center bg-primary/20">
+                                            <p className="text-center font-bold text-primary text-2xl p-4">{details.nombre}</p>
+                                        </div>
+                                    )}
                                 </div>
                             </section>
                             <section className="space-y-3">
