@@ -30,7 +30,8 @@ export default function LoginPage() {
       )}
       <div className="w-full max-w-md">
         <Link href="/">
-          <div className="mb-8 flex justify-center text-white">
+          <div className="mb-8 flex items-center justify-center gap-3 text-white">
+          <h1 className="text-3xl font-bold tracking-tight">VivoPass</h1>
             <Ticket className="h-10 w-10" />
           </div>
         </Link>
