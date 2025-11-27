@@ -3,7 +3,7 @@
 
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { Button } from "@/components/ui/button";
-import { Filter, Search, AlertCircle, Calendar, MapPin, PlusCircle } from "lucide-react";
+import { Filter, Search, AlertCircle, Calendar, MapPin, X } from "lucide-react";
 import Image from "next/image";
 import {
   Card,
@@ -21,6 +21,15 @@ import type { ApiEvent } from "@/lib/types";
 import { useApp } from "@/context/app-context";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { getAllCategories, getCategoryNameById } from "@/lib/categories";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<ApiEvent | null>(null);
@@ -29,6 +38,11 @@ export default function EventsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { userRole } = useApp();
+  
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
+
+  const categories = getAllCategories();
 
   const fetchEvents = useCallback(async () => {
     setIsLoading(true);
@@ -53,7 +67,8 @@ export default function EventsPage() {
           throw new Error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
         }
         if (response.status === 404) {
-          throw new Error("No se encontraron eventos disponibles en este momento.");
+          setEvents([]); // Set events to empty array on 404
+          return;
         }
         throw new Error(`Error ${response.status}: Error al cargar los eventos.`);
       }
@@ -77,15 +92,89 @@ export default function EventsPage() {
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
-
+  
   const filteredEvents = useMemo(() => {
-    if (!searchQuery) {
-      return events;
-    }
-    return events.filter((event) =>
-      event.nombre.toLowerCase().includes(searchQuery.toLowerCase())
+    return events.filter((event) => {
+        const searchMatch = event.nombre.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const categoryMatch = !selectedCategory || event.categoriaId === selectedCategory;
+
+        let dateMatch = true;
+        if (dateRange.start || dateRange.end) {
+            const eventDate = new Date(event.inicio);
+            eventDate.setHours(0,0,0,0); // Compare dates only
+            
+            if (dateRange.start) {
+                const startDate = new Date(dateRange.start);
+                if (eventDate < startDate) dateMatch = false;
+            }
+            if (dateRange.end) {
+                const endDate = new Date(dateRange.end);
+                if (eventDate > endDate) dateMatch = false;
+            }
+        }
+        
+        return searchMatch && categoryMatch && dateMatch;
+    });
+  }, [searchQuery, events, selectedCategory, dateRange]);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("");
+    setDateRange({ start: "", end: "" });
+  };
+
+  const EventCard = ({ event }: { event: ApiEvent }) => {
+    const eventDate = new Date(event.inicio);
+    return (
+        <Card
+            className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col cursor-pointer group"
+            onClick={() => setSelectedEvent(event)}
+        >
+            <CardHeader className="p-0">
+                <div className="relative h-48 w-full">
+                <Image
+                    src={event.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
+                    alt={event.descripcion || event.nombre}
+                    data-ai-hint="event cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                />
+                <div className="absolute top-3 left-3 bg-background/90 rounded-lg p-2 text-center shadow-md">
+                    <p className="text-xs font-bold uppercase text-primary">
+                        {format(eventDate, "MMM", { locale: es })}
+                    </p>
+                    <p className="text-xl font-bold">
+                        {format(eventDate, "dd")}
+                    </p>
+                </div>
+                </div>
+            </CardHeader>
+            <CardContent className="p-4 flex-grow">
+                <CardTitle className="text-xl font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                    {event.nombre}
+                </CardTitle>
+                <div className="flex items-center text-sm text-muted-foreground mb-2">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    <span>
+                        {format(eventDate, "EEEE, h:mm a", { locale: es })}
+                    </span>
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground">
+                    <MapPin className="mr-2 h-4 w-4" />
+                    <span>{event.lugar}</span>
+                </div>
+            </CardContent>
+            <CardFooter className="p-4 pt-0">
+                <Button className="w-full" onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedEvent(event);
+                }}>Reservar</Button>
+            </CardFooter>
+        </Card>
     );
-  }, [searchQuery, events]);
+  };
 
   const EventCardSkeleton = () => (
     <Card className="overflow-hidden shadow-lg flex flex-col">
@@ -106,25 +195,72 @@ export default function EventsPage() {
   return (
     <AuthenticatedLayout>
       <main className="flex-1 p-4 md:p-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold">Eventos</h1>
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Buscar eventos..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button variant="outline" className="w-full sm:w-auto">
-              <Filter className="mr-2 h-4 w-4" />
-              Filtrar
-            </Button>
-          </div>
+        <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Eventos Disponibles</h1>
+            <p className="text-muted-foreground">Encuentra tu próxima experiencia inolvidable.</p>
         </div>
+
+        <Card className="mb-8 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                 <div className="lg:col-span-2 space-y-2">
+                    <Label htmlFor="search">Buscar Evento</Label>
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                            id="search"
+                            type="search"
+                            placeholder="Buscar por nombre..."
+                            className="pl-10"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="category">Categoría</Label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger id="category">
+                            <SelectValue placeholder="Todas las categorías" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="">Todas las categorías</SelectItem>
+                            {categories.map((cat) => (
+                                <SelectItem key={cat._id} value={cat._id}>{cat.Nombre}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                
+                 <div className="space-y-2">
+                    <Label htmlFor="start-date">Fecha de Inicio</Label>
+                    <Input
+                        id="start-date"
+                        type="date"
+                        value={dateRange.start}
+                        onChange={(e) => setDateRange(prev => ({...prev, start: e.target.value}))}
+                    />
+                </div>
+                
+                <div className="space-y-2">
+                    <Label htmlFor="end-date">Fecha de Fin</Label>
+                    <Input
+                        id="end-date"
+                        type="date"
+                        value={dateRange.end}
+                        onChange={(e) => setDateRange(prev => ({...prev, end: e.target.value}))}
+                        min={dateRange.start}
+                    />
+                </div>
+
+                <div className="md:col-span-2 lg:col-span-3 flex justify-end">
+                    <Button variant="ghost" onClick={clearFilters} className="text-sm">
+                        <X className="mr-2 h-4 w-4"/>
+                        Limpiar Filtros
+                    </Button>
+                </div>
+            </div>
+        </Card>
         
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -146,53 +282,15 @@ export default function EventsPage() {
         ) : filteredEvents.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredEvents.map((event) => (
-                <Card
-                key={event.id}
-                className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col cursor-pointer"
-                onClick={() => setSelectedEvent(event)}
-                >
-                <CardHeader className="p-0">
-                    <div className="relative h-48 w-full">
-                    <Image
-                        src={event.imagenUrl || "https://picsum.photos/seed/default-event/600/400"}
-                        alt={event.descripcion || event.nombre}
-                        data-ai-hint="event cover"
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                    />
-                    </div>
-                </CardHeader>
-                <CardContent className="p-4 flex-grow">
-                    <CardTitle className="text-xl font-bold mb-2 line-clamp-2">
-                    {event.nombre}
-                    </CardTitle>
-                    <div className="flex items-center text-sm text-muted-foreground mb-2">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      <span>
-                        {format(new Date(event.inicio), "dd MMM yyyy", { locale: es })}
-                      </span>
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                    <MapPin className="mr-2 h-4 w-4" />
-                    <span>{event.lugar}</span>
-                    </div>
-                </CardContent>
-                <CardFooter className="p-4 pt-0">
-                    <Button className="w-full" onClick={(e) => {
-                        e.stopPropagation(); // Prevent card's onClick
-                        setSelectedEvent(event);
-                    }}>Reservar</Button>
-                </CardFooter>
-                </Card>
+                <EventCard key={event.id} event={event} />
             ))}
             </div>
         ) : (
             <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4">
                 <p className="text-2xl font-semibold text-muted-foreground mb-4">No se encontraron eventos</p>
                 <p className="text-muted-foreground">
-                  {searchQuery 
-                    ? "Intenta con otro término de búsqueda o ajusta los filtros."
+                  {searchQuery || selectedCategory || dateRange.start || dateRange.end
+                    ? "Intenta con otros filtros o un término de búsqueda diferente."
                     : "No hay eventos disponibles en este momento."}
                 </p>
             </div>

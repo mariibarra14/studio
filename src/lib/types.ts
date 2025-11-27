@@ -1,4 +1,5 @@
 
+
 export type TicketTier = {
   id: string;
   nombre: string;
