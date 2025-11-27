@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FiltersSheet } from "@/components/events/filters-sheet";
 import { getAllCategories } from "@/lib/categories";
 import { Badge } from "@/components/ui/badge";
+import { AddEventModal } from "@/components/events/add-event-modal";
 
 export default function MyEventsPage() {
   const { user, userRole, isLoadingUser } = useApp();
@@ -29,6 +30,7 @@ export default function MyEventsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const categories = getAllCategories();
 
   const fetchEvents = useCallback(async () => {
@@ -134,6 +136,15 @@ export default function MyEventsPage() {
     });
     fetchEvents(); 
   };
+  
+  const handleCreateSuccess = () => {
+    toast({
+        title: "Evento Creado",
+        description: "El nuevo evento ha sido creado exitosamente.",
+    });
+    setIsAddModalOpen(false);
+    fetchEvents();
+  }
 
 
   const renderContent = () => {
@@ -187,7 +198,7 @@ export default function MyEventsPage() {
                 }
             </p>
             {!(activeFiltersCount > 0) && (
-                 <Button>
+                 <Button onClick={() => setIsAddModalOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Crear mi primer evento
                 </Button>
@@ -220,7 +231,7 @@ export default function MyEventsPage() {
                     )}
                 </Button>
                 {(userRole === 'organizador' || userRole === 'administrador') && (
-                <Button className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto" onClick={() => setIsAddModalOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Añadir Evento
                 </Button>
@@ -243,6 +254,12 @@ export default function MyEventsPage() {
         />
         
         {renderContent()}
+
+        <AddEventModal 
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onSuccess={handleCreateSuccess}
+        />
       </main>
     </AuthenticatedLayout>
   );
