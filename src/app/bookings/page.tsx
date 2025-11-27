@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { BookingDetailsModal } from "@/components/bookings/booking-details-modal";
 import { TicketStub } from "@/components/bookings/ticket-stub";
-import type { ApiBooking } from "@/lib/types";
+import type { ApiBooking, ApiEvent } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -62,6 +62,9 @@ export default function BookingsPage() {
           let eventoCategoria = "General";
           let eventoInicio = "";
           let eventoFin = "";
+          let escenarioNombre = "Ubicación no disponible";
+          let escenarioUbicacion = "";
+
 
           try {
             const [zonaResponse, eventoResponse] = await Promise.all([
@@ -79,12 +82,23 @@ export default function BookingsPage() {
             }
             
             if (eventoResponse.ok) {
-                const eventoData = await eventoResponse.json();
+                const eventoData: ApiEvent = await eventoResponse.json();
                 eventoNombre = eventoData.nombre;
-                eventoImagen = eventoData.imagenUrl;
+                eventoImagen = eventoData.imagenUrl || "";
                 eventoCategoria = getCategoryNameById(eventoData.categoriaId) || 'General';
                 eventoInicio = eventoData.inicio;
-                eventoFin = eventoData.fin;
+                eventoFin = eventoData.fin || "";
+
+                if (eventoData.escenarioId) {
+                  const escenarioResponse = await fetch(`http://localhost:44335/api/events/escenarios/${eventoData.escenarioId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (escenarioResponse.ok) {
+                    const escenarioData = await escenarioResponse.json();
+                    escenarioNombre = escenarioData.nombre;
+                    escenarioUbicacion = escenarioData.ubicacion;
+                  }
+                }
             }
             
           } catch (e) {
@@ -99,6 +113,8 @@ export default function BookingsPage() {
             eventoCategoria,
             eventoInicio,
             eventoFin,
+            escenarioNombre,
+            escenarioUbicacion,
           };
         })
       );

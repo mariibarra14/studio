@@ -76,4 +76,7 @@ export interface ApiBooking {
   eventoCategoria?: string;
   eventoInicio?: string;
   eventoFin?: string;
+  escenarioNombre?: string;
+  escenarioUbicacion?: string;
 }
+

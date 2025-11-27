@@ -73,7 +73,7 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
         </div>
         <div className="flex items-center text-sm text-muted-foreground">
           <MapPin className="h-4 w-4 mr-2" />
-          <span>{booking.zonaNombre || 'Cargando...'}</span>
+          <span>{booking.escenarioNombre || 'Cargando...'}</span>
         </div>
          <div className="flex items-center text-sm text-muted-foreground">
           <Calendar className="h-4 w-4 mr-2" />

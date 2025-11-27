@@ -100,6 +100,16 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                         </div>
                     </div>
                     
+                    {/* Location */}
+                    <div className="flex items-start gap-3">
+                        <MapPin className="h-5 w-5 mt-1 text-primary" />
+                        <div>
+                            <h4 className="font-semibold">Ubicación</h4>
+                            <p className="text-muted-foreground">{booking.escenarioNombre}</p>
+                            <p className="text-xs text-muted-foreground">{booking.escenarioUbicacion}</p>
+                        </div>
+                    </div>
+
                     {/* Booking Details */}
                     <div className="flex items-start gap-3">
                         <Info className="h-5 w-5 mt-1 text-primary" />
@@ -108,14 +118,6 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                             <p className="text-muted-foreground">{booking.zonaNombre || 'Cargando...'}</p>
                         </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                        <Calendar className="h-5 w-5 mt-1 text-primary" />
-                        <div>
-                            <h4 className="font-semibold">Reserva Expira</h4>
-                            <p className="text-muted-foreground">{format(new Date(booking.expiraEn), "dd/MM/yyyy, h:mm a", { locale: es })}</p>
-                        </div>
-                    </div>
-
                     
                     {/* Seats */}
                     <div className="md:col-span-2">
