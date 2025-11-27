@@ -24,6 +24,7 @@ export type ApiEvent = {
   createdAt: string;
   updatedAt: string;
   localidades: TicketTier[];
+  categoriaId: string;
 };
 
 export type Venue = {

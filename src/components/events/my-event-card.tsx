@@ -8,6 +8,7 @@ import { es } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Users, MapPin, Tag } from "lucide-react";
+import { getCategoryNameById } from "@/lib/categories";
 
 type MyEventCardProps = {
   event: ApiEvent;
@@ -27,6 +28,7 @@ export function MyEventCard({ event, onEventClick }: MyEventCardProps) {
   };
 
   const displayStatus = getDisplayStatus(event.estado);
+  const categoryName = getCategoryNameById(event.categoriaId);
 
   return (
     <Card 
@@ -79,8 +81,8 @@ export function MyEventCard({ event, onEventClick }: MyEventCardProps) {
           </div>
            <div className="flex items-center text-muted-foreground">
             <Tag className="mr-2 h-4 w-4 text-primary/70"/>
-            <span className="font-semibold text-foreground/80 mr-1.5">Tipo:</span>
-            <span>{event.tipo}</span>
+            <span className="font-semibold text-foreground/80 mr-1.5">Categoría:</span>
+            <span>{categoryName}</span>
           </div>
           <div className="col-span-2 flex items-center text-muted-foreground text-xs pt-2">
             <span className="font-semibold text-foreground/70 mr-1">Creado:</span>

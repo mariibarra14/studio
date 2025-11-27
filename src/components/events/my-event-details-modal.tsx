@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { getCategoryNameById } from "@/lib/categories";
 
 type MyEventDetailsModalProps = {
   eventId: string;
@@ -155,6 +156,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess }: MyEve
     }
     
     const displayStatus = getDisplayStatus(details.estado);
+    const categoryName = getCategoryNameById(details.categoriaId);
 
     return (
         <Card className="w-full">
@@ -245,7 +247,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess }: MyEve
                                 <div className="flex flex-col"><span className="font-semibold text-muted-foreground">Inicio</span><span className="text-foreground text-right">{formatDate(details.inicio)}</span></div>
                                 <div className="flex flex-col"><span className="font-semibold text-muted-foreground">Fin</span><span className="text-foreground text-right">{formatDate(details.fin)}</span></div>
                                 <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Aforo</span><span className="text-foreground">{details.aforoMaximo.toLocaleString()}</span></div>
-                                <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Tipo</span><span className="text-foreground capitalize">{details.tipo}</span></div>
+                                <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Categoría</span><span className="text-foreground capitalize">{categoryName}</span></div>
                             </div>
                         </div>
                     </div>
