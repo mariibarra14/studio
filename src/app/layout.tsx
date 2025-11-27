@@ -6,7 +6,7 @@ import { AppProvider } from "@/context/app-context";
 import nextConfig from "../../next.config";
 
 export const metadata: Metadata = {
-  title: "TicketVerse",
+  title: "VivoPass",
   description: "Your one-stop shop for event tickets.",
 };
 

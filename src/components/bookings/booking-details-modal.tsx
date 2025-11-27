@@ -76,7 +76,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl p-0">
+        <DialogContent className="max-w-[1000px] max-h-[95vh] p-0 overflow-auto">
             {booking.eventoImagen ? (
                 <div className="relative h-48 w-full">
                     <Image src={booking.eventoImagen} alt={booking.eventoNombre || 'Imagen del evento'} fill className="object-cover rounded-t-lg" />
@@ -92,7 +92,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                 <DialogHeader className="mb-6 text-left">
                     <Badge variant="outline" className="mb-2 w-fit">{booking.eventoCategoria}</Badge>
                     <DialogTitle className="text-3xl font-bold">{booking.eventoNombre}</DialogTitle>
-                    <DialogDescription>ID de Reserva: {booking.reservaId}</DialogDescription>
+                    <DialogDescription>Identificador de la Reserva: {booking.reservaId.substring(0,8)}</DialogDescription>
                 </DialogHeader>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
