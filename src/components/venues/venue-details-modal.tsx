@@ -66,7 +66,6 @@ export function VenueDetailsModal({ venue, isOpen, onClose, onEdit, onDeleteSucc
             });
             onDeleteSuccess();
         } else {
-            const errorText = await response.text();
             let errorMessage = "No se pudo eliminar el escenario.";
             if (response.status === 401) errorMessage = "No tienes permiso para realizar esta acción.";
             if (response.status === 404) errorMessage = "El escenario no fue encontrado.";
@@ -158,7 +157,7 @@ export function VenueDetailsModal({ venue, isOpen, onClose, onEdit, onDeleteSucc
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDelete}>
+                                <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
                                     {isDeleting ? 'Eliminando...' : 'Sí, eliminar'}
                                 </AlertDialogAction>
                             </AlertDialogFooter>
