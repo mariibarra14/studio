@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, AlertCircle, Upload, FileUp, Paperclip } from "lucide-react";
+import { Loader2, AlertCircle, Upload, FileUp, Paperclip, Save } from "lucide-react";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { ApiEvent, Venue } from "@/lib/types";
@@ -40,8 +40,6 @@ const formSchema = z.object({
   tipo: z.string().min(1, "El tipo de evento es requerido"),
   escenarioId: z.string().min(1, "El escenario es requerido"),
   categoriaId: z.string().min(1, "La categoría es requerida"),
-  imagen: z.any().optional(),
-  folleto: z.any().optional(),
 }).refine(data => new Date(data.fin) > new Date(data.inicio), {
   message: "La fecha de fin debe ser posterior a la de inicio",
   path: ["fin"],
@@ -69,10 +67,14 @@ const toDateTimeLocal = (dateString: string | null) => {
 
 export function EditEventForm({ event, venues, categories, onSuccess, onCancel }: EditEventFormProps) {
   const { toast } = useToast();
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState({ general: false, image: false, folleto: false });
+  const [error, setError] = useState<Record<string, string | null>>({ general: null, image: null, folleto: null });
+
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedFolleto, setSelectedFolleto] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(event.imagenUrl);
   const [folletoFileName, setFolletoFileName] = useState<string | null>(null);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -92,7 +94,7 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      form.setValue('imagen', file);
+      setSelectedImage(file);
       const reader = new FileReader();
       reader.onload = (event) => {
         setImagePreview(event.target?.result as string);
@@ -104,47 +106,95 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
   const handleFolletoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      form.setValue('folleto', file);
+      setSelectedFolleto(file);
       setFolletoFileName(file.name);
     }
   };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsSaving(true);
-    setError(null);
+  const handleSaveImage = async () => {
+    if (!selectedImage) {
+        setError(prev => ({...prev, image: 'Por favor, selecciona una imagen primero.'}));
+        return;
+    }
+    setIsLoading(prev => ({ ...prev, image: true }));
+    setError(prev => ({...prev, image: null}));
+
     const token = localStorage.getItem('accessToken');
     if (!token) {
-        setError("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
-        setIsSaving(false);
+        setError(prev => ({...prev, image: "Tu sesión ha expirado."}));
+        setIsLoading(prev => ({ ...prev, image: false }));
         return;
     }
 
     try {
-        // 1. Upload image if changed
-        if (values.imagen instanceof File) {
-            const imageFormData = new FormData();
-            imageFormData.append('file', values.imagen);
-            const imgResponse = await fetch(`http://localhost:44335/api/events/${event.id}/imagen`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: imageFormData
-            });
-            if (!imgResponse.ok) throw new Error('Error al subir la nueva imagen.');
-        }
+        const imageFormData = new FormData();
+        imageFormData.append('file', selectedImage);
+        const imgResponse = await fetch(`http://localhost:44335/api/events/${event.id}/imagen`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: imageFormData
+        });
+        if (!imgResponse.ok) throw new Error('Error al subir la nueva imagen.');
 
-        // 2. Upload brochure if changed
-        if (values.folleto instanceof File) {
-            const folletoFormData = new FormData();
-            folletoFormData.append('file', values.folleto);
-            const folletoResponse = await fetch(`http://localhost:44335/api/events/${event.id}/folleto`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: folletoFormData
-            });
-            if (!folletoResponse.ok) throw new Error('Error al subir el nuevo folleto.');
-        }
+        toast({ title: "Éxito", description: "La imagen del evento ha sido actualizada." });
+        setSelectedImage(null);
+        onSuccess(); // Refresca los detalles
+    } catch (err: any) {
+        setError(prev => ({...prev, image: err.message || "Ocurrió un error al subir la imagen."}));
+    } finally {
+        setIsLoading(prev => ({ ...prev, image: false }));
+    }
+  }
 
-        // 3. Update event info
+  const handleSaveFolleto = async () => {
+    if (!selectedFolleto) {
+        setError(prev => ({...prev, folleto: 'Por favor, selecciona un folleto primero.'}));
+        return;
+    }
+    setIsLoading(prev => ({ ...prev, folleto: true }));
+    setError(prev => ({...prev, folleto: null}));
+    
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        setError(prev => ({...prev, folleto: "Tu sesión ha expirado."}));
+        setIsLoading(prev => ({ ...prev, folleto: false }));
+        return;
+    }
+
+    try {
+        const folletoFormData = new FormData();
+        folletoFormData.append('file', selectedFolleto);
+        const folletoResponse = await fetch(`http://localhost:44335/api/events/${event.id}/folleto`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: folletoFormData
+        });
+        if (!folletoResponse.ok) throw new Error('Error al subir el nuevo folleto.');
+        
+        toast({ title: "Éxito", description: "El folleto del evento ha sido actualizado." });
+        setSelectedFolleto(null);
+        setFolletoFileName(null);
+        onSuccess();
+    } catch (err: any) {
+        setError(prev => ({...prev, folleto: err.message || "Ocurrió un error al subir el folleto."}));
+    } finally {
+        setIsLoading(prev => ({ ...prev, folleto: false }));
+    }
+  }
+
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(prev => ({ ...prev, general: true }));
+    setError(prev => ({...prev, general: null}));
+    
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        setError(prev => ({...prev, general: "Tu sesión ha expirado."}));
+        setIsLoading(prev => ({ ...prev, general: false }));
+        return;
+    }
+
+    try {
         const submissionData = {
           id: event.id,
           estado: event.estado,
@@ -174,77 +224,62 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
             throw new Error(errorData?.message || "No se pudo actualizar el evento.");
         }
         
+        toast({ title: "Éxito", description: "La información del evento ha sido guardada." });
         onSuccess();
 
     } catch (err: any) {
-        setError(err.message || "Ocurrió un error desconocido.");
+        setError(prev => ({...prev, general: err.message || "Ocurrió un error desconocido."}));
     } finally {
-        setIsSaving(false);
+        setIsLoading(prev => ({ ...prev, general: false }));
     }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 py-4">
-        {error && (
-            <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error al actualizar</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-            </Alert>
-        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Columna Izquierda: Imagen y Folleto */}
-            <div className="lg:col-span-1 space-y-6">
-                <FormField
-                    control={form.control}
-                    name="imagen"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-lg font-semibold">Imagen del Evento</FormLabel>
-                            <div className="w-full aspect-video rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden">
-                                {imagePreview ? (
-                                    <Image src={imagePreview} alt="Vista previa" width={400} height={225} className="object-cover w-full h-full" />
-                                ) : (
-                                    <span className="text-muted-foreground">Sin Imagen</span>
-                                )}
-                            </div>
-                            <FormControl>
-                                <Input type="file" accept="image/*" onChange={handleImageChange} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="folleto"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-lg font-semibold">Folleto del Evento (PDF)</FormLabel>
-                             <div className="p-3 bg-muted/50 rounded-lg text-sm">
-                                {event.folletoUrl ? (
-                                    <p className="text-green-600 flex items-center gap-2">
-                                        <Paperclip className="h-4 w-4"/> Folleto cargado actualmente.
-                                    </p>
-                                ) : (
-                                    <p className="text-muted-foreground">No hay folleto cargado.</p>
-                                )}
-                                {folletoFileName && (
-                                     <p className="text-blue-600 mt-2">Nuevo: {folletoFileName}</p>
-                                )}
-                            </div>
-                            <FormControl>
-                                <Input type="file" accept=".pdf" onChange={handleFolletoChange} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+            <div className="lg:col-span-1 space-y-8">
+                <FormItem>
+                    <FormLabel className="text-lg font-semibold">Imagen del Evento</FormLabel>
+                    <div className="w-full aspect-video rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden">
+                        {imagePreview ? (
+                            <Image src={imagePreview} alt="Vista previa" width={400} height={225} className="object-cover w-full h-full" />
+                        ) : (
+                            <span className="text-muted-foreground">Sin Imagen</span>
+                        )}
+                    </div>
+                    <FormControl>
+                        <Input type="file" accept="image/*" onChange={handleImageChange} />
+                    </FormControl>
+                    {error.image && <Alert variant="destructive" className="text-xs p-2 mt-2"><AlertDescription>{error.image}</AlertDescription></Alert>}
+                    <Button type="button" onClick={handleSaveImage} disabled={!selectedImage || isLoading.image} className="w-full" variant="outline">
+                        {isLoading.image ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                        {isLoading.image ? 'Guardando...' : 'Guardar Imagen'}
+                    </Button>
+                </FormItem>
+                <FormItem>
+                    <FormLabel className="text-lg font-semibold">Folleto del Evento (PDF)</FormLabel>
+                     <div className="p-3 bg-muted/50 rounded-lg text-sm">
+                        {event.folletoUrl && !folletoFileName ? (
+                            <p className="text-green-600 flex items-center gap-2">
+                                <Paperclip className="h-4 w-4"/> Folleto cargado actualmente.
+                            </p>
+                        ) : (
+                            <p className="text-muted-foreground">{folletoFileName || "No hay folleto cargado."}</p>
+                        )}
+                    </div>
+                    <FormControl>
+                        <Input type="file" accept=".pdf" onChange={handleFolletoChange} />
+                    </FormControl>
+                     {error.folleto && <Alert variant="destructive" className="text-xs p-2 mt-2"><AlertDescription>{error.folleto}</AlertDescription></Alert>}
+                    <Button type="button" onClick={handleSaveFolleto} disabled={!selectedFolleto || isLoading.folleto} className="w-full" variant="outline">
+                        {isLoading.folleto ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
+                        {isLoading.folleto ? 'Guardando...' : 'Guardar Folleto'}
+                    </Button>
+                </FormItem>
             </div>
-
-            {/* Columna Derecha: Formulario de datos */}
+            
             <div className="lg:col-span-2 space-y-6">
                 <FormField
                     control={form.control}
@@ -379,14 +414,22 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
                 />
             </div>
         </div>
+        
+        {error.general && (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error al Guardar</AlertTitle>
+                <AlertDescription>{error.general}</AlertDescription>
+            </Alert>
+        )}
 
         <div className="flex justify-end gap-4 pt-8 border-t">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={Object.values(isLoading).some(v => v)}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSaving ? "Guardando..." : "Guardar Cambios"}
+          <Button type="submit" disabled={isLoading.general}>
+            {isLoading.general && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading.general ? "Guardando..." : "Guardar Información"}
           </Button>
         </div>
       </form>
