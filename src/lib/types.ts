@@ -71,4 +71,9 @@ export interface ApiBooking {
   precioTotal: number;
   asientos: Seat[];
   zonaNombre?: string;
+  eventoNombre?: string;
+  eventoImagen?: string;
+  eventoCategoria?: string;
+  eventoInicio?: string;
+  eventoFin?: string;
 }

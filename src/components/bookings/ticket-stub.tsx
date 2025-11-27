@@ -3,10 +3,11 @@
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Calendar, Clock, Ticket, Hash, MapPin } from "lucide-react";
+import { Calendar, Clock, Ticket, Hash, MapPin, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { ApiBooking } from "@/lib/types";
+import Image from "next/image";
 
 type TicketStubProps = {
   booking: ApiBooking;
@@ -42,40 +43,46 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
       className="bg-card shadow-lg rounded-2xl overflow-hidden flex flex-col cursor-pointer transition-transform duration-300 hover:-translate-y-2 group border"
       onClick={() => onSelect(booking)}
     >
-      <div className="p-5">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex items-center gap-2">
-            <Ticket className="h-6 w-6 text-primary" />
-            <h3 className="text-lg font-bold text-foreground">
-              Reserva #{booking.reservaId.substring(0, 8)}
-            </h3>
+      <div className="relative aspect-video w-full">
+        {booking.eventoImagen ? (
+          <Image 
+            src={booking.eventoImagen} 
+            alt={booking.eventoNombre || 'Imagen del evento'}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-primary">
+            <p className="text-center font-bold text-white p-4">{booking.eventoNombre}</p>
           </div>
-          <Badge variant="outline" className={cn("text-xs capitalize", estadoColor)}>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+        <Badge variant="outline" className={cn("absolute top-3 right-3 text-xs capitalize", estadoColor)}>
             {estadoDisplay}
-          </Badge>
-        </div>
-
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Hash className="h-4 w-4" />
-            <span>Evento ID: {booking.eventId.substring(0, 8)}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            <span>Zona: {booking.zonaNombre || 'Cargando...'}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span>Creada: {format(new Date(booking.creadaEn), "dd/MM/yyyy", { locale: es })}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            <span>Expira: {format(new Date(booking.expiraEn), "dd/MM/yyyy", { locale: es })}</span>
-          </div>
+        </Badge>
+        <div className="absolute bottom-3 left-3 text-white">
+          <h3 className="text-lg font-bold leading-tight drop-shadow-md">{booking.eventoNombre}</h3>
         </div>
       </div>
 
-      <div className="border-t-2 border-dashed border-muted relative flex items-center bg-muted/20">
+      <div className="p-4 space-y-3">
+        <div className="flex items-center text-sm text-muted-foreground">
+          <Tag className="h-4 w-4 mr-2" />
+          <span>{booking.eventoCategoria}</span>
+        </div>
+        <div className="flex items-center text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4 mr-2" />
+          <span>{booking.zonaNombre || 'Cargando...'}</span>
+        </div>
+         <div className="flex items-center text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4 mr-2" />
+          <span>Inicia: {booking.eventoInicio ? format(new Date(booking.eventoInicio), "dd/MM/yyyy", { locale: es }) : 'N/A'}</span>
+        </div>
+      </div>
+
+
+      <div className="border-t-2 border-dashed border-muted relative flex items-center bg-muted/20 mt-auto">
         <div className="absolute -top-3.5 left-0 w-7 h-7 rounded-full bg-background" />
         <div className="absolute -top-3.5 right-0 w-7 h-7 rounded-full bg-background" />
 

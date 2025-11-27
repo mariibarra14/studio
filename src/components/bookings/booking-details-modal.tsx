@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info } from "lucide-react";
+import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -57,41 +57,65 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
     const estadoDisplay = getEstadoDisplay(booking.estado);
     const estadoColor = getEstadoColor(booking.estado);
 
+    const formatDate = (dateString: string | undefined) => {
+      if (!dateString) return 'N/A';
+      return format(new Date(dateString), "dd MMMM, yyyy - h:mm a", { locale: es });
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl p-0">
-            <div className="p-6">
-                <DialogHeader className="mb-4">
-                    <DialogTitle className="text-2xl font-bold">Detalles de la Reserva</DialogTitle>
+        <DialogContent className="max-w-3xl p-0">
+            {booking.eventoImagen ? (
+                <div className="relative h-48 w-full">
+                    <Image src={booking.eventoImagen} alt={booking.eventoNombre || 'Imagen del evento'} fill className="object-cover rounded-t-lg" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                </div>
+            ) : (
+                <div className="h-48 w-full bg-primary rounded-t-lg flex items-center justify-center">
+                   <h2 className="text-2xl font-bold text-white text-center p-4">{booking.eventoNombre}</h2>
+                </div>
+            )}
+            
+            <div className="p-6 pt-4">
+                <DialogHeader className="mb-6 text-left">
+                    <Badge variant="outline" className="mb-2 w-fit">{booking.eventoCategoria}</Badge>
+                    <DialogTitle className="text-3xl font-bold">{booking.eventoNombre}</DialogTitle>
                     <DialogDescription>ID de Reserva: {booking.reservaId}</DialogDescription>
                 </DialogHeader>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    {/* Event Details */}
-                    <div className="flex items-start gap-3 col-span-full">
-                        <Info className="h-5 w-5 mt-1 text-primary" />
-                        <div>
-                            <h4 className="font-semibold">Información General</h4>
-                            <p className="text-sm text-muted-foreground">Evento ID: {booking.eventId}</p>
-                            <p className="text-sm text-muted-foreground">Zona: {booking.zonaNombre || 'Cargando...'}</p>
-                        </div>
-                    </div>
-                    
-                    {/* Dates */}
+                    {/* Event Dates */}
                     <div className="flex items-start gap-3">
                         <Calendar className="h-5 w-5 mt-1 text-primary" />
                         <div>
-                            <h4 className="font-semibold">Fecha de Creación</h4>
-                            <p className="text-muted-foreground">{format(new Date(booking.creadaEn), "dd/MM/yyyy, h:mm a", { locale: es })}</p>
+                            <h4 className="font-semibold">Inicio del Evento</h4>
+                            <p className="text-muted-foreground">{formatDate(booking.eventoInicio)}</p>
                         </div>
                     </div>
                      <div className="flex items-start gap-3">
+                        <Clock className="h-5 w-5 mt-1 text-primary" />
+                        <div>
+                            <h4 className="font-semibold">Fin del Evento</h4>
+                            <p className="text-muted-foreground">{formatDate(booking.eventoFin)}</p>
+                        </div>
+                    </div>
+                    
+                    {/* Booking Details */}
+                    <div className="flex items-start gap-3">
+                        <Info className="h-5 w-5 mt-1 text-primary" />
+                        <div>
+                            <h4 className="font-semibold">Zona de la Reserva</h4>
+                            <p className="text-muted-foreground">{booking.zonaNombre || 'Cargando...'}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3">
                         <Calendar className="h-5 w-5 mt-1 text-primary" />
                         <div>
-                            <h4 className="font-semibold">Fecha de Expiración</h4>
+                            <h4 className="font-semibold">Reserva Expira</h4>
                             <p className="text-muted-foreground">{format(new Date(booking.expiraEn), "dd/MM/yyyy, h:mm a", { locale: es })}</p>
                         </div>
                     </div>
+
                     
                     {/* Seats */}
                     <div className="md:col-span-2">

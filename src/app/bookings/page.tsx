@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Ticket, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getCategoryNameById } from "@/lib/categories";
 
 export default function BookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<ApiBooking | null>(null);
@@ -53,21 +54,52 @@ export default function BookingsPage() {
 
       const initialBookings: ApiBooking[] = await response.json();
       
-      // Enrich bookings with zone names
       const enrichedBookings = await Promise.all(
         initialBookings.map(async (booking) => {
+          let zonaNombre = "No disponible";
+          let eventoNombre = "Evento no disponible";
+          let eventoImagen = "";
+          let eventoCategoria = "General";
+          let eventoInicio = "";
+          let eventoFin = "";
+
           try {
-            const zonaResponse = await fetch(`http://localhost:44335/api/events/${booking.eventId}/zonas/${booking.zonaEventoId}`, {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const [zonaResponse, eventoResponse] = await Promise.all([
+              fetch(`http://localhost:44335/api/events/${booking.eventId}/zonas/${booking.zonaEventoId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              }),
+              fetch(`http://localhost:44335/api/events/${booking.eventId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              })
+            ]);
+
             if (zonaResponse.ok) {
               const zonaData = await zonaResponse.json();
-              return { ...booking, zonaNombre: zonaData.nombre };
+              zonaNombre = zonaData.nombre;
             }
-            return { ...booking, zonaNombre: "No disponible" };
+            
+            if (eventoResponse.ok) {
+                const eventoData = await eventoResponse.json();
+                eventoNombre = eventoData.nombre;
+                eventoImagen = eventoData.imagenUrl;
+                eventoCategoria = getCategoryNameById(eventoData.categoriaId) || 'General';
+                eventoInicio = eventoData.inicio;
+                eventoFin = eventoData.fin;
+            }
+            
           } catch (e) {
-            return { ...booking, zonaNombre: "Error al cargar" };
+            console.error("Error fetching extra details for booking:", booking.reservaId, e);
           }
+
+          return { 
+            ...booking, 
+            zonaNombre,
+            eventoNombre,
+            eventoImagen,
+            eventoCategoria,
+            eventoInicio,
+            eventoFin,
+          };
         })
       );
       setBookings(enrichedBookings);
