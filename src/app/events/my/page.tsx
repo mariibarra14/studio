@@ -5,12 +5,13 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/app-context";
-import { PlusCircle, Search, Filter, AlertCircle, CalendarX } from "lucide-react";
+import { PlusCircle, Search, AlertCircle, CalendarX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ApiEvent } from "@/lib/types";
 import { MyEventCard } from "@/components/events/my-event-card";
+import { MyEventDetailsModal } from "@/components/events/my-event-details-modal";
 
 export default function MyEventsPage() {
   const { user, userRole, isLoadingUser } = useApp();
@@ -18,6 +19,7 @@ export default function MyEventsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
   const fetchEvents = useCallback(async () => {
     setIsLoading(true);
@@ -52,7 +54,6 @@ export default function MyEventsPage() {
     if (user) {
       fetchEvents();
     } else if (!isLoadingUser) {
-        // If user is not loading and is null, no need to fetch
         setIsLoading(false);
     }
   }, [user, isLoadingUser, fetchEvents]);
@@ -70,6 +71,14 @@ export default function MyEventsPage() {
       event.nombre.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [allEvents, user, searchQuery]);
+
+  const handleEventClick = (eventId: string) => {
+    setSelectedEventId(eventId);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedEventId(null);
+  };
 
   const renderContent = () => {
     if (isLoading || isLoadingUser) {
@@ -123,7 +132,7 @@ export default function MyEventsPage() {
     return (
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {myEvents.map((event) => (
-          <MyEventCard key={event.id} event={event} />
+          <MyEventCard key={event.id} event={event} onEventClick={handleEventClick} />
         ))}
       </div>
     );
@@ -155,7 +164,14 @@ export default function MyEventsPage() {
         </div>
         {renderContent()}
       </main>
+
+      {selectedEventId && (
+        <MyEventDetailsModal 
+          eventId={selectedEventId} 
+          isOpen={!!selectedEventId} 
+          onClose={handleCloseModal} 
+        />
+      )}
     </AuthenticatedLayout>
   );
 }
-
