@@ -14,29 +14,38 @@ type TicketStubProps = {
   onSelect: (booking: ApiBooking) => void;
 };
 
-const getEstadoDisplay = (estado: string) => {
+const getEstadoReal = (estado: string, expiraEn: string): string => {
+  if (estado === 'Hold' && new Date(expiraEn) < new Date()) {
+    return 'Expired';
+  }
+  return estado;
+};
+
+const getEstadoDisplay = (estado: string, expiraEn?: string) => {
+  const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
   const estados: { [key: string]: string } = {
     'Hold': 'Por Pagar',
     'Confirmed': 'Confirmada',
     'Cancelled': 'Cancelada',
     'Expired': 'Expirada'
   };
-  return estados[estado] || estado;
+  return estados[estadoReal] || estadoReal;
 };
 
-const getEstadoColor = (estado: string) => {
+const getEstadoColor = (estado: string, expiraEn?: string) => {
+  const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
   const colores: { [key: string]: string } = {
     'Hold': 'bg-yellow-100 text-yellow-800 border-yellow-200',
     'Confirmed': 'bg-green-100 text-green-800 border-green-200',
     'Cancelled': 'bg-red-100 text-red-800 border-red-200',
     'Expired': 'bg-gray-100 text-gray-800 border-gray-200'
   };
-  return colores[estado] || 'bg-gray-100 text-gray-800';
+  return colores[estadoReal] || 'bg-gray-100 text-gray-800';
 };
 
 export function TicketStub({ booking, onSelect }: TicketStubProps) {
-  const estadoDisplay = getEstadoDisplay(booking.estado);
-  const estadoColor = getEstadoColor(booking.estado);
+  const estadoDisplay = getEstadoDisplay(booking.estado, booking.expiraEn);
+  const estadoColor = getEstadoColor(booking.estado, booking.expiraEn);
   const seatLabels = booking.asientos.map(a => a.label).join(', ');
 
   return (

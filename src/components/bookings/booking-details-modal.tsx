@@ -19,30 +19,33 @@ import { es } from "date-fns/locale";
 import type { ApiBooking, Seat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-type BookingDetailsModalProps = {
-  booking: ApiBooking;
-  isOpen: boolean;
-  onClose: () => void;
+const getEstadoReal = (estado: string, expiraEn: string): string => {
+  if (estado === 'Hold' && new Date(expiraEn) < new Date()) {
+    return 'Expired';
+  }
+  return estado;
 };
 
-const getEstadoDisplay = (estado: string) => {
+const getEstadoDisplay = (estado: string, expiraEn?: string) => {
+  const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
   const estados: { [key: string]: string } = {
     'Hold': 'Por Pagar',
     'Confirmed': 'Confirmada', 
     'Cancelled': 'Cancelada',
     'Expired': 'Expirada'
   };
-  return estados[estado] || estado;
+  return estados[estadoReal] || estadoReal;
 };
 
-const getEstadoColor = (estado: string) => {
+const getEstadoColor = (estado: string, expiraEn?: string) => {
+  const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
   const colores: { [key: string]: string } = {
     'Hold': 'bg-yellow-100 text-yellow-800 border-yellow-200',
     'Confirmed': 'bg-green-100 text-green-800 border-green-200',
     'Cancelled': 'bg-red-100 text-red-800 border-red-200',
     'Expired': 'bg-gray-100 text-gray-800 border-gray-200'
   };
-  return colores[estado] || 'bg-gray-100 text-gray-800 border-gray-200';
+  return colores[estadoReal] || 'bg-gray-100 text-gray-800 border-gray-200';
 };
 
 const getEstadoAsientoDisplay = (estado: string | undefined) => {
@@ -66,8 +69,9 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
         toast({ title: "Función no implementada" });
     };
 
-    const estadoDisplay = getEstadoDisplay(booking.estado);
-    const estadoColor = getEstadoColor(booking.estado);
+    const estadoReal = getEstadoReal(booking.estado, booking.expiraEn);
+    const estadoDisplay = getEstadoDisplay(booking.estado, booking.expiraEn);
+    const estadoColor = getEstadoColor(booking.estado, booking.expiraEn);
 
     const formatDate = (dateString: string | undefined) => {
       if (!dateString) return 'N/A';
@@ -174,7 +178,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
             </div>
 
             <DialogFooter className="bg-muted/50 px-6 py-4 flex-col sm:flex-row gap-2">
-                {booking.estado === 'Hold' && (
+                {estadoReal === 'Hold' && (
                     <>
                         <Button variant="destructive" onClick={handleAction}>
                             <XCircle className="mr-2 h-4 w-4" />
@@ -186,14 +190,16 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                         </Button>
                     </>
                 )}
-                {booking.estado === 'Confirmed' && (
+                {estadoReal === 'Confirmed' && (
                     <Button className="w-full sm:w-auto" onClick={handleAction}>
                         <QrCode className="mr-2 h-4 w-4" />
                         Ver Tiquete (QR)
                     </Button>
                 )}
-                {(booking.estado === 'Cancelled' || booking.estado === 'Expired') && (
-                    <p className="text-sm text-center w-full">Esta reserva ya no es válida.</p>
+                {(estadoReal === 'Cancelled' || estadoReal === 'Expired') && (
+                    <p className="text-sm text-center w-full">
+                        {estadoReal === 'Expired' ? 'Esta reserva ha expirado.' : 'Esta reserva ya no es válida.'}
+                    </p>
                 )}
             </DialogFooter>
         </DialogContent>
