@@ -12,6 +12,8 @@ import { Loader2, AlertCircle, RefreshCw, Printer, Calendar, CreditCard, UserChe
 import Image from "next/image";
 import Link from "next/link";
 import { useApp } from "@/context/app-context";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 // Tipos TypeScript
 type Evento = {
@@ -224,53 +226,102 @@ export default function PaymentsHistoryPage() {
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
 
-    doc.setFontSize(16);
-    doc.setTextColor(41, 128, 185);
-    doc.text('REPORTE DE PAGOS', margin, margin + 10);
-
+    // --- Header ---
+    const primaryColor = '#4F46E5'; 
+    doc.setFillColor(primaryColor);
+    doc.rect(0, 0, pageWidth, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text('REPORTE DE PAGOS', margin, 18);
     doc.setFontSize(12);
+    doc.text('Organizador', pageWidth - margin - 30, 18);
+
+
     doc.setTextColor(0, 0, 0);
-    doc.text(`Evento: ${evento.nombre}`, margin, margin + 25);
+    let yPosition = 45;
+
+    // --- Event Info ---
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text('Información del Evento', margin, yPosition);
+    yPosition += 8;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Evento: ${evento.nombre}`, margin, yPosition);
+    yPosition += 6;
     if (evento.lugar) {
-      doc.text(`Lugar: ${evento.lugar}`, margin, margin + 32);
+      doc.text(`Lugar: ${evento.lugar}`, margin, yPosition);
+      yPosition += 6;
     }
-    doc.text(`Fecha de reporte: ${new Date().toLocaleDateString('es-ES')}`, margin, margin + 39);
+    doc.text(`Fecha de Reporte: ${format(new Date(), "dd 'de' MMMM, yyyy", { locale: es })}`, margin, yPosition);
+    yPosition += 10;
+    
+    // --- Summary ---
+    doc.setLineWidth(0.2);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 10;
 
     const totalRecaudado = pagos.reduce((sum, pago) => sum + pago.monto, 0);
-    doc.text(`Total de pagos: ${pagos.length}`, margin, margin + 50);
-    doc.text(`Total recaudado: $${totalRecaudado.toFixed(2)}`, margin, margin + 57);
-
-    let yPosition = margin + 70;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text('Resumen General', margin, yPosition);
+    yPosition += 8;
     
-    if (pagos.length > 0) {
-      doc.setFontSize(10);
-      doc.setFillColor(240, 240, 240);
-      doc.rect(margin, yPosition, pageWidth - (margin * 2), 8, 'F');
-      doc.text('Usuario', margin + 2, yPosition + 5);
-      doc.text('Monto', margin + 60, yPosition + 5);
-      doc.text('Fecha', margin + 90, yPosition + 5);
-      doc.text('Estado', margin + 130, yPosition + 5);
-      yPosition += 10;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Total de Pagos Registrados: ${pagos.length}`, margin, yPosition);
+    yPosition += 8;
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Total Recaudado: $${totalRecaudado.toFixed(2)}`, margin, yPosition);
+    yPosition += 15;
 
-      pagos.forEach((pago) => {
+
+    // --- Payments Table ---
+    if (pagos.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text('Desglose de Pagos', margin, yPosition);
+      yPosition += 10;
+      
+      const addPageIfNeeded = () => {
         if (yPosition > 270) {
           doc.addPage();
           yPosition = margin;
         }
+      };
 
-        const usuario = pago.usuario ? 
-          `${pago.usuario.nombre} ${pago.usuario.apellido}`.substring(0, 20) : 'N/A';
+      pagos.forEach((pago, index) => {
+        addPageIfNeeded();
         
-        doc.text(usuario, margin + 2, yPosition + 4);
-        doc.text(`$${pago.monto.toFixed(2)}`, margin + 60, yPosition + 4);
-        doc.text(new Date(pago.fechaPago).toLocaleDateString('es-ES'), margin + 90, yPosition + 4);
-        doc.text(pago.reserva?.estado || 'N/A', margin + 130, yPosition + 4);
-
-        yPosition += 7;
+        doc.setDrawColor(220, 220, 220);
+        doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Pago #${index + 1}`, margin, yPosition + 5);
+        
+        doc.setFont("helvetica", "normal");
+        const usuarioNombre = pago.usuario ? `${pago.usuario.nombre} ${pago.usuario.apellido}` : 'Usuario no disponible';
+        doc.text(`Usuario: ${usuarioNombre}`, margin, yPosition + 12);
+        
+        const fechaPago = format(new Date(pago.fechaPago), "dd/MM/yyyy h:mm a", { locale: es });
+        doc.text(`Fecha: ${fechaPago}`, margin, yPosition + 18);
+        
+        doc.text(`ID Pago: ${pago.idPago}`, margin, yPosition + 24);
+        
+        doc.setFont("helvetica", "bold");
+        doc.text(`Monto: $${pago.monto.toFixed(2)}`, pageWidth - margin - 50, yPosition + 12);
+        
+        yPosition += 35;
       });
     }
 
-    doc.save(`reporte-pagos-${evento.nombre.substring(0, 20)}.pdf`);
+    doc.save(`reporte-pagos-${evento.nombre.replace(/ /g, "_").substring(0, 20)}.pdf`);
   };
 
   const PagoEventoCard = ({ pago }: { pago: PagoCompleto }) => {
@@ -282,16 +333,36 @@ export default function PaymentsHistoryPage() {
         const { default: jsPDF } = await import('jspdf');
         const doc = new jsPDF();
         const margin = 20;
+        const pageWidth = doc.internal.pageSize.getWidth();
 
-        doc.setFontSize(16);
-        doc.text('RECIBO DE PAGO', margin, margin + 10);
-        
-        doc.setFontSize(10);
-        doc.text(`Evento: ${pago.evento?.nombre || 'N/A'}`, margin, margin + 25);
-        doc.text(`Usuario: ${pago.usuario?.nombre || 'N/A'} ${pago.usuario?.apellido || ''}`, margin, margin + 32);
-        doc.text(`Monto: $${pago.monto.toFixed(2)}`, margin, margin + 39);
-        doc.text(`Fecha: ${new Date(pago.fechaPago).toLocaleDateString('es-ES')}`, margin, margin + 46);
-        doc.text(`ID Pago: ${pago.idPago}`, margin, margin + 53);
+        // --- Header ---
+        const primaryColor = '#4F46E5';
+        doc.setFillColor(primaryColor);
+        doc.rect(0, 0, pageWidth, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.text('RECIBO DE PAGO', margin, 18);
+        doc.setFontSize(12);
+        doc.text('VIVOPASS', pageWidth - margin - 35, 18);
+
+        let yPosition = 45;
+        doc.setTextColor(0, 0, 0);
+
+        // --- Details ---
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Evento: ${pago.evento?.nombre || 'N/A'}`, margin, yPosition);
+        yPosition += 7;
+        doc.text(`Usuario: ${pago.usuario?.nombre || 'N/A'} ${pago.usuario?.apellido || ''}`, margin, yPosition);
+        yPosition += 7;
+        doc.text(`Monto Pagado: $${pago.monto.toFixed(2)}`, margin, yPosition);
+        yPosition += 7;
+        doc.text(`Fecha de Pago: ${format(new Date(pago.fechaPago), "dd 'de' MMMM, yyyy", { locale: es })}`, margin, yPosition);
+        yPosition += 7;
+        doc.text(`ID de Pago: ${pago.idPago}`, margin, yPosition);
+        yPosition += 7;
+        doc.text(`ID de Reserva: ${pago.idReserva}`, margin, yPosition);
 
         doc.save(`recibo-${pago.idPago.substring(0, 8)}.pdf`);
       } catch (error) {
