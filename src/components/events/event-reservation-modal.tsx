@@ -173,7 +173,7 @@ export function EventReservationModal({
             const errorData = await response.json().catch(() => ({ message: "Ocurrió un error inesperado."}));
             let errorMessage = errorData.message || `Error del servidor: ${response.status}`;
             
-            if (response.status === 409) {
+            if (response.status === 409 || errorData.message?.includes('No hay asientos suficientes')) {
                 errorMessage = "No hay suficientes asientos disponibles en esta zona para la cantidad solicitada.";
             } else if (response.status === 401) {
                 errorMessage = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.";
@@ -431,5 +431,3 @@ export function EventReservationModal({
     </Dialog>
   );
 }
-
-    
