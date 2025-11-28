@@ -53,6 +53,10 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
   const [isEditZoneModalOpen, setIsEditZoneModalOpen] = useState(false);
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
 
+  const [isDeletingZone, setIsDeletingZone] = useState<string | null>(null);
+  const [showDeleteZoneDialog, setShowDeleteZoneDialog] = useState(false);
+  const [zoneToDelete, setZoneToDelete] = useState<Zone | null>(null);
+
 
   const fetchDetails = useCallback(async () => {
     setIsLoading(true);
@@ -134,6 +138,60 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
       setIsDeleting(false);
     }
   };
+
+  const handleOpenDeleteZoneDialog = (zone: Zone) => {
+    setZoneToDelete(zone);
+    setShowDeleteZoneDialog(true);
+  };
+  
+  const handleConfirmDeleteZone = async () => {
+    if (!zoneToDelete) return;
+    
+    setIsDeletingZone(zoneToDelete.id);
+    const token = localStorage.getItem('accessToken');
+    
+    try {
+      // Step 1: Fetch seats for the zone
+      const seatsResponse = await fetch(`http://localhost:44335/api/events/${eventId}/zonas/${zoneToDelete.id}/asientos`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!seatsResponse.ok) throw new Error('No se pudieron obtener los asientos de la zona.');
+      const seats: any[] = await seatsResponse.json();
+
+      // Step 2: Delete each seat
+      for (const seat of seats) {
+        const deleteSeatResponse = await fetch(`http://localhost:44335/api/events/${eventId}/zonas/${zoneToDelete.id}/asientos/${seat.id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!deleteSeatResponse.ok && deleteSeatResponse.status !== 404) {
+            throw new Error(`Error al eliminar el asiento ${seat.label}.`);
+        }
+      }
+
+      // Step 3: Delete the zone itself
+      const deleteZoneResponse = await fetch(`http://localhost:44335/api/events/${eventId}/zonas/${zoneToDelete.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (!deleteZoneResponse.ok) {
+        const errorData = await deleteZoneResponse.json().catch(() => null);
+        throw new Error(errorData?.message || 'No se pudo eliminar la zona.');
+      }
+      
+      toast({ title: '✅ Zona Eliminada', description: `La zona "${zoneToDelete.nombre}" y sus asientos han sido eliminados.` });
+      setShowDeleteZoneDialog(false);
+      fetchDetails();
+
+    } catch (err: any) {
+       toast({ variant: 'destructive', title: '❌ Error al eliminar zona', description: err.message });
+    } finally {
+       setIsDeletingZone(null);
+       setZoneToDelete(null);
+    }
+  };
+
   
   const handleEditSuccessAndClose = () => {
     setIsEditModalOpen(false);
@@ -288,6 +346,31 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                                                         <Edit className="mr-1 h-3 w-3" />
                                                         Editar
                                                     </Button>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="destructive" size="sm" disabled={!!isDeletingZone}>
+                                                                {isDeletingZone === zona.id ? <Loader2 className="h-3 w-3 animate-spin"/> : <Trash2 className="mr-1 h-3 w-3" />}
+                                                                Eliminar
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>¿Eliminar zona "{zona.nombre}"?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                Esta acción es permanente. Se eliminarán la zona y todos sus asientos asociados.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() => handleOpenDeleteZoneDialog(zona)}
+                                                                    className="bg-destructive hover:bg-destructive/90"
+                                                                >
+                                                                    Sí, eliminar zona
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
                                                 </div>
                                             </div>
                                         ))}
@@ -336,6 +419,24 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                     </div>
                 </CardContent>
             </Card>
+
+            <AlertDialog open={showDeleteZoneDialog} onOpenChange={setShowDeleteZoneDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Seguro que quieres eliminar la zona "{zoneToDelete?.nombre}"?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                        Esta acción es permanente. Se eliminarán la zona y todos sus asientos asociados. 
+                        Este proceso no se puede deshacer.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirmDeleteZone} className="bg-destructive hover:bg-destructive/90" disabled={!!isDeletingZone}>
+                            {isDeletingZone ? <Loader2 className="animate-spin"/> : "Confirmar Eliminación"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             {details && (
               <>
                 <EditEventModal
@@ -391,3 +492,5 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
 
   return renderContent();
 }
+
+    
