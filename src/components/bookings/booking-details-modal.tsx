@@ -204,10 +204,6 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
             <DialogFooter className="bg-muted/50 px-6 py-4 flex-col sm:flex-row gap-2">
                 {estadoReal === 'Hold' && (
                     <>
-                        <Button variant="destructive" onClick={() => toast({ title: "Función no implementada" })}>
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Cancelar Reserva
-                        </Button>
                         <Button className="w-full sm:w-auto" onClick={handleAction}>
                             <CreditCard className="mr-2 h-4 w-4" />
                             Proceder al Pago
