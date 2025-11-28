@@ -97,12 +97,8 @@ export function EditZoneForm({ eventId, zone, onSuccess, onCancel }: EditZoneFor
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
         
         <div className="p-3 bg-muted/30 rounded-lg space-y-2 border">
-            <h4 className="font-semibold text-sm">Información de la Zona (No editable)</h4>
+            <h4 className="font-semibold text-sm">Información de la Zona (No modificable)</h4>
             <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                    <p className="text-muted-foreground text-xs">Tipo</p>
-                    <p className="font-medium capitalize">{zone.tipo}</p>
-                </div>
                 <div>
                     <p className="text-muted-foreground text-xs">Capacidad</p>
                     <p className="font-medium">{zone.capacidad?.toLocaleString()}</p>
@@ -127,7 +123,7 @@ export function EditZoneForm({ eventId, zone, onSuccess, onCancel }: EditZoneFor
         
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
-            <strong>Nota:</strong> La capacidad y configuración de asientos no se pueden cambiar una vez creada la zona.
+            <strong>Nota:</strong> La capacidad no se puede cambiar una vez creada la zona.
             </p>
         </div>
         

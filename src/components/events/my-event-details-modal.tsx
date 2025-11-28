@@ -278,7 +278,6 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2">
                                                         <h4 className="font-semibold">{zona.nombre}</h4>
-                                                        <Badge variant="outline" className="text-xs">{zona.estado}</Badge>
                                                     </div>
                                                     <p className="text-sm text-muted-foreground">
                                                         Capacidad: {zona.capacidad.toLocaleString()} • Precio: ${zona.precio.toFixed(2)}
