@@ -80,3 +80,33 @@ export interface ApiBooking {
   escenarioNombre?: string;
   escenarioUbicacion?: string;
 }
+
+export type Payment = {
+  idPago: string;
+  idMPago: string;
+  idExternalPago: string;
+  idUsuario: string;
+  idReserva: string;
+  idEvento: string;
+  fechaPago: string;
+  monto: number;
+};
+
+export type EnrichedPayment = Payment & {
+  evento?: {
+    nombre: string;
+    lugar?: string;
+    inicio?: string;
+    imagenUrl?: string;
+  } | null;
+  reserva?: {
+    estado: string;
+    precioTotal?: number;
+  } | null;
+  metodoPago?: {
+    marca: string;
+    ultimos4: string;
+    mesExpiracion: number;
+    anioExpiracion: number;
+  } | null;
+};
