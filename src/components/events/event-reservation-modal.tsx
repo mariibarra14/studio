@@ -441,7 +441,6 @@ export function EventReservationModal({
                           ) : availableSeats !== null ? (
                             <span>
                               {availableSeats > 0 ? `${availableSeats} boletos disponibles.` : 'No hay boletos disponibles.'}
-                              {' '}Máximo 10 por reserva.
                             </span>
                           ) : null}
                         </div>
