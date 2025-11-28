@@ -27,6 +27,7 @@ import {
 import { getCategoryNameById } from "@/lib/categories";
 import { EditEventModal } from "./edit-event-modal";
 import { AddZoneModal } from "./add-zone-modal";
+import { EditZoneModal } from "./edit-zone-modal";
 
 type MyEventDetailsModalProps = {
   eventId: string;
@@ -48,6 +49,10 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
   const { toast } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddZoneModalOpen, setIsAddZoneModalOpen] = useState(false);
+  
+  const [isEditZoneModalOpen, setIsEditZoneModalOpen] = useState(false);
+  const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
+
 
   const fetchDetails = useCallback(async () => {
     setIsLoading(true);
@@ -140,6 +145,18 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
     setIsAddZoneModalOpen(false);
     fetchDetails(); // Refetch event details to show the new zone
   };
+
+  const handleEditZoneSuccess = () => {
+    setIsEditZoneModalOpen(false);
+    setSelectedZone(null);
+    fetchDetails();
+  }
+
+  const handleOpenEditZoneModal = (zone: Zone) => {
+    setSelectedZone(zone);
+    setIsEditZoneModalOpen(true);
+  };
+
 
   const handleClose = () => {
     onClose();
@@ -255,17 +272,27 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                                     </Button>
                                 </div>
                                 {details.zonas && details.zonas.length > 0 ? (
-                                    <ul className="space-y-2 text-sm text-muted-foreground">
+                                    <div className="space-y-2">
                                         {details.zonas.map(zona => (
-                                            <li key={zona.id} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50">
-                                                <span>• {zona.nombre}</span>
-                                                <span className="text-xs text-right">
-                                                    Capacidad: {zona.capacidad.toLocaleString()} <br/>
-                                                    Precio: ${zona.precio.toFixed(2)}
-                                                </span>
-                                            </li>
+                                            <div key={zona.id} className="flex justify-between items-center p-3 border rounded-lg hover:bg-muted/50">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="font-semibold">{zona.nombre}</h4>
+                                                        <Badge variant="outline" className="text-xs">{zona.estado}</Badge>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Capacidad: {zona.capacidad.toLocaleString()} • Precio: ${zona.precio.toFixed(2)}
+                                                    </p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button variant="outline" size="sm" onClick={() => handleOpenEditZoneModal(zona)}>
+                                                        <Edit className="mr-1 h-3 w-3" />
+                                                        Editar
+                                                    </Button>
+                                                </div>
+                                            </div>
                                         ))}
-                                    </ul>
+                                    </div>
                                 ) : (
                                     <p className="text-sm text-muted-foreground">Este evento no tiene zonas definidas.</p>
                                 )}
@@ -327,6 +354,15 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                     eventoAforoMaximo={details.aforoMaximo}
                     zonasExistentes={details.zonas || []}
                 />
+                {selectedZone && (
+                  <EditZoneModal
+                    isOpen={isEditZoneModalOpen}
+                    onClose={() => setIsEditZoneModalOpen(false)}
+                    onSuccess={handleEditZoneSuccess}
+                    eventId={details.id}
+                    zone={selectedZone}
+                  />
+                )}
               </>
             )}
         </>
