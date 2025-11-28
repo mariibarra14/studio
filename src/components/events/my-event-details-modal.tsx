@@ -324,6 +324,8 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                     onSuccess={handleAddZoneSuccess}
                     eventId={details.id}
                     escenarioId={details.escenarioId}
+                    eventoAforoMaximo={details.aforoMaximo}
+                    zonasExistentes={details.zonas || []}
                 />
               </>
             )}

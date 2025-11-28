@@ -9,6 +9,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { AddZoneForm } from "./add-zone-form";
+import type { Zone } from "@/lib/types";
+
 
 type AddZoneModalProps = {
   isOpen: boolean;
@@ -16,9 +18,19 @@ type AddZoneModalProps = {
   onSuccess: () => void;
   eventId: string;
   escenarioId: string;
+  eventoAforoMaximo: number;
+  zonasExistentes: Zone[];
 };
 
-export function AddZoneModal({ isOpen, onClose, onSuccess, eventId, escenarioId }: AddZoneModalProps) {
+export function AddZoneModal({ 
+  isOpen, 
+  onClose, 
+  onSuccess, 
+  eventId, 
+  escenarioId, 
+  eventoAforoMaximo, 
+  zonasExistentes 
+}: AddZoneModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -31,6 +43,8 @@ export function AddZoneModal({ isOpen, onClose, onSuccess, eventId, escenarioId 
         <AddZoneForm 
           eventId={eventId} 
           escenarioId={escenarioId}
+          eventoAforoMaximo={eventoAforoMaximo}
+          zonasExistentes={zonasExistentes}
           onSuccess={onSuccess} 
           onCancel={onClose} 
         />

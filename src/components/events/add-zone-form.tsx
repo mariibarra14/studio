@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,15 +16,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, AlertCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import type { Zone } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
     nombre: z.string().min(1, "El nombre de la zona es requerido."),
     precio: z.coerce.number().min(0, "El precio debe ser 0 o mayor."),
     filas: z.coerce.number().min(1, "Debe haber al menos 1 fila."),
     columnas: z.coerce.number().min(1, "Debe haber al menos 1 asiento por fila."),
-    capacidad: z.coerce.number().min(1, "La capacidad debe ser mayor que 0."),
     prefijoFila: z.string().min(1, "El prefijo de fila es requerido.").max(5),
     prefijoAsiento: z.string().max(5).optional(),
 });
@@ -32,14 +33,23 @@ const formSchema = z.object({
 type AddZoneFormProps = {
   eventId: string;
   escenarioId: string;
+  eventoAforoMaximo: number;
+  zonasExistentes: Zone[];
   onSuccess: () => void;
   onCancel: () => void;
 };
 
-export function AddZoneForm({ eventId, escenarioId, onSuccess, onCancel }: AddZoneFormProps) {
+export function AddZoneForm({ 
+  eventId, 
+  escenarioId, 
+  eventoAforoMaximo, 
+  zonasExistentes, 
+  onSuccess, 
+  onCancel 
+}: AddZoneFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,7 +58,6 @@ export function AddZoneForm({ eventId, escenarioId, onSuccess, onCancel }: AddZo
       precio: 0,
       filas: 1,
       columnas: 1,
-      capacidad: 1,
       prefijoFila: "F",
       prefijoAsiento: "",
     },
@@ -58,19 +67,35 @@ export function AddZoneForm({ eventId, escenarioId, onSuccess, onCancel }: AddZo
   const watchedFilas = watch("filas");
   const watchedColumnas = watch("columnas");
 
-  useEffect(() => {
-    const newCapacity = (watchedFilas || 0) * (watchedColumnas || 0);
-    setValue("capacidad", newCapacity, { shouldValidate: true });
-  }, [watchedFilas, watchedColumnas, setValue]);
+  const capacidadActualZonas = useMemo(() => 
+    zonasExistentes.reduce((acc, zona) => acc + zona.capacidad, 0),
+    [zonasExistentes]
+  );
+  
+  const aforoDisponible = eventoAforoMaximo - capacidadActualZonas;
+  const nuevaCapacidad = (watchedFilas || 0) * (watchedColumnas || 0);
 
+  const aforoError = useMemo(() => {
+    if (nuevaCapacidad > aforoDisponible) {
+      return `La capacidad (${nuevaCapacidad}) excede el aforo disponible (${aforoDisponible}).`;
+    }
+    return null;
+  }, [nuevaCapacidad, aforoDisponible]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    setError(null);
+    setServerError(null);
+    
+    if (aforoError) {
+      form.setError("filas", { type: "manual", message: aforoError });
+      form.setError("columnas", { type: "manual", message: aforoError });
+      setIsLoading(false);
+      return;
+    }
 
     const token = localStorage.getItem('accessToken');
     if (!token) {
-        setError("Tu sesión ha expirado.");
+        setServerError("Tu sesión ha expirado.");
         setIsLoading(false);
         return;
     }
@@ -80,7 +105,7 @@ export function AddZoneForm({ eventId, escenarioId, onSuccess, onCancel }: AddZo
         escenarioId: escenarioId,
         nombre: values.nombre,
         tipo: "sentado",
-        capacidad: values.capacidad,
+        capacidad: nuevaCapacidad,
         numeracion: {
             modo: "Sillas",
             filas: values.filas,
@@ -90,22 +115,14 @@ export function AddZoneForm({ eventId, escenarioId, onSuccess, onCancel }: AddZo
         },
         precio: values.precio,
         estado: "Abierto",
-        grid: {
-            startRow: 1,
-            startCol: 1,
-            rowSpan: 1,
-            colSpan: 1
-        },
+        grid: { startRow: 1, startCol: 1, rowSpan: 1, colSpan: 1 },
         autogenerarAsientos: true
     };
 
     try {
         const response = await fetch(`http://localhost:44335/api/events/${eventId}/zonas`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify(submissionData)
         });
 
@@ -119,7 +136,7 @@ export function AddZoneForm({ eventId, escenarioId, onSuccess, onCancel }: AddZo
         onSuccess();
 
     } catch (err: any) {
-        setError(err.message || "Ocurrió un error desconocido.");
+        setServerError(err.message || "Ocurrió un error desconocido.");
         toast({ variant: "destructive", title: "❌ Error al crear zona", description: err.message });
     } finally {
         setIsLoading(false);
@@ -129,6 +146,30 @@ export function AddZoneForm({ eventId, escenarioId, onSuccess, onCancel }: AddZo
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
+        <div className="p-4 bg-muted/30 rounded-lg border">
+          <h4 className="font-semibold text-sm mb-2">Información de Aforo</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground text-xs">Aforo Máx. Evento</p>
+              <p className="font-medium">{eventoAforoMaximo.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Capacidad Usada</p>
+              <p className="font-medium">{capacidadActualZonas.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Aforo Disponible</p>
+              <p className="font-medium text-green-600">{aforoDisponible.toLocaleString()}</p>
+            </div>
+             <div>
+              <p className="text-muted-foreground text-xs">Capacidad Nueva Zona</p>
+              <p className={cn("font-medium", aforoError ? "text-red-600" : "text-blue-600")}>
+                {nuevaCapacidad.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <FormField control={form.control} name="nombre" render={({ field }) => (
             <FormItem>
@@ -161,13 +202,21 @@ export function AddZoneForm({ eventId, escenarioId, onSuccess, onCancel }: AddZo
               <FormMessage />
             </FormItem>
           )} />
-          <FormField control={form.control} name="capacidad" render={({ field }) => (
-            <FormItem>
+           <FormItem>
               <FormLabel>Capacidad Total</FormLabel>
-              <FormControl><Input type="number" {...field} readOnly className="bg-muted/50" /></FormControl>
+              <FormControl>
+                <Input 
+                    type="number" 
+                    value={nuevaCapacidad} 
+                    readOnly 
+                    className={cn(
+                      "bg-muted/50 font-bold", 
+                      aforoError && "border-destructive bg-red-50 text-destructive-foreground"
+                    )}
+                />
+                </FormControl>
               <FormMessage />
             </FormItem>
-          )} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -187,17 +236,17 @@ export function AddZoneForm({ eventId, escenarioId, onSuccess, onCancel }: AddZo
             )} />
         </div>
         
-        {error && (
+        {(serverError || aforoError) && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+            <AlertTitle>Error de Validación</AlertTitle>
+            <AlertDescription>{serverError || aforoError}</AlertDescription>
           </Alert>
         )}
         
         <div className="flex justify-end gap-4 pt-8 border-t">
           <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>Cancelar</Button>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading || !!aforoError}>
             {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creando Zona...</> : "Crear Zona"}
           </Button>
         </div>
