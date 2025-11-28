@@ -16,18 +16,22 @@ import { User, LogOut, Ticket, Menu, Gem } from "lucide-react";
 import { useApp } from "@/context/app-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export function Header() {
   const { toggleSidebar, user, isLoadingUser } = useApp();
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleLogout = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault(); 
     
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userRole');
+    localStorage.clear();
     router.push('/login');
+    toast({
+      title: "Sesión Cerrada",
+      description: "Has cerrado sesión exitosamente.",
+    })
   };
 
 
@@ -103,3 +107,5 @@ export function Header() {
     </header>
   );
 }
+
+    

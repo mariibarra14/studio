@@ -19,14 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Ticket, Tag, Package, Plus, Minus, Loader2, AlertCircle, Building, User, FileText, Link as LinkIcon } from "lucide-react";
+import { Users, Ticket, Tag, Package, Plus, Minus, Loader2, AlertCircle, Building, User, FileText, Link as LinkIcon, CheckCircle } from "lucide-react";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ApiEvent, Zone, Venue, Organizer } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 type EventReservationModalProps = {
   event: ApiEvent;
@@ -50,7 +51,10 @@ export function EventReservationModal({
   const [quantity, setQuantity] = useState(1);
   const [eventDetails, setEventDetails] = useState<DetailedEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReserving, setIsReserving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const router = useRouter();
 
   const fetchEventDetails = useCallback(async (eventId: string) => {
     setIsLoading(true);
@@ -114,19 +118,83 @@ export function EventReservationModal({
     setQuantity(1);
   };
 
-  const incrementQuantity = () => {
-    if (selectedTier && quantity < selectedTier.capacidad) {
-      setQuantity(q => q + 1);
-    }
-  };
-
-  const decrementQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(q => q - 1);
-    }
-  };
-
   const totalPrice = selectedTier ? selectedTier.precio * quantity : 0;
+
+  const handleConfirmReservation = async () => {
+    setIsReserving(true);
+    setError(null);
+
+    const token = localStorage.getItem('accessToken');
+    const usuarioId = localStorage.getItem('userId');
+    
+    if (!token || !usuarioId) {
+      setError("Sesión expirada. Por favor, inicia sesión de nuevo.");
+      setIsReserving(false);
+      return;
+    }
+    
+    if (!selectedTier || !eventDetails) {
+        setError("Información del evento o zona no disponible.");
+        setIsReserving(false);
+        return;
+    }
+
+    try {
+        if (quantity <= 0) {
+            throw new Error("La cantidad de boletos debe ser mayor a 0.");
+        }
+
+        const reservaData = {
+            eventId: eventDetails.id,
+            zonaEventoId: selectedTier.id,
+            cantidadBoletos: quantity,
+            usuarioId: usuarioId
+        };
+
+        const response = await fetch('http://localhost:44335/api/Reservas/hold', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(reservaData)
+        });
+        
+        if (response.ok) {
+            const resultado = await response.json();
+            toast({
+                title: "✅ Reserva realizada con éxito",
+                description: `Se han reservado ${quantity} boleto(s) para ${eventDetails.nombre}.`,
+                duration: 5000,
+            });
+            handleClose();
+            router.push('/bookings');
+        } else {
+            const errorData = await response.json().catch(() => ({ message: "Ocurrió un error inesperado."}));
+            let errorMessage = errorData.message || `Error del servidor: ${response.status}`;
+            
+            if (response.status === 409) {
+                errorMessage = "No hay suficientes asientos disponibles en esta zona para la cantidad solicitada.";
+            } else if (response.status === 401) {
+                errorMessage = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.";
+            } else if (response.status === 400) {
+                errorMessage = "Datos inválidos para la reserva. Por favor, verifica la información.";
+            }
+
+            throw new Error(errorMessage);
+        }
+
+    } catch (err: any) {
+        setError(err.message);
+        toast({
+            variant: "destructive",
+            title: "❌ Error al crear la reserva",
+            description: err.message,
+        });
+    } finally {
+        setIsReserving(false);
+    }
+  };
 
   const handleClose = () => {
     onClose();
@@ -165,7 +233,7 @@ export function EventReservationModal({
       return <DetailsViewSkeleton />;
     }
 
-    if (error || !eventDetails) {
+    if (error && !eventDetails) {
       return (
         <div className="flex flex-col items-center justify-center p-8 min-h-[400px]">
             <DialogHeader className="sr-only">
@@ -181,6 +249,10 @@ export function EventReservationModal({
             </Button>
         </div>
       );
+    }
+
+    if (!eventDetails) {
+        return null; // Should be covered by error state but as a safeguard
     }
 
     if (stage === "details") {
@@ -200,10 +272,10 @@ export function EventReservationModal({
                       <p className="text-center font-bold text-white text-lg p-4">{eventDetails.nombre}</p>
                   </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
           </div>
 
-          <div className="p-6">
+          <div className="p-6 -mt-10 relative bg-background rounded-t-2xl">
             <DialogHeader className="text-left mb-6">
               <DialogTitle className="text-3xl font-bold mb-2">{eventDetails.nombre}</DialogTitle>
               <DialogDescription className="text-base text-muted-foreground">
@@ -266,6 +338,7 @@ export function EventReservationModal({
     }
 
     if (stage === "reservation") {
+      const maxQuantity = Math.min(selectedTier?.capacidad || 0, 10);
       return (
         <div className="p-8">
             <DialogHeader className="mb-6">
@@ -275,7 +348,7 @@ export function EventReservationModal({
             
             <div className="space-y-6">
                 <div className="space-y-2">
-                    <Label htmlFor="ticket-tier" className="text-lg">Tipo de Entrada</Label>
+                    <Label htmlFor="ticket-tier" className="text-base font-medium">Tipo de Entrada</Label>
                     <Select onValueChange={handleTierChange} defaultValue={selectedTier?.id}>
                         <SelectTrigger id="ticket-tier" className="text-base py-6">
                             <SelectValue placeholder="Seleccione un tipo de entrada" />
@@ -293,30 +366,55 @@ export function EventReservationModal({
                     </Select>
                 </div>
                 
-                <div className="space-y-2">
-                    <Label htmlFor="quantity" className="text-lg">Cantidad</Label>
-                    <div className="flex items-center gap-4">
-                         <Button variant="outline" size="icon" onClick={decrementQuantity} disabled={quantity <= 1}>
-                            <Minus className="h-4 w-4" />
-                        </Button>
-                        <Input id="quantity" type="number" value={quantity} readOnly className="w-20 text-center text-lg font-bold" />
-                         <Button variant="outline" size="icon" onClick={incrementQuantity} disabled={!!(selectedTier && quantity >= selectedTier.capacidad)}>
-                            <Plus className="h-4 w-4" />
-                        </Button>
+                {selectedTier && (
+                  <>
+                    <div className="space-y-2">
+                        <Label htmlFor="quantity" className="text-base font-medium">Cantidad</Label>
+                         <Select onValueChange={(val) => setQuantity(parseInt(val))} value={String(quantity)}>
+                            <SelectTrigger id="quantity" className="text-base py-6">
+                                <SelectValue placeholder="Seleccione cantidad" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[...Array(maxQuantity).keys()].map(i => (
+                                <SelectItem key={i+1} value={String(i+1)} className="text-base p-3">
+                                  {i+1} Boleto{i > 0 ? 's' : ''}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">Máximo 10 boletos por reserva.</p>
                     </div>
-                </div>
 
-                <div className="border-t pt-6 mt-6">
-                    <div className="flex justify-between items-center text-2xl font-bold">
-                        <span>Precio Total:</span>
-                        <span>${totalPrice.toFixed(2)}</span>
+                    <div className="border-t pt-6 mt-6">
+                        <div className="flex justify-between items-center text-2xl font-bold">
+                            <span>Precio Total:</span>
+                            <span>${totalPrice.toFixed(2)}</span>
+                        </div>
                     </div>
-                </div>
+                  </>
+                )}
             </div>
 
-            <DialogFooter className="mt-8 gap-4">
-                <Button variant="outline" onClick={() => setStage("details")}>Atrás</Button>
-                <Button className="w-full">Confirmar Reserva</Button>
+             {error && (
+                <Alert variant="destructive" className="mt-6">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+
+            <DialogFooter className="mt-8 grid grid-cols-2 gap-4">
+                <Button variant="outline" onClick={() => setStage("details")} disabled={isReserving}>Atrás</Button>
+                <Button onClick={handleConfirmReservation} disabled={isReserving || !selectedTier || quantity <= 0}>
+                    {isReserving ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                            Procesando...
+                        </>
+                    ) : (
+                        "Confirmar Reserva"
+                    )}
+                </Button>
             </DialogFooter>
         </div>
       );
@@ -327,9 +425,11 @@ export function EventReservationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0">
         {renderContent()}
       </DialogContent>
     </Dialog>
   );
 }
+
+    
