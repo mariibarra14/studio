@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { ApiEvent, Zone, Venue, Organizer } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { Input } from "../ui/input";
 
 type EventReservationModalProps = {
   event: ApiEvent;
@@ -118,6 +119,13 @@ export function EventReservationModal({
     setQuantity(1);
   };
 
+  const handleQuantityChange = (newQuantity: number) => {
+    const maxQuantity = Math.min(selectedTier?.capacidad || 0, 10);
+    if (newQuantity > 0 && newQuantity <= maxQuantity) {
+      setQuantity(newQuantity);
+    }
+  };
+
   const totalPrice = selectedTier ? selectedTier.precio * quantity : 0;
 
   const handleConfirmReservation = async () => {
@@ -173,7 +181,7 @@ export function EventReservationModal({
             const errorData = await response.json().catch(() => ({ message: "Ocurrió un error inesperado."}));
             let errorMessage = errorData.message || `Error del servidor: ${response.status}`;
             
-            if (response.status === 500 || errorData.message?.includes('No hay asientos suficientes')) {
+            if (response.status === 409 && errorData.message?.includes('No hay asientos suficientes')) {
                 errorMessage = "No hay suficientes asientos disponibles en esta zona para la cantidad solicitada.";
             } else if (response.status === 401) {
                 errorMessage = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.";
@@ -370,19 +378,24 @@ export function EventReservationModal({
                   <>
                     <div className="space-y-2">
                         <Label htmlFor="quantity" className="text-base font-medium">Cantidad</Label>
-                         <Select onValueChange={(val) => setQuantity(parseInt(val))} value={String(quantity)}>
-                            <SelectTrigger id="quantity" className="text-base py-6">
-                                <SelectValue placeholder="Seleccione cantidad" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {[...Array(maxQuantity).keys()].map(i => (
-                                <SelectItem key={i+1} value={String(i+1)} className="text-base p-3">
-                                  {i+1} Boleto{i > 0 ? 's' : ''}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">Máximo 10 boletos por reserva.</p>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="icon" onClick={() => handleQuantityChange(quantity - 1)} disabled={quantity <= 1}>
+                                <Minus className="h-4 w-4" />
+                            </Button>
+                            <Input
+                                id="quantity"
+                                type="number"
+                                min="1"
+                                max={maxQuantity}
+                                value={quantity}
+                                onChange={(e) => handleQuantityChange(parseInt(e.target.value))}
+                                className="w-20 text-center text-lg font-bold"
+                            />
+                            <Button variant="outline" size="icon" onClick={() => handleQuantityChange(quantity + 1)} disabled={quantity >= maxQuantity}>
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Máximo {maxQuantity} boletos por reserva.</p>
                     </div>
 
                     <div className="border-t pt-6 mt-6">
@@ -431,3 +444,5 @@ export function EventReservationModal({
     </Dialog>
   );
 }
+
+    
