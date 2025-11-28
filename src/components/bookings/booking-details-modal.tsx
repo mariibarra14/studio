@@ -19,6 +19,7 @@ import { es } from "date-fns/locale";
 import type { ApiBooking, Seat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { generateBookingPDF } from "@/lib/pdf-generator";
+import { useRouter } from "next/navigation";
 
 
 type BookingDetailsModalProps = {
@@ -69,10 +70,10 @@ const getEstadoAsientoDisplay = (estado: string | undefined) => {
 
 export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetailsModalProps) {
     const { toast } = useToast();
+    const router = useRouter();
 
     const handleAction = () => {
-        // Lógica de pago o cancelación
-        toast({ title: "Función no implementada" });
+        router.push(`/payments?reservaId=${booking.reservaId}&eventId=${booking.eventId}&monto=${booking.precioTotal}`);
     };
 
     const handleGeneratePdf = async () => {
@@ -203,7 +204,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
             <DialogFooter className="bg-muted/50 px-6 py-4 flex-col sm:flex-row gap-2">
                 {estadoReal === 'Hold' && (
                     <>
-                        <Button variant="destructive" onClick={handleAction}>
+                        <Button variant="destructive" onClick={() => toast({ title: "Función no implementada" })}>
                             <XCircle className="mr-2 h-4 w-4" />
                             Cancelar Reserva
                         </Button>
