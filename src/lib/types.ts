@@ -55,6 +55,7 @@ export type Organizer = {
 };
 
 export interface Seat {
+  id?: string; // This might be the same as asientoId, unifying
   asientoId: string;
   precioUnitario: number;
   label: string;

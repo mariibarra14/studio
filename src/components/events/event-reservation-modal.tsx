@@ -25,7 +25,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ApiEvent, Zone, Venue, Organizer } from "@/lib/types";
+import type { ApiEvent, Zone, Venue, Organizer, Seat } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Input } from "../ui/input";
@@ -54,6 +54,8 @@ export function EventReservationModal({
   const [isLoading, setIsLoading] = useState(true);
   const [isReserving, setIsReserving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [availableSeats, setAvailableSeats] = useState<number | null>(null);
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -93,7 +95,7 @@ export function EventReservationModal({
         });
 
         if (zonasData && zonasData.length > 0) {
-          setSelectedTier(zonasData[0]);
+          handleTierChange(zonasData[0].id);
         }
     } catch (err: unknown) {
         if (err instanceof Error) {
@@ -112,15 +114,41 @@ export function EventReservationModal({
     }
   }, [isOpen, event, fetchEventDetails]);
 
+  const fetchAvailableSeats = useCallback(async (eventId: string, zoneId: string) => {
+    setIsLoadingAvailability(true);
+    setAvailableSeats(null);
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`http://localhost:44335/api/events/${eventId}/zonas/${zoneId}/asientos`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const seats: Seat[] = await response.json();
+        const available = seats.filter(seat => seat.estado?.toLowerCase() === 'available').length;
+        setAvailableSeats(available);
+      } else {
+        setAvailableSeats(0);
+      }
+    } catch (e) {
+      setAvailableSeats(0);
+    } finally {
+      setIsLoadingAvailability(false);
+    }
+  }, []);
 
   const handleTierChange = (tierId: string) => {
     const tier = eventDetails?.zonas?.find(t => t.id === tierId) || null;
     setSelectedTier(tier);
     setQuantity(1);
+    if (tier && eventDetails) {
+      fetchAvailableSeats(eventDetails.id, tier.id);
+    }
   };
 
   const handleQuantityChange = (newQuantity: number) => {
-    const maxQuantity = Math.min(selectedTier?.capacidad || 0, 10);
+    const maxQuantity = Math.min(availableSeats ?? 10, 10);
     if (newQuantity > 0 && newQuantity <= maxQuantity) {
       setQuantity(newQuantity);
     }
@@ -178,18 +206,26 @@ export function EventReservationModal({
             handleClose();
             router.push('/bookings');
         } else {
-            const errorData = await response.json().catch(() => ({ message: "Ocurrió un error inesperado."}));
-            let errorMessage = errorData.message || `Error del servidor: ${response.status}`;
-            
-            if (response.status === 409 && errorData.message?.includes('No hay asientos suficientes')) {
-                errorMessage = "No hay suficientes asientos disponibles en esta zona para la cantidad solicitada.";
-            } else if (response.status === 401) {
-                errorMessage = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.";
-            } else if (response.status === 400) {
-                errorMessage = "Datos inválidos para la reserva. Por favor, verifica la información.";
+            let errorMessage = `Error del servidor: ${response.status}`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorMessage;
+                 if (response.status === 409 && errorData.message?.includes('No hay asientos suficientes')) {
+                    setError("No hay suficientes asientos disponibles en esta zona para la cantidad solicitada.");
+                    // Re-fetch availability
+                    fetchAvailableSeats(eventDetails.id, selectedTier.id);
+                }
+            } catch (e) {
+                // Ignore if error body is not JSON
             }
-
-            throw new Error(errorMessage);
+            if (response.status !== 409) {
+                 if (response.status === 401) {
+                    errorMessage = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.";
+                } else if (response.status === 400) {
+                    errorMessage = "Datos inválidos para la reserva. Por favor, verifica la información.";
+                }
+                 setError(errorMessage);
+            }
         }
 
     } catch (err: any) {
@@ -213,6 +249,7 @@ export function EventReservationModal({
         setQuantity(1);
         setIsLoading(true);
         setError(null);
+        setAvailableSeats(null);
     }, 300);
   };
   
@@ -346,7 +383,7 @@ export function EventReservationModal({
     }
 
     if (stage === "reservation") {
-      const maxQuantity = Math.min(selectedTier?.capacidad || 0, 10);
+      const maxQuantity = Math.min(availableSeats ?? 10, 10);
       return (
         <div className="p-8">
             <DialogHeader className="mb-6">
@@ -395,7 +432,19 @@ export function EventReservationModal({
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground">Máximo {maxQuantity} boletos por reserva.</p>
+                        <div className="text-xs text-muted-foreground h-4">
+                          {isLoadingAvailability ? (
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="h-3 w-3 animate-spin"/>
+                              <span>Cargando disponibilidad...</span>
+                            </div>
+                          ) : availableSeats !== null ? (
+                            <span>
+                              {availableSeats > 0 ? `${availableSeats} boletos disponibles.` : 'No hay boletos disponibles.'}
+                              {' '}Máximo 10 por reserva.
+                            </span>
+                          ) : null}
+                        </div>
                     </div>
 
                     <div className="border-t pt-6 mt-6">
@@ -418,7 +467,7 @@ export function EventReservationModal({
 
             <DialogFooter className="mt-8 grid grid-cols-2 gap-4">
                 <Button variant="outline" onClick={() => setStage("details")} disabled={isReserving}>Atrás</Button>
-                <Button onClick={handleConfirmReservation} disabled={isReserving || !selectedTier || quantity <= 0}>
+                <Button onClick={handleConfirmReservation} disabled={isReserving || !selectedTier || quantity <= 0 || (availableSeats !== null && quantity > availableSeats)}>
                     {isReserving ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
@@ -445,4 +494,3 @@ export function EventReservationModal({
   );
 }
 
-    
