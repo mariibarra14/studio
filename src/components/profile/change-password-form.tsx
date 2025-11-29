@@ -25,7 +25,7 @@ const formSchema = z.object({
     .max(16, { message: "La contraseña no debe tener más de 16 caracteres." })
     .regex(/(?=.*[A-Z])/, { message: "La contraseña debe tener al menos una letra mayúscula." })
     .regex(/(?=(?:.*\d){2})/, { message: "La contraseña debe tener al menos dos números." })
-    .regex(/(?=.*[!@#$%^&*()])/, { message: "La contraseña debe tener al menos un carácter especial." }),
+    .regex(/(?=.*[!@#$%^&*()_-])/, { message: "La contraseña debe tener al menos un carácter especial." }),
   confirmPassword: z.string(),
 }).refine(data => data.newPassword === data.confirmPassword, {
   message: "Las contraseñas nuevas no coinciden.",
