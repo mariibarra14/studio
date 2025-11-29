@@ -262,7 +262,8 @@ function PendingPaymentsList() {
                 }
 
                 const allBookings: ApiBooking[] = await response.json();
-                const holdBookings = allBookings.filter(b => b.estado === 'Hold');
+                const now = new Date();
+                const holdBookings = allBookings.filter(b => b.estado === 'Hold' && new Date(b.expiraEn) > now);
 
                 // Enrich with event names
                 const enrichedBookings = await Promise.all(
@@ -372,5 +373,3 @@ export function PaymentProcessing() {
 
   return <PendingPaymentsList />;
 }
-
-    
