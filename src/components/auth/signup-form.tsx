@@ -35,7 +35,12 @@ const formSchema = z.object({
   phoneNumber: z.string().min(10, { message: "Por favor, introduce un número de teléfono válido." }),
   address: z.string().min(1, { message: "La dirección es obligatoria." }),
   photo: z.any().optional(),
-  password: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }),
+  password: z.string()
+    .min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
+    .max(16, { message: "La contraseña no debe tener más de 16 caracteres." })
+    .regex(/(?=.*[A-Z])/, { message: "La contraseña debe tener al menos una letra mayúscula." })
+    .regex(/(?=(?:.*\d){2})/, { message: "La contraseña debe tener al menos dos números." })
+    .regex(/(?=.*[!@#$%^&*()])/, { message: "La contraseña debe tener al menos un carácter especial." }),
   confirmPassword: z.string(),
   role: z.enum(["usuario_final", "organizador"], { required_error: "Debes seleccionar un rol." }),
 }).refine(data => data.password === data.confirmPassword, {

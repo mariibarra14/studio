@@ -23,7 +23,13 @@ import { useApp } from "@/context/app-context";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor, introduce una dirección de correo electrónico válida." }),
-  password: z.string().min(1, { message: "La contraseña es obligatoria." }),
+  password: z
+    .string()
+    .min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
+    .max(16, { message: "La contraseña no debe tener más de 16 caracteres." })
+    .regex(/(?=.*[A-Z])/, { message: "La contraseña debe tener al menos una letra mayúscula." })
+    .regex(/(?=(?:.*\d){2})/, { message: "La contraseña debe tener al menos dos números." })
+    .regex(/(?=.*[!@#$%^&*()])/, { message: "La contraseña debe tener al menos un carácter especial." }),
 });
 
 export function LoginForm() {
