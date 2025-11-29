@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CreditCard, CheckCircle, Circle, AlertTriangle, Wallet } from "lucide-react";
+import { Loader2, CreditCard, CheckCircle, Circle, AlertTriangle, Wallet, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import type { ApiBooking } from "@/lib/types";
@@ -174,7 +174,13 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
 
   return (
     <div className="max-w-2xl mx-auto grid gap-8 mt-8">
-      <h1 className="text-3xl font-bold">Procesar Pago de Reserva</h1>
+       <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" onClick={() => router.push('/payments')}>
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Volver</span>
+          </Button>
+          <h1 className="text-3xl font-bold">Procesar Pago de Reserva</h1>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Resumen de la Compra</CardTitle>
