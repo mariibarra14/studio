@@ -180,6 +180,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
         onClose={() => setIsCropperOpen(false)}
         imageSrc={imageToCrop}
         onCropComplete={handleCropComplete}
+        aspectRatio="square"
       />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-3 gap-8">

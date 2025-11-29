@@ -215,6 +215,7 @@ export function SignupForm() {
         setPhotoPreview(URL.createObjectURL(croppedFile));
         setIsCropperOpen(false);
       }}
+      aspectRatio="square"
     />
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

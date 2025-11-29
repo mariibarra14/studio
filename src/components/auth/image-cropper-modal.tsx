@@ -26,12 +26,18 @@ type ImageCropperModalProps = {
   onClose: () => void;
   imageSrc?: string;
   onCropComplete: (croppedFile: File) => void;
+  aspectRatio: "square" | "banner";
 };
 
-// Configuración para banner horizontal (16:9 - formato estándar para banners)
-const BANNER_ASPECT = 16 / 9; // 👈 Cambiado a 16:9 para formato horizontal
-const BANNER_WIDTH = 1200;    // Ancho recomendado para banners
-const BANNER_HEIGHT = 675;    // Alto calculado (1200 / 16 * 9 = 675)
+// Configuración para banner horizontal (16:9)
+const BANNER_ASPECT = 16 / 9;
+const BANNER_WIDTH = 1200;
+const BANNER_HEIGHT = 675;
+
+// Configuración para avatar cuadrado (1:1)
+const SQUARE_ASPECT = 1 / 1;
+const SQUARE_SIZE = 400;
+
 
 function centerAspectCrop(
   mediaWidth: number,
@@ -42,7 +48,7 @@ function centerAspectCrop(
     makeAspectCrop(
       {
         unit: "%",
-        width: 80, // 👈 Área de recorte inicial un poco más pequeña para mejor ajuste
+        width: 80,
       },
       aspect,
       mediaWidth,
@@ -58,12 +64,20 @@ export function ImageCropperModal({
   onClose,
   imageSrc,
   onCropComplete,
+  aspectRatio,
 }: ImageCropperModalProps) {
   const imgRef = useRef<HTMLImageElement>(null);
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [zoom, setZoom] = useState(1);
-  const aspect = BANNER_ASPECT; // 👈 Usamos el aspect ratio de banner
+  
+  const isBanner = aspectRatio === 'banner';
+  const aspect = isBanner ? BANNER_ASPECT : SQUARE_ASPECT;
+  const outputWidth = isBanner ? BANNER_WIDTH : SQUARE_SIZE;
+  const outputHeight = isBanner ? BANNER_HEIGHT : SQUARE_SIZE;
+  const title = isBanner ? "Recortar Imagen para Banner" : "Recortar Foto de Perfil";
+  const buttonText = isBanner ? "Confirmar Recorte para Banner" : "Confirmar Foto de Perfil";
+
 
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     const { width, height } = e.currentTarget;
@@ -78,10 +92,9 @@ export function ImageCropperModal({
     const canvas = document.createElement("canvas");
     const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
     const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
-
-    // 👇 Establecemos dimensiones fijas para el banner
-    canvas.width = BANNER_WIDTH;
-    canvas.height = BANNER_HEIGHT;
+    
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
     
     const ctx = canvas.getContext("2d");
 
@@ -89,7 +102,6 @@ export function ImageCropperModal({
       throw new Error("No 2d context");
     }
     
-    // Dibujamos la imagen recortada redimensionada a las dimensiones del banner
     ctx.drawImage(
       imgRef.current,
       completedCrop.x * scaleX,
@@ -98,8 +110,8 @@ export function ImageCropperModal({
       completedCrop.height * scaleY,
       0,
       0,
-      BANNER_WIDTH,  // 👈 Ancho fijo del banner
-      BANNER_HEIGHT  // 👈 Alto fijo del banner
+      outputWidth,
+      outputHeight
     );
     
     canvas.toBlob((blob) => {
@@ -107,23 +119,23 @@ export function ImageCropperModal({
         console.error("Canvas is empty");
         return;
       }
-      const croppedFile = new File([blob], "banner_image.jpg", { 
-        type: "image/jpeg"  // 👈 Cambiado a JPEG para mejor compresión
+      const croppedFile = new File([blob], "cropped_image.jpg", { 
+        type: "image/jpeg"
       });
       onCropComplete(croppedFile);
-    }, "image/jpeg", 0.9); // 👈 Calidad del 90% para JPEG
+    }, "image/jpeg", 0.9);
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl"> {/* 👈 Contenedor más ancho */}
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CropIcon />
-            Recortar Imagen para Banner
+            {title}
           </DialogTitle>
-          <p className="text-sm text-gray-600 mt-2">
-            Recorta tu imagen en formato horizontal (16:9). El área de recorte se ajustará automáticamente a {BANNER_WIDTH}x{BANNER_HEIGHT}px.
+           <p className="text-sm text-gray-600 mt-2">
+            Ajusta el zoom y la selección para obtener el mejor resultado.
           </p>
         </DialogHeader>
         
@@ -136,8 +148,8 @@ export function ImageCropperModal({
                 onComplete={(c) => setCompletedCrop(c)}
                 aspect={aspect}
                 className="max-h-[50vh]"
-                minWidth={100}
-                minHeight={56} // 👈 Mínimo proporcional al aspect ratio
+                minWidth={isBanner ? 100 : 50}
+                minHeight={isBanner ? 56 : 50}
                 keepSelection={true}
               >
                 <img
@@ -164,19 +176,13 @@ export function ImageCropperModal({
                 </label>
                 <Slider
                   value={[zoom]}
-                  min={0.5}  // 👈 Zoom out más permitido
+                  min={0.5}
                   max={3}
                   step={0.1}
                   onValueChange={(value) => setZoom(value[0])}
                 />
               </div>
               <ZoomIn className="text-gray-500" />
-            </div>
-            
-            <div className="text-xs text-gray-500 space-y-1">
-              <p>• El recorte se ajustará automáticamente a formato 16:9</p>
-              <p>• Usa el zoom para enfocar mejor la imagen</p>
-              <p>• Arrastra el recorte para seleccionar la mejor parte</p>
             </div>
           </div>
         </div>
@@ -190,7 +196,7 @@ export function ImageCropperModal({
             disabled={!completedCrop}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            Confirmar Recorte para Banner
+            {buttonText}
           </Button>
         </DialogFooter>
       </DialogContent>

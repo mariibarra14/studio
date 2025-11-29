@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -466,6 +467,7 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
           }}
           imageSrc={imageToCrop}
           onCropComplete={handleCropComplete}
+          aspectRatio="banner"
         />
       )}
     </>
