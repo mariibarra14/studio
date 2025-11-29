@@ -126,7 +126,7 @@ export function EventReservationModal({
       });
       if (response.ok) {
         const seats: Seat[] = await response.json();
-        const available = seats.filter(seat => seat.estado?.toLowerCase() === 'available').length;
+        const available = seats.filter(seat => seat.estado?.toLowerCase() === 'disponible').length;
         setAvailableSeats(available);
       } else {
         setAvailableSeats(0);
