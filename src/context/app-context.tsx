@@ -45,8 +45,6 @@ type AppContextType = {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-let prefetchedUserData: { user: User, role: string } | null = null;
-
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -56,10 +54,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   
   const fetchUserAndRole = useCallback(async (
     token: string,
-    userId: string,
-    isPrefetch: boolean = false
+    userId: string
   ): Promise<{ user: User, role: string } | null> => {
-    if (!isPrefetch) setIsLoadingUser(true);
     
     try {
       const decodedToken = decodeJwt(token);
@@ -94,16 +90,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     } catch (error) {
       console.error("Error fetching user and role:", error);
-      if (!isPrefetch) {
-        toast({
+      toast({
           variant: "destructive",
           title: "Error de Carga de Perfil",
           description: "No se pudo cargar la información del usuario. Por favor, recargue la página.",
-        });
-      }
+      });
       return null;
-    } finally {
-      if (!isPrefetch) setIsLoadingUser(false);
     }
   }, [toast]);
 
@@ -111,33 +103,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('accessToken', token);
     localStorage.setItem('userId', userId);
     
-    const prefetched = await fetchUserAndRole(token, userId, true);
-    if (prefetched) {
-      prefetchedUserData = prefetched;
-      localStorage.setItem('userRole', prefetched.role);
+    setIsLoadingUser(true);
+    const fetchedData = await fetchUserAndRole(token, userId);
+    if (fetchedData) {
+      localStorage.setItem('userRole', fetchedData.role);
+      setUser(fetchedData.user);
+      setUserRole(fetchedData.role);
     }
+    setIsLoadingUser(false);
   };
 
   const loadUser = useCallback(async () => {
-    if (prefetchedUserData) {
-      setUser(prefetchedUserData.user);
-      setUserRole(prefetchedUserData.role);
-      setIsLoadingUser(false);
-      prefetchedUserData = null; // Clear after use
-      return;
-    }
-
     const token = localStorage.getItem('accessToken');
     const userId = localStorage.getItem('userId');
     const role = localStorage.getItem('userRole');
     
     if (token && userId) {
+        setIsLoadingUser(true);
         setUserRole(role);
         const loaded = await fetchUserAndRole(token, userId);
         if (loaded) {
             setUser(loaded.user);
             setUserRole(loaded.role); // Ensure role is updated from fresh fetch
         }
+        setIsLoadingUser(false);
     } else {
       setIsLoadingUser(false);
     }
