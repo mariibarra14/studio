@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -81,11 +80,11 @@ export function UploadServiceImageForm({ serviceId, onSuccess, onCancel }: Uploa
     <div className="space-y-6 py-4">
       <div className="space-y-2">
         <div
-          className="w-full aspect-video border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground cursor-pointer"
+          className="relative w-full aspect-video border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground cursor-pointer overflow-hidden"
           onClick={() => fileInputRef.current?.click()}
         >
           {preview ? (
-            <Image src={preview} alt="Vista previa" fill className="object-contain rounded-lg" />
+            <Image src={preview} alt="Vista previa" fill className="object-contain p-1" />
           ) : (
             <div className="text-center">
               <Upload className="mx-auto h-8 w-8" />
