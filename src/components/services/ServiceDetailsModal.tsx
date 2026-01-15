@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -84,16 +85,22 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose }: ServiceDetai
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="space-y-4 p-6">
-          <Skeleton className="h-9 w-3/4" />
-          <Skeleton className="h-5 w-1/2" />
-          <Skeleton className="h-48 w-full rounded-lg" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
+        <>
+          <Skeleton className="h-48 w-full" />
+          <div className="p-6 space-y-4">
+              <div>
+                  <Skeleton className="h-8 w-3/4 mb-2" />
+                  <Skeleton className="h-6 w-1/4" />
+              </div>
+              <div className="space-y-2 pt-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+              </div>
+              <div className="pt-4">
+                <Skeleton className="h-24 w-full" />
+              </div>
           </div>
-          <Skeleton className="h-32 w-full" />
-        </div>
+        </>
       );
     }
 
@@ -119,25 +126,24 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose }: ServiceDetai
 
     return (
         <>
-            <DialogHeader className="p-6 pb-0">
-                <div className="flex items-center gap-4">
-                    <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                    {service.fotoServicio && service.fotoServicio !== 'string' ? (
-                        <Image src={service.fotoServicio} alt={service.nombre} fill className="object-cover" />
-                    ) : (
-                        <Tag className="w-8 h-8 text-muted-foreground m-auto"/>
-                    )}
-                    </div>
-                    <div>
-                        <DialogTitle className="text-2xl">{service.nombre}</DialogTitle>
-                        <DialogDescription>
-                            <Badge variant="secondary">{service.tipo}</Badge>
-                        </DialogDescription>
-                    </div>
+            <div className="relative w-full h-48 bg-muted">
+              {service.fotoServicio && service.fotoServicio !== 'string' ? (
+                <Image src={service.fotoServicio} alt={service.nombre} fill className="object-cover" />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <Tag className="w-16 h-16 text-muted-foreground/30"/>
                 </div>
+              )}
+            </div>
+
+            <DialogHeader className="p-6 pb-0">
+                <DialogTitle className="text-2xl">{service.nombre}</DialogTitle>
+                <DialogDescription>
+                    <Badge variant="secondary">{service.tipo}</Badge>
+                </DialogDescription>
             </DialogHeader>
 
-            <div className="px-6 py-4 space-y-6 max-h-[60vh] overflow-y-auto">
+            <div className="px-6 py-4 space-y-6 max-h-[calc(80vh-300px)] overflow-y-auto">
                 <section>
                     <h3 className="font-semibold mb-2">Descripción</h3>
                     <p className="text-sm text-muted-foreground">{service.descripcion || "No hay descripción disponible."}</p>
@@ -148,33 +154,37 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose }: ServiceDetai
                         <Calendar className="h-5 w-5 text-primary" />
                         Horario Semanal
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {englishWeekDays.map((dayKey) => {
-                        const dayRanges = scheduleByDay[dayKey];
-                        const spanishDay = dayTranslation[dayKey];
-                        return (
-                        <div key={dayKey} className="p-3 border rounded-md bg-background">
-                            <h4 className="font-medium text-sm mb-2">{spanishDay}</h4>
-                            <div className="text-xs text-muted-foreground space-y-1">
-                            {dayRanges ? (
-                                dayRanges.map((range, index) => (
-                                <div key={index} className="flex items-center gap-2">
-                                    <Clock className="h-3 w-3" />
-                                    <span>{range.inicio} - {range.fin}</span>
+                     <div className="border rounded-lg overflow-hidden">
+                        <div className="grid grid-cols-7 bg-muted/50">
+                            {englishWeekDays.map((dayKey) => (
+                                <div key={dayKey} className="text-center p-2 border-r font-medium text-sm last:border-r-0">
+                                    {dayTranslation[dayKey]}
                                 </div>
-                                ))
-                            ) : (
-                                <p>Cerrado</p>
-                            )}
-                            </div>
+                            ))}
                         </div>
-                        );
-                    })}
+                        <div className="grid grid-cols-7 min-h-[60px] divide-x">
+                            {englishWeekDays.map((dayKey) => {
+                                const dayRanges = scheduleByDay[dayKey];
+                                return (
+                                    <div key={dayKey} className="p-2 text-center text-xs flex items-center justify-center">
+                                        {dayRanges ? (
+                                            dayRanges.map((range, index) => (
+                                            <div key={index}>
+                                                <span>{range.inicio} - {range.fin}</span>
+                                            </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-muted-foreground">Cerrado</p>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </section>
             </div>
             
-            <DialogFooter className="p-6 pt-0 border-t mt-4 pt-4">
+            <DialogFooter className="p-6 pt-4 border-t">
                 <div className="w-full flex justify-between">
                     <div className="flex gap-2">
                         <Button variant="outline" disabled><Edit className="mr-2 h-4 w-4"/>Modificar</Button>
