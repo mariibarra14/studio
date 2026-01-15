@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -8,8 +7,8 @@ import { Loader2, AlertCircle, PlusCircle, Building } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ServiceCard } from "@/components/services/service-card";
-import { AddServiceModal } from "@/components/services/add-service-modal";
+import { ServiceCard } from "@/components/services/ServiceCard";
+import { AddServiceModal } from "@/components/services/AddServiceModal";
 import type { ComplementaryService } from "@/lib/types";
 
 export default function ComplementaryServicesPage() {
@@ -46,10 +45,14 @@ export default function ComplementaryServicesPage() {
   }, []);
 
   useEffect(() => {
+    if (isLoadingUser) return;
+    
     if (userRole === 'administrador') {
       fetchServices();
+    } else {
+      setIsLoadingServices(false);
     }
-  }, [userRole, fetchServices]);
+  }, [userRole, isLoadingUser, fetchServices]);
 
   const handleAddSuccess = () => {
     setIsAddModalOpen(false);
