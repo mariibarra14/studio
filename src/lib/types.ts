@@ -121,3 +121,13 @@ export type ComplementaryService = {
   horario: any[];
   fotoServicio: string;
 };
+
+export type Product = {
+  id: string;
+  idServicio: string;
+  nombre: string;
+  precio: number;
+  cantidad: number;
+  descripcion: string;
+  fotoProducto: string;
+};

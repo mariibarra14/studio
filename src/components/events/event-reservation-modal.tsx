@@ -26,12 +26,13 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ApiEvent, Zone, Venue, Organizer, Seat, ComplementaryService } from "@/lib/types";
+import type { ApiEvent, Zone, Venue, Organizer, Seat, ComplementaryService, Product } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Input } from "../ui/input";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
+import { Checkbox } from "../ui/checkbox";
 
 type EventReservationModalProps = {
   event: ApiEvent;
@@ -64,6 +65,11 @@ export function EventReservationModal({
   const [selectedService, setSelectedService] = useState<ComplementaryService | null>(null);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
   const [servicesError, setServicesError] = useState<string | null>(null);
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [productsError, setProductsError] = useState<string | null>(null);
 
   const { toast } = useToast();
   const router = useRouter();
@@ -156,6 +162,61 @@ export function EventReservationModal({
     }
   };
 
+    const fetchProducts = useCallback(async (serviceId: string) => {
+        setIsLoadingProducts(true);
+        setProductsError(null);
+        setProducts([]);
+        setSelectedProducts([]);
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            setProductsError("Sesión expirada: Por favor, inicie sesión nuevamente para continuar con su compra.");
+            setIsLoadingProducts(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:44335/api/ServComps/Prods/getProductosByIdServicio?idServicio=${serviceId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data: Product[] = await response.json();
+                setProducts(data);
+            } else if (response.status === 401) {
+                throw new Error("Sesión expirada: Por favor, inicie sesión nuevamente para continuar con su compra.");
+            } else {
+                throw new Error("Error al cargar productos: No pudimos obtener la lista de productos en este momento. Inténtelo de nuevo.");
+            }
+        } catch (err: any) {
+            setProductsError(err.message);
+        } finally {
+            setIsLoadingProducts(false);
+        }
+    }, []);
+
+    const handleServiceSelect = (service: ComplementaryService) => {
+        if (selectedService?.id === service.id) {
+            setSelectedService(null);
+            setProducts([]);
+            setSelectedProducts([]);
+            setProductsError(null);
+        } else {
+            setSelectedService(service);
+            fetchProducts(service.id);
+        }
+    };
+
+    const handleProductSelection = (product: Product) => {
+        setSelectedProducts(currentSelected => {
+            const isSelected = currentSelected.some(p => p.id === product.id);
+            if (isSelected) {
+                return currentSelected.filter(p => p.id !== product.id);
+            } else {
+                return [...currentSelected, product];
+            }
+        });
+    };
+
   const handleGoToServices = async () => {
     setIsLoadingServices(true);
     setServicesError(null);
@@ -194,7 +255,10 @@ export function EventReservationModal({
     }
   };
 
-  const totalPrice = selectedTier ? selectedTier.precio * quantity : 0;
+  const ticketPrice = selectedTier ? selectedTier.precio * quantity : 0;
+  const productsPrice = selectedProducts.reduce((sum, p) => sum + p.precio, 0);
+  const totalPrice = ticketPrice + productsPrice;
+
 
   const handleConfirmReservation = async () => {
     setIsReserving(true);
@@ -294,6 +358,10 @@ export function EventReservationModal({
         setSelectedService(null);
         setIsLoadingServices(false);
         setServicesError(null);
+        setProducts([]);
+        setSelectedProducts([]);
+        setIsLoadingProducts(false);
+        setProductsError(null);
     }, 300);
   };
   
@@ -493,7 +561,7 @@ export function EventReservationModal({
                     <div className="border-t pt-6 mt-6">
                         <div className="flex justify-between items-center text-2xl font-bold">
                             <span>Precio Total:</span>
-                            <span>${totalPrice.toFixed(2)}</span>
+                            <span>${ticketPrice.toFixed(2)}</span>
                         </div>
                     </div>
                   </>
@@ -541,13 +609,13 @@ export function EventReservationModal({
                   </Alert>
               )}
   
-              <div className="max-h-80 overflow-y-auto pr-2 space-y-4">
+              <div className="max-h-[50vh] overflow-y-auto pr-2 space-y-4">
                   {services.length > 0 ? (
                       services.map(service => (
                           <Card
                               key={service.id}
                               className={`cursor-pointer transition-all ${selectedService?.id === service.id ? 'border-primary ring-2 ring-primary/20' : 'hover:border-muted-foreground/50'}`}
-                              onClick={() => setSelectedService(service.id === selectedService?.id ? null : service)}
+                              onClick={() => handleServiceSelect(service)}
                           >
                               <CardContent className="p-4 flex items-start gap-4">
                                   <Image src={service.fotoServicio || '/placeholder.png'} alt={service.nombre} width={80} height={80} className="rounded-md aspect-square object-cover bg-muted" />
@@ -564,21 +632,77 @@ export function EventReservationModal({
                           <p className="text-muted-foreground">No hay servicios adicionales disponibles para este evento.</p>
                       </div>
                   )}
+
+                    {selectedService && (
+                        <div className="pt-6 mt-6 border-t">
+                            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                <Package className="h-5 w-5 text-primary" />
+                                Productos para {selectedService.nombre}
+                            </h3>
+                            {isLoadingProducts ? (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-4"><Skeleton className="h-12 w-12 rounded-md" /><div className="flex-1 space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-3 w-1/2" /></div></div>
+                                    <div className="flex items-center gap-4"><Skeleton className="h-12 w-12 rounded-md" /><div className="flex-1 space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-3 w-1/2" /></div></div>
+                                </div>
+                            ) : productsError ? (
+                                <Alert variant="destructive">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>Error al cargar productos</AlertTitle>
+                                    <AlertDescription>{productsError}</AlertDescription>
+                                </Alert>
+                            ) : (
+                                <div className="space-y-3">
+                                    {products.length > 0 ? (
+                                        products.map(product => (
+                                            <div key={product.id} className="flex items-center p-2 rounded-md hover:bg-muted/50">
+                                                <Checkbox
+                                                    id={`product-${product.id}`}
+                                                    checked={selectedProducts.some(p => p.id === product.id)}
+                                                    onCheckedChange={() => handleProductSelection(product)}
+                                                    className="mr-4"
+                                                />
+                                                <label htmlFor={`product-${product.id}`} className="flex-1 flex items-center gap-3 cursor-pointer">
+                                                    <Image src={product.fotoProducto || '/placeholder.png'} alt={product.nombre} width={48} height={48} className="rounded-md aspect-square object-cover bg-muted" />
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold">{product.nombre}</p>
+                                                        <p className="text-xs text-muted-foreground line-clamp-1">{product.descripcion}</p>
+                                                    </div>
+                                                    <p className="font-bold text-sm ml-4">${product.precio.toFixed(2)}</p>
+                                                </label>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground text-center py-4">No hay productos disponibles para este servicio.</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
               </div>
               
               <div className="border-t pt-6 mt-6">
-                  <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                          <span className="text-muted-foreground">{quantity} x {selectedTier?.nombre}</span>
-                          <span>${(selectedTier!.precio * quantity).toFixed(2)}</span>
-                      </div>
-                      {selectedService && (
-                          <div className="flex justify-between">
-                              <span className="text-muted-foreground">Servicio: {selectedService.nombre}</span>
-                              <span>Incluido</span>
-                          </div>
-                      )}
-                  </div>
+                <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">{quantity} x {selectedTier?.nombre}</span>
+                        <span>${ticketPrice.toFixed(2)}</span>
+                    </div>
+                    {selectedService && (
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Servicio: {selectedService.nombre}</span>
+                            <span className="text-primary font-medium">Incluido</span>
+                        </div>
+                    )}
+                     {selectedProducts.length > 0 && (
+                        <div className="pl-4 pt-1">
+                            {selectedProducts.map(p => (
+                                <div key={p.id} className="flex justify-between text-muted-foreground">
+                                    <span>- {p.nombre}</span>
+                                    <span>+ ${p.precio.toFixed(2)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
                   <div className="flex justify-between items-center text-2xl font-bold mt-4">
                       <span>Precio Total:</span>
                       <span>${totalPrice.toFixed(2)}</span>
