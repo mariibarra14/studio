@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ServiceCard } from "@/components/services/ServiceCard";
 import { AddServiceModal } from "@/components/services/AddServiceModal";
 import type { ComplementaryService } from "@/lib/types";
+import { ServiceDetailsModal } from "@/components/services/ServiceDetailsModal";
 
 export default function ComplementaryServicesPage() {
   const { userRole, isLoadingUser } = useApp();
@@ -17,6 +18,7 @@ export default function ComplementaryServicesPage() {
   const [isLoadingServices, setIsLoadingServices] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [viewingServiceId, setViewingServiceId] = useState<string | null>(null);
 
   const fetchServices = useCallback(async () => {
     setIsLoadingServices(true);
@@ -59,6 +61,10 @@ export default function ComplementaryServicesPage() {
     fetchServices();
   };
 
+  const handleViewDetails = (serviceId: string) => {
+    setViewingServiceId(serviceId);
+  };
+
   const renderAdminContent = () => {
     if (isLoadingServices) {
       return (
@@ -85,7 +91,7 @@ export default function ComplementaryServicesPage() {
         {services.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map(service => (
-              <ServiceCard key={service.id} service={service} />
+              <ServiceCard key={service.id} service={service} onSelect={handleViewDetails} />
             ))}
           </div>
         ) : (
@@ -102,6 +108,13 @@ export default function ComplementaryServicesPage() {
           onClose={() => setIsAddModalOpen(false)}
           onSuccess={handleAddSuccess}
         />
+        {viewingServiceId && (
+            <ServiceDetailsModal
+                serviceId={viewingServiceId}
+                isOpen={!!viewingServiceId}
+                onClose={() => setViewingServiceId(null)}
+            />
+        )}
       </>
     );
   };

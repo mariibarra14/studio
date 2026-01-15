@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from "next/image";
@@ -10,13 +9,15 @@ import type { ComplementaryService } from "@/lib/types";
 
 type ServiceCardProps = {
   service: ComplementaryService;
-  // onEdit: (service: ComplementaryService) => void;
-  // onDelete: (serviceId: string) => void;
+  onSelect: (serviceId: string) => void;
 };
 
-export function ServiceCard({ service }: ServiceCardProps) {
+export function ServiceCard({ service, onSelect }: ServiceCardProps) {
   return (
-    <Card className="flex flex-col overflow-hidden">
+    <Card 
+        className="flex flex-col overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-transform duration-200"
+        onClick={() => onSelect(service.id)}
+    >
       <CardHeader className="p-0">
         <div className="relative aspect-video w-full bg-muted">
           {service.fotoServicio && service.fotoServicio !== 'string' ? (
@@ -41,13 +42,23 @@ export function ServiceCard({ service }: ServiceCardProps) {
           {service.descripcion}
         </CardDescription>
       </CardContent>
-      <CardFooter className="p-4 border-t">
+      <CardFooter className="p-4 border-t mt-auto">
         <div className="flex w-full justify-end gap-2">
-            <Button variant="outline" size="sm" disabled>
+            <Button 
+                variant="outline" 
+                size="sm" 
+                disabled 
+                onClick={(e) => e.stopPropagation()}
+            >
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
             </Button>
-            <Button variant="destructive" size="sm" disabled>
+            <Button 
+                variant="destructive" 
+                size="sm" 
+                disabled
+                onClick={(e) => e.stopPropagation()}
+            >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Eliminar
             </Button>
