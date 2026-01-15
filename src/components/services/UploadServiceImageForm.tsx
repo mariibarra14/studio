@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -11,10 +12,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 type UploadServiceImageFormProps = {
   serviceId: string;
   onSuccess: () => void;
-  onCancel: () => void;
 };
 
-export function UploadServiceImageForm({ serviceId, onSuccess, onCancel }: UploadServiceImageFormProps) {
+export function UploadServiceImageForm({ serviceId, onSuccess }: UploadServiceImageFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +80,7 @@ export function UploadServiceImageForm({ serviceId, onSuccess, onCancel }: Uploa
     <div className="space-y-6 py-4">
       <div className="space-y-2">
         <div
-          className="relative w-full aspect-video border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground cursor-pointer overflow-hidden"
+          className="relative w-full aspect-video border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground cursor-pointer overflow-hidden bg-muted/20"
           onClick={() => fileInputRef.current?.click()}
         >
           {preview ? (
@@ -89,6 +89,7 @@ export function UploadServiceImageForm({ serviceId, onSuccess, onCancel }: Uploa
             <div className="text-center">
               <Upload className="mx-auto h-8 w-8" />
               <p>Haz clic para seleccionar una imagen</p>
+              <p className="text-xs">(Opcional)</p>
             </div>
           )}
         </div>
@@ -110,11 +111,11 @@ export function UploadServiceImageForm({ serviceId, onSuccess, onCancel }: Uploa
       )}
 
       <div className="flex justify-end gap-4 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-          Cancelar
+        <Button type="button" variant="outline" onClick={onSuccess} disabled={isLoading}>
+          Finalizar sin Imagen
         </Button>
         <Button onClick={handleSubmit} disabled={isLoading || !selectedFile}>
-          {isLoading ? <Loader2 className="animate-spin" /> : "Finalizar y Subir Imagen"}
+          {isLoading ? <Loader2 className="animate-spin" /> : "Subir Imagen y Finalizar"}
         </Button>
       </div>
     </div>

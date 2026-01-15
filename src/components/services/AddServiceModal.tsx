@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -36,12 +37,12 @@ export function AddServiceModal({ isOpen, onClose, onSuccess }: AddServiceModalP
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">
-            {step === "form" ? "Paso 1: Crear Nuevo Servicio" : "Paso 2: Subir Imagen"}
+            {step === "form" ? "Paso 1: Crear Nuevo Servicio" : "Paso 2: Subir Imagen (Opcional)"}
           </DialogTitle>
           <DialogDescription>
             {step === "form" 
               ? "Completa la información para registrar un nuevo servicio."
-              : "El servicio fue creado. Ahora, sube una imagen representativa."
+              : "El servicio fue creado. Ahora puedes subir una imagen representativa o finalizar."
             }
           </DialogDescription>
         </DialogHeader>
@@ -51,7 +52,6 @@ export function AddServiceModal({ isOpen, onClose, onSuccess }: AddServiceModalP
           <UploadServiceImageForm
             serviceId={newServiceId}
             onSuccess={handleFinalSuccess}
-            onCancel={handleClose}
           />
         ) : null}
       </DialogContent>

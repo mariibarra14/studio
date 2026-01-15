@@ -151,7 +151,7 @@ export function AddServiceForm({ onSuccess, onCancel }: AddServiceFormProps) {
                 <TimeRanges control={form.control} nestIndex={index} />
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => append({ dia: "Lunes", rangos: [{ inicio: "", fin: "" }] })}>
+            <Button type="button" variant="outline" size="sm" onClick={() => append({ dia: "Lunes", rangos: [{ inicio: "09:00", fin: "17:00" }] })}>
               <PlusCircle className="mr-2 h-4 w-4" /> Agregar Día
             </Button>
             <FormMessage>{form.formState.errors.horario?.message}</FormMessage>
@@ -170,7 +170,7 @@ export function AddServiceForm({ onSuccess, onCancel }: AddServiceFormProps) {
 }
 
 function TimeRanges({ nestIndex, control }: { nestIndex: number, control: any }) {
-  const { fields, append, remove } = useFieldArray({
+  const { fields } = useFieldArray({
     control,
     name: `horario.${nestIndex}.rangos`,
   });
@@ -185,12 +185,8 @@ function TimeRanges({ nestIndex, control }: { nestIndex: number, control: any })
           <FormField control={control} name={`horario.${nestIndex}.rangos.${k}.fin`} render={({ field }) => (
             <FormItem className="flex-1"><FormLabel className="text-xs">Fin</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>
           )} />
-          <Button type="button" variant="ghost" size="icon" onClick={() => remove(k)} className="self-end"><Trash2 className="h-4 w-4 text-destructive/70" /></Button>
         </div>
       ))}
-      <Button type="button" variant="ghost" size="sm" onClick={() => append({ inicio: "", fin: "" })}>
-        <PlusCircle className="mr-2 h-3 w-3" /> Agregar Rango
-      </Button>
     </div>
   );
 }
