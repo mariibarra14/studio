@@ -113,12 +113,22 @@ export type EnrichedPayment = Payment & {
   } | null;
 };
 
+export type TimeRange = {
+  inicio: string;
+  fin: string;
+};
+
+export type Schedule = {
+  dia: string;
+  rangos: TimeRange[];
+};
+
 export type ComplementaryService = {
   id: string;
   nombre: string;
   tipo: string;
   descripcion: string;
-  horario: any[];
+  horario: Schedule[];
   fotoServicio: string;
 };
 
