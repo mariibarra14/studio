@@ -34,6 +34,14 @@ export function UploadServiceImageForm({ serviceId, onSuccess }: UploadServiceIm
     }
   };
 
+  const handleFinalizeWithoutImage = () => {
+    toast({
+      title: "Servicio Creado",
+      description: "El nuevo servicio se ha guardado correctamente.",
+    });
+    onSuccess();
+  };
+
   const handleSubmit = async () => {
     if (!selectedFile) {
       setError("Por favor, selecciona una imagen.");
@@ -54,7 +62,7 @@ export function UploadServiceImageForm({ serviceId, onSuccess }: UploadServiceIm
 
     try {
       const response = await fetch(
-        `http://localhost:44335/api/ServComps/Servs/subirImagenServ?idServicio=${serviceId}`,
+        `http://localhost:44335/api/ServComps/Servs/subirImagenServ?id=${serviceId}`,
         {
           method: 'PATCH',
           headers: { 'Authorization': `Bearer ${token}` },
@@ -66,8 +74,8 @@ export function UploadServiceImageForm({ serviceId, onSuccess }: UploadServiceIm
         throw new Error("No se pudo subir la imagen.");
       }
       
-      const resultText = await response.text();
-      toast({ title: "¡Éxito!", description: resultText || "Servicio creado y con imagen asignada." });
+      await response.text();
+      toast({ title: "¡Éxito!", description: "El servicio y su imagen se han guardado correctamente." });
       onSuccess();
     } catch (err: any) {
       setError(err.message);
@@ -111,7 +119,7 @@ export function UploadServiceImageForm({ serviceId, onSuccess }: UploadServiceIm
       )}
 
       <div className="flex justify-end gap-4 pt-4">
-        <Button type="button" variant="outline" onClick={onSuccess} disabled={isLoading}>
+        <Button type="button" variant="outline" onClick={handleFinalizeWithoutImage} disabled={isLoading}>
           Finalizar sin Imagen
         </Button>
         <Button onClick={handleSubmit} disabled={isLoading || !selectedFile}>
