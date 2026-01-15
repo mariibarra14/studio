@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, Package, ShoppingBag, DollarSign, Layers } from "lucide-react";
+import { Loader2, AlertCircle, Package, ShoppingBag, DollarSign, Layers, PlusCircle } from "lucide-react";
 import type { ComplementaryService, Product } from "@/lib/types";
+import { AddProductModal } from "./AddProductModal";
 
 type ProductListModalProps = {
   service: ComplementaryService;
@@ -21,6 +22,7 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     if (!service.id) return;
@@ -64,6 +66,11 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
       fetchProducts();
     }
   }, [isOpen, fetchProducts]);
+
+  const handleAddProductSuccess = () => {
+    setIsAddProductModalOpen(false);
+    fetchProducts();
+  };
 
   const ProductCard = ({ product }: { product: Product }) => (
     <Card className="overflow-hidden">
@@ -135,21 +142,38 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Productos de: {service.nombre}</DialogTitle>
-          <DialogDescription>
-            Aquí se listan todos los productos disponibles para este servicio complementario.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="overflow-y-auto">
-            {renderContent()}
-        </div>
-        <DialogFooter>
-            <Button variant="outline" onClick={onClose}>Cerrar</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <div className="flex justify-between items-center">
+                <div>
+                    <DialogTitle className="text-2xl">Productos de: {service.nombre}</DialogTitle>
+                    <DialogDescription>
+                        Aquí se listan todos los productos disponibles para este servicio complementario.
+                    </DialogDescription>
+                </div>
+                <Button variant="outline" onClick={() => setIsAddProductModalOpen(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Agregar Producto
+                </Button>
+            </div>
+          </DialogHeader>
+          <div className="overflow-y-auto">
+              {renderContent()}
+          </div>
+          <DialogFooter>
+              <Button variant="outline" onClick={onClose}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AddProductModal
+        isOpen={isAddProductModalOpen}
+        onClose={() => setIsAddProductModalOpen(false)}
+        onSuccess={handleAddProductSuccess}
+        serviceId={service.id}
+      />
+    </>
   );
 }
