@@ -12,6 +12,7 @@ import { AddServiceModal } from "@/components/services/AddServiceModal";
 import type { ComplementaryService } from "@/lib/types";
 import { ServiceDetailsModal } from "@/components/services/ServiceDetailsModal";
 import { EditServiceModal } from "@/components/services/EditServiceModal";
+import { ProductListModal } from "@/components/services/ProductListModal";
 
 export default function ComplementaryServicesPage() {
   const { userRole, isLoadingUser } = useApp();
@@ -23,6 +24,7 @@ export default function ComplementaryServicesPage() {
   
   const [viewingService, setViewingService] = useState<ComplementaryService | null>(null);
   const [editingService, setEditingService] = useState<ComplementaryService | null>(null);
+  const [viewingProductsForService, setViewingProductsForService] = useState<ComplementaryService | null>(null);
 
   const fetchServices = useCallback(async () => {
     setIsLoadingServices(true);
@@ -89,6 +91,13 @@ export default function ComplementaryServicesPage() {
     fetchServices();
   };
 
+  const handleViewProducts = () => {
+    if (viewingService) {
+      setViewingProductsForService(viewingService);
+      setViewingService(null);
+    }
+  };
+
   const renderAdminContent = () => {
     if (isLoadingServices) {
       return (
@@ -139,6 +148,7 @@ export default function ComplementaryServicesPage() {
                 onClose={() => setViewingService(null)}
                 onDeleteSuccess={handleDeleteSuccess}
                 onEdit={handleOpenEditModal}
+                onViewProducts={handleViewProducts}
             />
         )}
         {editingService && (
@@ -148,6 +158,13 @@ export default function ComplementaryServicesPage() {
                 onClose={() => setEditingService(null)}
                 onSuccess={handleEditSuccess}
             />
+        )}
+        {viewingProductsForService && (
+          <ProductListModal
+            service={viewingProductsForService}
+            isOpen={!!viewingProductsForService}
+            onClose={() => setViewingProductsForService(null)}
+          />
         )}
       </>
     );

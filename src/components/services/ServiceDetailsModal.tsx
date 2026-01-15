@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, Edit, Trash2, Calendar, Clock, Tag } from "lucide-react";
+import { Loader2, AlertCircle, Edit, Trash2, Calendar, Package, Tag } from "lucide-react";
 import type { ComplementaryService } from "@/lib/types";
 import {
   AlertDialog,
@@ -35,6 +35,7 @@ type ServiceDetailsModalProps = {
   onClose: () => void;
   onDeleteSuccess: () => void;
   onEdit: () => void;
+  onViewProducts: () => void;
 };
 
 const dayTranslation: { [key: string]: string } = {
@@ -50,7 +51,7 @@ const dayTranslation: { [key: string]: string } = {
 const englishWeekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 
-export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSuccess, onEdit }: ServiceDetailsModalProps) {
+export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSuccess, onEdit, onViewProducts }: ServiceDetailsModalProps) {
   const [service, setService] = useState<ComplementaryService | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -245,35 +246,34 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSucces
                 </section>
             </div>
             
-            <DialogFooter className="p-6 pt-4 border-t">
-                <div className="w-full flex justify-between">
-                    <div className="flex gap-2">
-                        <Button variant="outline" onClick={onEdit}><Edit className="mr-2 h-4 w-4"/>Modificar</Button>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="destructive" disabled={isDeleting}>
-                                    {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4"/>}
-                                    Eliminar
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Estás seguro de que deseas eliminar este servicio?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Esta acción no se puede deshacer. El servicio "{service?.nombre}" será eliminado permanentemente.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-                                        {isDeleting ? "Eliminando..." : "Sí, eliminar"}
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
-                    <Button onClick={onClose}>Cerrar</Button>
+            <DialogFooter className="p-6 pt-4 border-t flex-col sm:flex-row sm:justify-between w-full">
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={onEdit}><Edit className="mr-2 h-4 w-4"/>Modificar</Button>
+                    <Button variant="secondary" onClick={onViewProducts}><Package className="mr-2 h-4 w-4"/>Productos</Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" disabled={isDeleting}>
+                                {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4"/>}
+                                Eliminar
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>¿Estás seguro de que deseas eliminar este servicio?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. El servicio "{service?.nombre}" será eliminado permanentemente.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                                    {isDeleting ? "Eliminando..." : "Sí, eliminar"}
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
+                <Button onClick={onClose}>Cerrar</Button>
             </DialogFooter>
         </>
     );
