@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -201,7 +202,7 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSucces
             <DialogHeader className="p-6 pb-0">
                 <DialogTitle className="text-2xl">{service.nombre}</DialogTitle>
                 <DialogDescription>
-                    <Badge variant="secondary">{service.tipo}</Badge>
+                    <Badge variant="outline">{service.tipo}</Badge>
                 </DialogDescription>
             </DialogHeader>
 
@@ -249,7 +250,7 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSucces
             <DialogFooter className="p-6 pt-4 border-t flex-col sm:flex-row sm:justify-between w-full">
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={onEdit}><Edit className="mr-2 h-4 w-4"/>Modificar</Button>
-                    <Button variant="secondary" onClick={onViewProducts}><Package className="mr-2 h-4 w-4"/>Productos</Button>
+                    <Button variant="outline" onClick={onViewProducts}><Package className="mr-2 h-4 w-4"/>Productos</Button>
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <Button variant="destructive" disabled={isDeleting}>
@@ -273,7 +274,7 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSucces
                         </AlertDialogContent>
                     </AlertDialog>
                 </div>
-                <Button onClick={onClose}>Cerrar</Button>
+                <Button variant="outline" onClick={onClose}>Cerrar</Button>
             </DialogFooter>
         </>
     );

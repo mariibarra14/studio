@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -187,7 +188,7 @@ export function EditServiceForm({ service, onSuccess, onCancel }: EditServiceFor
                 </div>
                 <Input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} />
                 {error.image && <AlertDescription className="text-destructive text-sm">{error.image}</AlertDescription>}
-                <Button type="button" onClick={handleSaveImage} disabled={isLoading.image || !selectedFile} className="w-full">
+                <Button type="button" onClick={handleSaveImage} disabled={isLoading.image || !selectedFile} className="w-full" variant="outline">
                     {isLoading.image ? <Loader2 className="animate-spin" /> : <Upload className="mr-2"/>}
                     Guardar Imagen
                 </Button>

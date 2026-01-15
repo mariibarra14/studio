@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -146,7 +147,7 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
             {renderContent()}
         </div>
         <DialogFooter>
-            <Button onClick={onClose}>Cerrar</Button>
+            <Button variant="outline" onClick={onClose}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

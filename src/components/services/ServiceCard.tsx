@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -34,7 +35,7 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
         </div>
       </CardHeader>
       <CardContent className="p-4 flex-grow">
-        <Badge variant="secondary" className="mb-2">{service.tipo}</Badge>
+        <Badge variant="outline" className="mb-2">{service.tipo}</Badge>
         <CardTitle className="text-xl mb-2">{service.nombre}</CardTitle>
         <CardDescription className="line-clamp-3 text-sm">
           {service.descripcion}
