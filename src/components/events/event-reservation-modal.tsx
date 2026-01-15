@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -20,15 +21,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Users, Ticket, Tag, Package, Plus, Minus, Loader2, AlertCircle, Building, User, FileText, Link as LinkIcon, CheckCircle } from "lucide-react";
+import { Users, Ticket, Tag, Package, Plus, Minus, Loader2, AlertCircle, Building, User, FileText, Link as LinkIcon, CheckCircle, ShoppingBag } from "lucide-react";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ApiEvent, Zone, Venue, Organizer, Seat } from "@/lib/types";
+import type { ApiEvent, Zone, Venue, Organizer, Seat, ComplementaryService } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Input } from "../ui/input";
+import { Card, CardContent } from "../ui/card";
+import { Badge } from "../ui/badge";
 
 type EventReservationModalProps = {
   event: ApiEvent;
@@ -47,7 +50,7 @@ export function EventReservationModal({
   isOpen,
   onClose,
 }: EventReservationModalProps) {
-  const [stage, setStage] = useState<"details" | "reservation">("details");
+  const [stage, setStage] = useState<"details" | "reservation" | "services">("details");
   const [selectedTier, setSelectedTier] = useState<Zone | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [eventDetails, setEventDetails] = useState<DetailedEvent | null>(null);
@@ -56,6 +59,12 @@ export function EventReservationModal({
   const [error, setError] = useState<string | null>(null);
   const [availableSeats, setAvailableSeats] = useState<number | null>(null);
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
+  
+  const [services, setServices] = useState<ComplementaryService[]>([]);
+  const [selectedService, setSelectedService] = useState<ComplementaryService | null>(null);
+  const [isLoadingServices, setIsLoadingServices] = useState(false);
+  const [servicesError, setServicesError] = useState<string | null>(null);
+
   const { toast } = useToast();
   const router = useRouter();
 
@@ -144,6 +153,37 @@ export function EventReservationModal({
     setQuantity(1);
     if (tier && eventDetails) {
       fetchAvailableSeats(eventDetails.id, tier.id);
+    }
+  };
+
+  const handleGoToServices = async () => {
+    setIsLoadingServices(true);
+    setServicesError(null);
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        setServicesError("Error de sesión: Su sesión ha expirado. Por favor, inicie sesión de nuevo para continuar.");
+        setIsLoadingServices(false);
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:44335/api/ServComps/Servs/getTodosServicios', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const data: ComplementaryService[] = await response.json();
+            setServices(data);
+            setStage("services");
+        } else if (response.status === 401) {
+            throw new Error("Error de sesión: Su sesión ha expirado. Por favor, inicie sesión de nuevo para continuar.");
+        } else {
+            throw new Error("Vaya, algo salió mal: No pudimos cargar los servicios adicionales. Inténtelo de nuevo en unos momentos.");
+        }
+    } catch (err: any) {
+        setServicesError(err.message);
+    } finally {
+        setIsLoadingServices(false);
     }
   };
 
@@ -250,6 +290,10 @@ export function EventReservationModal({
         setIsLoading(true);
         setError(null);
         setAvailableSeats(null);
+        setServices([]);
+        setSelectedService(null);
+        setIsLoadingServices(false);
+        setServicesError(null);
     }, 300);
   };
   
@@ -387,7 +431,7 @@ export function EventReservationModal({
       return (
         <div className="p-8">
             <DialogHeader className="mb-6">
-              <DialogTitle className="text-3xl font-bold">Confirmar Reserva: {eventDetails.nombre}</DialogTitle>
+              <DialogTitle className="text-3xl font-bold">Reserva: {eventDetails.nombre}</DialogTitle>
               <DialogDescription>Seleccione el tipo de entrada y la cantidad.</DialogDescription>
             </DialogHeader>
             
@@ -466,18 +510,95 @@ export function EventReservationModal({
 
             <DialogFooter className="mt-8 grid grid-cols-2 gap-4">
                 <Button variant="outline" onClick={() => setStage("details")} disabled={isReserving}>Atrás</Button>
-                <Button onClick={handleConfirmReservation} disabled={isReserving || !selectedTier || quantity <= 0 || (availableSeats !== null && quantity > availableSeats)}>
-                    {isReserving ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                            Procesando...
-                        </>
+                <Button onClick={handleGoToServices} disabled={isReserving || !selectedTier || quantity <= 0 || (availableSeats !== null && quantity > availableSeats) || isLoadingServices}>
+                    {isLoadingServices ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Cargando...</>
                     ) : (
-                        "Confirmar Reserva"
+                        "Siguiente"
                     )}
                 </Button>
             </DialogFooter>
         </div>
+      );
+    }
+
+    if (stage === "services") {
+      return (
+          <div className="p-8">
+              <DialogHeader className="mb-6">
+                  <DialogTitle className="text-3xl font-bold flex items-center gap-3">
+                      <ShoppingBag className="h-8 w-8 text-primary"/>
+                      Servicios Complementarios
+                  </DialogTitle>
+                  <DialogDescription>Mejora tu experiencia añadiendo uno de estos servicios a tu reserva.</DialogDescription>
+              </DialogHeader>
+  
+              {servicesError && (
+                  <Alert variant="destructive" className="mb-4">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Error al Cargar Servicios</AlertTitle>
+                      <AlertDescription>{servicesError}</AlertDescription>
+                  </Alert>
+              )}
+  
+              <div className="max-h-80 overflow-y-auto pr-2 space-y-4">
+                  {services.length > 0 ? (
+                      services.map(service => (
+                          <Card
+                              key={service.id}
+                              className={`cursor-pointer transition-all ${selectedService?.id === service.id ? 'border-primary ring-2 ring-primary/20' : 'hover:border-muted-foreground/50'}`}
+                              onClick={() => setSelectedService(service.id === selectedService?.id ? null : service)}
+                          >
+                              <CardContent className="p-4 flex items-start gap-4">
+                                  <Image src={service.fotoServicio || '/placeholder.png'} alt={service.nombre} width={80} height={80} className="rounded-md aspect-square object-cover bg-muted" />
+                                  <div className="flex-1">
+                                      <h4 className="font-semibold">{service.nombre}</h4>
+                                      <Badge variant="outline" className="my-1">{service.tipo}</Badge>
+                                      <p className="text-xs text-muted-foreground line-clamp-2">{service.descripcion}</p>
+                                  </div>
+                              </CardContent>
+                          </Card>
+                      ))
+                  ) : !servicesError && (
+                      <div className="text-center py-8">
+                          <p className="text-muted-foreground">No hay servicios adicionales disponibles para este evento.</p>
+                      </div>
+                  )}
+              </div>
+              
+              <div className="border-t pt-6 mt-6">
+                  <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                          <span className="text-muted-foreground">{quantity} x {selectedTier?.nombre}</span>
+                          <span>${(selectedTier!.precio * quantity).toFixed(2)}</span>
+                      </div>
+                      {selectedService && (
+                          <div className="flex justify-between">
+                              <span className="text-muted-foreground">Servicio: {selectedService.nombre}</span>
+                              <span>Incluido</span>
+                          </div>
+                      )}
+                  </div>
+                  <div className="flex justify-between items-center text-2xl font-bold mt-4">
+                      <span>Precio Total:</span>
+                      <span>${totalPrice.toFixed(2)}</span>
+                  </div>
+              </div>
+  
+              <DialogFooter className="mt-8 grid grid-cols-2 gap-4">
+                  <Button variant="outline" onClick={() => setStage("reservation")} disabled={isReserving}>Atrás</Button>
+                  <Button onClick={handleConfirmReservation} disabled={isReserving}>
+                      {isReserving ? (
+                          <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                              Procesando...
+                          </>
+                      ) : (
+                          "Confirmar Reserva"
+                      )}
+                  </Button>
+              </DialogFooter>
+          </div>
       );
     }
 
@@ -492,4 +613,3 @@ export function EventReservationModal({
     </Dialog>
   );
 }
-

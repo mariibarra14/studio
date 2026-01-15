@@ -1,4 +1,5 @@
 
+
 export type TicketTier = {
   id: string;
   nombre: string;
@@ -110,4 +111,13 @@ export type EnrichedPayment = Payment & {
     mesExpiracion: number;
     anioExpiracion: number;
   } | null;
+};
+
+export type ComplementaryService = {
+  id: string;
+  nombre: string;
+  tipo: string;
+  descripcion: string;
+  horario: any[];
+  fotoServicio: string;
 };
