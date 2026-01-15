@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -64,6 +65,11 @@ export default function ComplementaryServicesPage() {
   const handleViewDetails = (serviceId: string) => {
     setViewingServiceId(serviceId);
   };
+  
+  const handleDeleteSuccess = () => {
+    setViewingServiceId(null);
+    fetchServices();
+  };
 
   const renderAdminContent = () => {
     if (isLoadingServices) {
@@ -113,6 +119,7 @@ export default function ComplementaryServicesPage() {
                 serviceId={viewingServiceId}
                 isOpen={!!viewingServiceId}
                 onClose={() => setViewingServiceId(null)}
+                onDeleteSuccess={handleDeleteSuccess}
             />
         )}
       </>

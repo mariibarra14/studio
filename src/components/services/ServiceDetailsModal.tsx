@@ -17,11 +17,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, AlertCircle, Edit, Trash2, Calendar, Clock, Tag } from "lucide-react";
 import type { ComplementaryService } from "@/lib/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 type ServiceDetailsModalProps = {
   serviceId: string;
   isOpen: boolean;
   onClose: () => void;
+  onDeleteSuccess: () => void;
 };
 
 const dayTranslation: { [key: string]: string } = {
@@ -37,10 +50,12 @@ const dayTranslation: { [key: string]: string } = {
 const englishWeekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 
-export function ServiceDetailsModal({ serviceId, isOpen, onClose }: ServiceDetailsModalProps) {
+export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSuccess }: ServiceDetailsModalProps) {
   const [service, setService] = useState<ComplementaryService | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
 
   const fetchServiceDetails = useCallback(async () => {
     if (!serviceId) return;
@@ -81,6 +96,52 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose }: ServiceDetai
       fetchServiceDetails();
     }
   }, [isOpen, fetchServiceDetails]);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+        toast({
+            variant: "destructive",
+            title: "Sesión expirada",
+            description: "No tienes permisos o tu sesión ha caducado. Por favor, inicia sesión de nuevo.",
+        });
+        setIsDeleting(false);
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:44335/api/ServComps/Servs/eliminarServicio?idServicio=${serviceId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const responseText = await response.text();
+
+        if (response.ok && responseText.includes("Servicio eliminado exitosamente")) {
+            toast({
+                title: "¡Listo!",
+                description: "El servicio ha sido eliminado correctamente.",
+            });
+            onDeleteSuccess();
+        } else {
+            let errorMessage = "No se pudo eliminar: Hubo un error al intentar borrar el servicio. Por favor, inténtalo más tarde.";
+            if (response.status === 401) {
+                errorMessage = "Sesión expirada: No tienes permisos o tu sesión ha caducado. Por favor, inicia sesión de nuevo.";
+            }
+            throw new Error(errorMessage);
+        }
+    } catch (err: any) {
+        toast({
+            variant: "destructive",
+            title: "Error al eliminar",
+            description: err.message,
+        });
+    } finally {
+        setIsDeleting(false);
+    }
+  };
 
   const renderContent = () => {
     if (isLoading) {
@@ -188,7 +249,28 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose }: ServiceDetai
                 <div className="w-full flex justify-between">
                     <div className="flex gap-2">
                         <Button variant="outline" disabled><Edit className="mr-2 h-4 w-4"/>Modificar</Button>
-                        <Button variant="destructive" disabled><Trash2 className="mr-2 h-4 w-4"/>Eliminar</Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" disabled={isDeleting}>
+                                    {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4"/>}
+                                    Eliminar
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro de que deseas eliminar este servicio?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. El servicio "{service?.nombre}" será eliminado permanentemente.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                                        {isDeleting ? "Eliminando..." : "Sí, eliminar"}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </div>
                     <Button onClick={onClose}>Cerrar</Button>
                 </div>
