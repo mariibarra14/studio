@@ -1,10 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
 import type { ComplementaryService } from "@/lib/types";
 
 type ServiceCardProps = {
@@ -42,28 +40,6 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
           {service.descripcion}
         </CardDescription>
       </CardContent>
-      <CardFooter className="p-4 border-t mt-auto">
-        <div className="flex w-full justify-end gap-2">
-            <Button 
-                variant="outline" 
-                size="sm" 
-                disabled 
-                onClick={(e) => e.stopPropagation()}
-            >
-                <Edit className="mr-2 h-4 w-4" />
-                Editar
-            </Button>
-            <Button 
-                variant="destructive" 
-                size="sm" 
-                disabled
-                onClick={(e) => e.stopPropagation()}
-            >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar
-            </Button>
-        </div>
-      </CardFooter>
     </Card>
   );
 }
