@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -35,6 +34,7 @@ type ServiceDetailsModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onDeleteSuccess: () => void;
+  onEdit: () => void;
 };
 
 const dayTranslation: { [key: string]: string } = {
@@ -50,7 +50,7 @@ const dayTranslation: { [key: string]: string } = {
 const englishWeekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 
-export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSuccess }: ServiceDetailsModalProps) {
+export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSuccess, onEdit }: ServiceDetailsModalProps) {
   const [service, setService] = useState<ComplementaryService | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -248,7 +248,7 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSucces
             <DialogFooter className="p-6 pt-4 border-t">
                 <div className="w-full flex justify-between">
                     <div className="flex gap-2">
-                        <Button variant="outline" disabled><Edit className="mr-2 h-4 w-4"/>Modificar</Button>
+                        <Button variant="outline" onClick={onEdit}><Edit className="mr-2 h-4 w-4"/>Modificar</Button>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="destructive" disabled={isDeleting}>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -12,14 +11,18 @@ import { ServiceCard } from "@/components/services/ServiceCard";
 import { AddServiceModal } from "@/components/services/AddServiceModal";
 import type { ComplementaryService } from "@/lib/types";
 import { ServiceDetailsModal } from "@/components/services/ServiceDetailsModal";
+import { EditServiceModal } from "@/components/services/EditServiceModal";
 
 export default function ComplementaryServicesPage() {
   const { userRole, isLoadingUser } = useApp();
   const [services, setServices] = useState<ComplementaryService[]>([]);
   const [isLoadingServices, setIsLoadingServices] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [viewingServiceId, setViewingServiceId] = useState<string | null>(null);
+  
+  const [viewingService, setViewingService] = useState<ComplementaryService | null>(null);
+  const [editingService, setEditingService] = useState<ComplementaryService | null>(null);
 
   const fetchServices = useCallback(async () => {
     setIsLoadingServices(true);
@@ -63,11 +66,26 @@ export default function ComplementaryServicesPage() {
   };
 
   const handleViewDetails = (serviceId: string) => {
-    setViewingServiceId(serviceId);
+    const service = services.find(s => s.id === serviceId);
+    if(service) {
+        setViewingService(service);
+    }
+  };
+
+  const handleOpenEditModal = () => {
+    if (viewingService) {
+        setEditingService(viewingService);
+        setViewingService(null);
+    }
   };
   
+  const handleEditSuccess = () => {
+    setEditingService(null);
+    fetchServices();
+  };
+
   const handleDeleteSuccess = () => {
-    setViewingServiceId(null);
+    setViewingService(null);
     fetchServices();
   };
 
@@ -114,12 +132,21 @@ export default function ComplementaryServicesPage() {
           onClose={() => setIsAddModalOpen(false)}
           onSuccess={handleAddSuccess}
         />
-        {viewingServiceId && (
+        {viewingService && (
             <ServiceDetailsModal
-                serviceId={viewingServiceId}
-                isOpen={!!viewingServiceId}
-                onClose={() => setViewingServiceId(null)}
+                serviceId={viewingService.id}
+                isOpen={!!viewingService}
+                onClose={() => setViewingService(null)}
                 onDeleteSuccess={handleDeleteSuccess}
+                onEdit={handleOpenEditModal}
+            />
+        )}
+        {editingService && (
+            <EditServiceModal
+                service={editingService}
+                isOpen={!!editingService}
+                onClose={() => setEditingService(null)}
+                onSuccess={handleEditSuccess}
             />
         )}
       </>
