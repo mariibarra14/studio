@@ -76,7 +76,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
       const [eventRes, zonasRes, serviceBookingsRes] = await Promise.all([
         fetch(`http://localhost:44335/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`http://localhost:44335/api/events/${eventId}/zonas`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`http://localhost:44335/api/ServComps/Servs/getTodosRegistros`, { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`http://localhost:44335/api/ServComps/Servs/getRegistrosByIdEvento?idEvento=${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
       if (!eventRes.ok) throw new Error("No se pudo cargar el evento.");
@@ -97,8 +97,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
       setDetails({ ...eventData, venue: venueData, zonas: zonasData });
 
       if (serviceBookingsRes.ok) {
-        const allBookings: ServiceBookingRecord[] = await serviceBookingsRes.json();
-        const eventServiceBookings = allBookings.filter(b => b.idEvento === eventId);
+        const eventServiceBookings: ServiceBookingRecord[] = await serviceBookingsRes.json();
         
         const enrichedServices = await Promise.all(
             eventServiceBookings.map(async (booking) => {
@@ -120,6 +119,8 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
         );
         
         setAssociatedServices(enrichedServices.filter(s => s !== null) as AssociatedService[]);
+      } else if (serviceBookingsRes.status === 404) {
+        setAssociatedServices([]);
       }
 
     } catch (err: any) {
@@ -568,5 +569,3 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
 
   return renderContent();
 }
-
-    
