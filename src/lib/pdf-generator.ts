@@ -92,9 +92,13 @@ export const generateBookingPDF = async (booking: ApiBooking) => {
         });
         yPosition += 2;
     }
+    
+    const ticketsTotal = booking.precioTotal;
+    const productsTotal = booking.complementaryProducts?.reduce((sum, p) => sum + p.precio, 0) || 0;
+    const grandTotal = ticketsTotal + productsTotal;
 
     doc.setFont("helvetica", "bold");
-    doc.text(`Total Pagado: $${booking.precioTotal.toFixed(2)}`, 20, yPosition);
+    doc.text(`Total Pagado: $${grandTotal.toFixed(2)}`, 20, yPosition);
     yPosition += 7;
     doc.text(`Estado: Confirmada`, 20, yPosition);
     yPosition += 15;

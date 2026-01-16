@@ -102,8 +102,9 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
       return format(new Date(dateString), "dd MMMM, yyyy - h:mm a", { locale: es });
     }
 
+    const ticketsTotal = booking.precioTotal;
     const productsTotal = booking.complementaryProducts?.reduce((sum, p) => sum + p.precio, 0) || 0;
-    const ticketsTotal = booking.precioTotal - productsTotal;
+    const grandTotal = ticketsTotal + productsTotal;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -238,7 +239,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                                 </div>
                                 <div className="border-t my-2"></div>
                                 <p className="text-sm text-muted-foreground">Precio Total</p>
-                                <p className="text-2xl font-bold">${booking.precioTotal.toFixed(2)}</p>
+                                <p className="text-2xl font-bold">${grandTotal.toFixed(2)}</p>
                             </div>
                         </div>
                     </div>
