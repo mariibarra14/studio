@@ -17,6 +17,7 @@ type PaymentMethod = {
   idMPago: string;
   idUsuario: string;
   marca: string;
+  ultimos4: string;
   mesExpiracion: number;
   anioExpiracion: number;
   predeterminado: boolean;
@@ -107,6 +108,43 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
       });
       
       if (response.status === 201) {
+        // START: Confirm complementary services reservation
+        try {
+            const compResResponse = await fetch(`http://localhost:44335/api/ServComps/Resv/getReservaByIdReserva?idReserva=${reservaId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (compResResponse.ok) {
+                const compResData = await compResResponse.json();
+                const complementaryReservationId = compResData.id;
+
+                if (complementaryReservationId) {
+                    const confirmCompResResponse = await fetch(`http://localhost:44335/api/ServComps/Resv/confirmar?idReserva=${complementaryReservationId}`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (!confirmCompResResponse.ok) {
+                        toast({
+                            variant: "destructive",
+                            title: "Error de Sincronización",
+                            description: "Hubo un problema al marcar sus servicios como confirmados. Por favor, guarde su comprobante y revise 'Mis Reservas' en unos minutos.",
+                            duration: 8000
+                        });
+                    }
+                }
+            }
+        } catch (compError) {
+            console.error("Error during complementary service confirmation:", compError);
+            toast({
+                variant: "destructive",
+                title: "Error de Sincronización",
+                description: "Hubo un problema al marcar sus servicios como confirmados. Por favor, guarde su comprobante y revise 'Mis Reservas' en unos minutos.",
+                duration: 8000
+            });
+        }
+        // END: Confirm complementary services reservation
+        
         toast({
           title: "✅ Pago Exitoso",
           description: "Tu reserva ha sido confirmada. Serás redirigido.",
@@ -404,3 +442,5 @@ export function PaymentProcessing() {
 
   return <PendingPaymentsList />;
 }
+
+    
