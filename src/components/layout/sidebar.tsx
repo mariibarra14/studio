@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -42,13 +41,14 @@ const navLinks: NavLink[] = [
   { href: "/payments", icon: CreditCard, labelKey: "nav.my_payments", roles: ["usuario_final", "administrador"]},
   { href: "/complementary-services", icon: ConciergeBell, labelKey: "nav.comp_services", roles: ["usuario_final"]},
   { href: "/community", icon: Users, labelKey: "nav.community", roles: ["usuario_final", "organizador"], },
-  { href: "/surveys", icon: PieChart, labelKey: "nav.surveys", roles: ["usuario_final", "organizador"], },
+  { href: "/surveys", icon: PieChart, labelKey: "nav.surveys", roles: ["usuario_final", "administrador"], },
 
   // organizador
   { href: "/events/my", icon: Calendar, labelKey: "nav.my_events", roles: ["organizador", "administrador"]},
   { href: "/services/my", icon: ConciergeBell, labelKey: "nav.my_services", roles: ["organizador", "administrador"]},
   { href: "/payments/history", icon: CreditCard, labelKey: "nav.payments_history", roles: ["organizador", "administrador"]},
   { href: "/venues", icon: Building, labelKey: "nav.venues", roles: ["organizador", "administrador"]},
+  { href: "/surveys/my", icon: PieChart, labelKey: "nav.my_surveys", roles: ["organizador", "administrador"]},
   { href: "/reports", icon: BarChart2, labelKey: "nav.reports", roles: ["organizador", "soporte_tecnico", "administrador"]},
   
   // soporte_tecnico

@@ -14,7 +14,8 @@
     "payments_history": "Historial Pagos",
     "venues": "Escenarios",
     "reports": "Reportes",
-    "control_panel": "Panel de Control"
+    "control_panel": "Panel de Control",
+    "my_surveys": "Mis Encuestas"
   },
   "header": {
     "profile": "Perfil",
@@ -239,5 +240,9 @@
   "surveys": {
     "title": "Encuestas",
     "placeholder": "El contenido de las encuestas va aquí"
+  },
+  "my_surveys": {
+    "title": "Mis Encuestas",
+    "placeholder": "El contenido de mis encuestas va aquí"
   }
 }
