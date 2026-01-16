@@ -7,65 +7,32 @@ import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { useApp } from "@/context/app-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, ArrowLeft, Send, Calendar } from "lucide-react";
+import { AlertCircle, ArrowLeft, Send, Calendar, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-type ForumDetails = {
-  id: string;
-  eventoId: string;
-  titulo: string;
-  descripcion: string;
-  fechaCreacion: string;
-  creadorId: string;
-};
-
-type Message = {
-  id: string;
-  contenido: string;
-  fechaCreacion: string;
-  usuarioId: string;
-  usuario: {
-    id: string;
-    nombre: string;
-    apellido: string;
-    fotoPerfil: string | null;
-  };
-};
-
-const messageSchema = z.object({
-  content: z.string().min(1, "El mensaje no puede estar vacío.").max(1000, "El mensaje no puede superar los 1000 caracteres."),
-});
+import type { Forum, EnrichedForumThread, ForumThread } from "@/lib/types";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Card } from "@/components/ui/card";
 
 export default function ForumDetailPage() {
   const params = useParams();
   const forumId = params.id as string;
-  const { user, i18n } = useApp();
+  const { i18n } = useApp();
   const { t } = useTranslation();
   const locale = i18n.language === 'es' ? es : enUS;
 
-  const [forum, setForum] = useState<ForumDetails | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [forum, setForum] = useState<Forum | null>(null);
+  const [threads, setThreads] = useState<EnrichedForumThread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  const form = useForm({
-    resolver: zodResolver(messageSchema),
-    defaultValues: { content: "" },
-  });
-
   const fetchData = useCallback(async () => {
+    setIsLoading(true);
     setError(null);
     const token = localStorage.getItem("accessToken");
 
@@ -76,32 +43,61 @@ export default function ForumDetailPage() {
     }
 
     try {
-      // Fetch forum details
-      const forumRes = await fetch(`http://localhost:44335/api/foros/${forumId}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      const [forumRes, threadsRes] = await Promise.all([
+        fetch(`http://localhost:44335/api/foros/${forumId}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }),
+        fetch(`http://localhost:44335/api/foros/${forumId}/hilos`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }),
+      ]);
+      
       if (!forumRes.ok) throw new Error("No se pudo cargar el foro.");
       const forumData = await forumRes.json();
       setForum(forumData);
 
-      // Fetch messages
-      const messagesRes = await fetch(`http://localhost:44335/api/foros/${forumId}/mensajes`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (messagesRes.status === 404) {
-          setMessages([]);
-      } else if (messagesRes.ok) {
-          const messagesData: Message[] = await messagesRes.json();
-          // Enrich messages with user info
-          const enrichedMessages = await Promise.all(messagesData.map(async (msg) => {
-              const userRes = await fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${msg.usuarioId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-              const userData = userRes.ok ? await userRes.json() : { nombre: "Usuario", apellido: "Desconocido", fotoPerfil: null };
-              return { ...msg, usuario: userData };
-          }));
-          setMessages(enrichedMessages.sort((a, b) => new Date(a.fechaCreacion).getTime() - new Date(b.fechaCreacion).getTime()));
-      } else {
-          throw new Error("No se pudieron cargar los mensajes.");
+      if (threadsRes.status === 404) {
+        setThreads([]);
+        return;
       }
+      if (!threadsRes.ok) throw new Error("No se pudieron cargar los hilos de discusión.");
+      
+      const rawThreads: ForumThread[] = await threadsRes.json();
+
+      // Enrich threads and comments with author info
+      const authorIds = new Set<string>();
+      rawThreads.forEach(thread => {
+        authorIds.add(thread.autorId);
+        thread.comentarios.forEach(comment => authorIds.add(comment.autorId));
+      });
+      
+      const authorCache = new Map<string, any>();
+      const authorPromises = Array.from(authorIds).map(async (authorId) => {
+        try {
+          const userRes = await fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${authorId}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            authorCache.set(authorId, userData);
+          }
+        } catch (e) {
+          console.error(`Failed to fetch author ${authorId}`, e);
+        }
+      });
+      await Promise.all(authorPromises);
+      
+      const enrichedThreads: EnrichedForumThread[] = rawThreads.map(thread => ({
+        ...thread,
+        author: authorCache.get(thread.autorId) || { nombre: "Usuario", apellido: "Desconocido", fotoPerfil: null },
+        comentarios: thread.comentarios.map(comment => ({
+          ...comment,
+          author: authorCache.get(comment.autorId) || { nombre: "Usuario", apellido: "Desconocido", fotoPerfil: null },
+        })).sort((a, b) => new Date(a.fechaCreacion).getTime() - new Date(b.fechaCreacion).getTime()),
+      }));
+
+      setThreads(enrichedThreads.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()));
+
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -110,57 +106,16 @@ export default function ForumDetailPage() {
   }, [forumId]);
 
   useEffect(() => {
-    setIsLoading(true);
     fetchData();
   }, [fetchData]);
-
-  useEffect(() => {
-    // Scroll to bottom when new messages are added
-    if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
-        }
-    }
-  }, [messages]);
-
-  const handleSendMessage = async (values: { content: string }) => {
-    if (!user) return;
-    const token = localStorage.getItem("accessToken");
-
-    try {
-      const response = await fetch('http://localhost:44335/api/foros/mensajes/crear', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          foroId,
-          usuarioId: user.id,
-          contenido: values.content,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("No se pudo enviar el mensaje.");
-      }
-
-      form.reset();
-      fetchData(); // Refetch messages
-    } catch (err: any) {
-      console.error(err);
-    }
-  };
 
   const renderContent = () => {
     if (isLoading) {
       return (
         <div className="p-6 space-y-4">
-          <div className="pt-6 space-y-6">
-            <div className="flex gap-4 items-start"><Skeleton className="h-12 w-12 rounded-full" /><div className="flex-1 space-y-2"><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-3/4" /></div></div>
-            <div className="flex gap-4 items-start"><Skeleton className="h-12 w-12 rounded-full" /><div className="flex-1 space-y-2"><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-3/4" /></div></div>
-          </div>
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
         </div>
       );
     }
@@ -177,65 +132,68 @@ export default function ForumDetailPage() {
       );
     }
     
-    if (!forum) {
-        return (
-            <div className="p-6 text-center">
-                <p>Foro no encontrado.</p>
-            </div>
-        )
+    if (threads.length === 0) {
+      return (
+        <div className="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+            <MessageSquare className="h-16 w-16 text-muted-foreground" />
+            <h3 className="mt-4 text-xl font-semibold">Aún no hay discusiones</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+                ¡Sé el primero en iniciar un nuevo hilo de discusión en este foro!
+            </p>
+        </div>
+      );
     }
 
     return (
-      <div className="flex flex-col h-full">
-        <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
-          {messages.length > 0 ? (
-            <div className="space-y-6">
-              {messages.map((msg) => (
-                <div key={msg.id} className="flex items-start gap-4">
-                  <Avatar>
-                    <AvatarImage src={msg.usuario.fotoPerfil || undefined} />
-                    <AvatarFallback>
-                      {msg.usuario.nombre[0]}{msg.usuario.apellido[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                        <p className="font-semibold">{msg.usuario.nombre} {msg.usuario.apellido}</p>
-                        <p className="text-xs text-muted-foreground">{format(new Date(msg.fechaCreacion), "dd MMM, HH:mm", { locale })}</p>
-                    </div>
-                    <p className="text-sm text-foreground/90 whitespace-pre-wrap">{msg.contenido}</p>
+      <ScrollArea className="flex-1 p-6">
+        <Accordion type="single" collapsible className="w-full space-y-4">
+          {threads.map((thread) => (
+            <AccordionItem key={thread.id} value={thread.id} className="border rounded-lg bg-card">
+              <AccordionTrigger className="p-4 hover:no-underline">
+                <div className="flex-1 text-left">
+                  <h4 className="font-semibold text-base">{thread.titulo}</h4>
+                  <div className="text-xs text-muted-foreground flex items-center gap-4 mt-1">
+                      <div className="flex items-center gap-1.5">
+                         <Avatar className="h-5 w-5">
+                            <AvatarImage src={thread.author?.fotoPerfil || undefined} />
+                            <AvatarFallback className="text-xs">{thread.author?.nombre[0]}{thread.author?.apellido[0]}</AvatarFallback>
+                         </Avatar>
+                         <span>{thread.author?.nombre} {thread.author?.apellido}</span>
+                      </div>
+                      <span className="flex items-center gap-1.5"><Calendar className="h-3 w-3"/>{format(new Date(thread.fechaCreacion), "dd MMM yyyy", { locale })}</span>
+                      <span className="flex items-center gap-1.5"><MessageSquare className="h-3 w-3"/>{thread.comentarios.length} Comentarios</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-muted-foreground h-full flex flex-col justify-center items-center">
-              <p className="font-semibold text-lg">¡Sé el primero en comentar!</p>
-              <p className="text-sm">Todavía no hay mensajes en este foro.</p>
-            </div>
-          )}
-        </ScrollArea>
-        <div className="p-4 border-t bg-background">
-          <form onSubmit={form.handleSubmit(handleSendMessage)} className="flex items-center gap-4">
-            <Textarea
-              placeholder="Escribe tu mensaje..."
-              className="flex-1 resize-none"
-              rows={1}
-              {...form.register("content")}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  form.handleSubmit(handleSendMessage)();
-                }
-              }}
-            />
-            <Button type="submit" size="icon" disabled={form.formState.isSubmitting}>
-              <Send className="h-4 w-4" />
-              <span className="sr-only">Enviar mensaje</span>
-            </Button>
-          </form>
-        </div>
-      </div>
+              </AccordionTrigger>
+              <AccordionContent className="p-4 pt-0">
+                  <p className="text-sm text-foreground/80 whitespace-pre-wrap border-b pb-4 mb-4">{thread.contenido}</p>
+                  <div className="space-y-4">
+                      <h5 className="font-semibold text-sm">Comentarios</h5>
+                      {thread.comentarios.length > 0 ? (
+                        thread.comentarios.map(comment => (
+                           <div key={comment.id} className="flex items-start gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={comment.author?.fotoPerfil || undefined} />
+                                <AvatarFallback>{comment.author?.nombre[0]}{comment.author?.apellido[0]}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 bg-muted/50 p-3 rounded-lg">
+                                <div className="flex items-center gap-2 text-xs">
+                                  <p className="font-semibold">{comment.author?.nombre} {comment.author?.apellido}</p>
+                                  <p className="text-muted-foreground">{format(new Date(comment.fechaCreacion), "dd MMM, HH:mm", { locale })}</p>
+                                </div>
+                                <p className="text-sm mt-1 whitespace-pre-wrap">{comment.contenido}</p>
+                              </div>
+                           </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">No hay comentarios en este hilo.</p>
+                      )}
+                  </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </ScrollArea>
     );
   };
 

@@ -196,4 +196,37 @@ export type Forum = {
   fechaCreacion: string;
   creadorId: string;
 };
+
+export type ForumComment = {
+  id: string;
+  autorId: string;
+  contenido: string;
+  fechaCreacion: string;
+};
+
+export type ForumThread = {
+  id: string;
+  autorId: string;
+  titulo: string;
+  contenido: string;
+  fechaCreacion: string;
+  comentarios: ForumComment[];
+};
+
+export type EnrichedForumComment = ForumComment & {
+    author?: {
+        nombre: string;
+        apellido: string;
+        fotoPerfil: string | null;
+    }
+};
+
+export type EnrichedForumThread = Omit<ForumThread, 'comentarios'> & {
+    author?: {
+        nombre: string;
+        apellido: string;
+        fotoPerfil: string | null;
+    }
+    comentarios: EnrichedForumComment[];
+};
     
