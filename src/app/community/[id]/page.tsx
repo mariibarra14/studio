@@ -6,7 +6,7 @@ import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { useApp } from "@/context/app-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, ArrowLeft, Send, Calendar, MessageSquare, Edit, Trash2, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, Send, Calendar, MessageSquare, Edit, Trash2, Loader2, PlusCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -18,6 +18,7 @@ import type { Forum, EnrichedForumThread, ForumThread, ApiEvent } from "@/lib/ty
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { EditForumModal } from "@/components/community/EditForumModal";
+import { AddThreadModal } from "@/components/community/AddThreadModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +51,7 @@ export default function ForumDetailPage() {
   const [editingForum, setEditingForum] = useState<Forum | null>(null);
   const [deletingForum, setDeletingForum] = useState<Forum | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAddThreadModalOpen, setIsAddThreadModalOpen] = useState(false);
 
   const isOwner = useMemo(() => user && event && user.id === event.organizadorId, [user, event]);
 
@@ -143,6 +145,11 @@ export default function ForumDetailPage() {
     fetchData(); // Refetch forum data to show updates
   };
 
+  const handleCreateThreadSuccess = () => {
+    setIsAddThreadModalOpen(false);
+    fetchData();
+  };
+
   const handleDeleteForum = async () => {
     if (!deletingForum) return;
 
@@ -202,6 +209,10 @@ export default function ForumDetailPage() {
             <p className="mt-1 text-sm text-muted-foreground">
                 ¡Sé el primero en iniciar un nuevo hilo de discusión en este foro!
             </p>
+             <Button className="mt-6" onClick={() => setIsAddThreadModalOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Crear Nuevo Hilo
+            </Button>
         </div>
       );
     }
@@ -279,22 +290,37 @@ export default function ForumDetailPage() {
                         )}
                     </div>
                 </div>
-                {isOwner && forum && (
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setEditingForum(forum)}>
-                      <Edit className="mr-2 h-4 w-4"/>
-                      Editar
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setIsAddThreadModalOpen(true)}>
+                      <PlusCircle className="mr-2 h-4 w-4"/>
+                      Nuevo Hilo
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => setDeletingForum(forum)}>
-                      <Trash2 className="mr-2 h-4 w-4"/>
-                      Eliminar
-                    </Button>
-                  </div>
-                )}
+                    {isOwner && forum && (
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setEditingForum(forum)}>
+                          <Edit className="mr-2 h-4 w-4"/>
+                          Editar
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => setDeletingForum(forum)}>
+                          <Trash2 className="mr-2 h-4 w-4"/>
+                          Eliminar
+                        </Button>
+                      </div>
+                    )}
+                </div>
             </div>
         </div>
         {renderContent()}
       </main>
+
+      {forumId && (
+        <AddThreadModal
+          isOpen={isAddThreadModalOpen}
+          onClose={() => setIsAddThreadModalOpen(false)}
+          onSuccess={handleCreateThreadSuccess}
+          forumId={forumId}
+        />
+      )}
 
       {editingForum && (
         <EditForumModal
