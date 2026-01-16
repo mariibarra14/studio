@@ -26,7 +26,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ApiEvent, Zone, Venue, Organizer, Seat, ComplementaryService, Product } from "@/lib/types";
+import type { ApiEvent, Zone, Venue, Organizer, Seat, ComplementaryService, Product, ServiceBookingRecord } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Input } from "../ui/input";
@@ -228,19 +228,48 @@ export function EventReservationModal({
     }
 
     try {
-        const response = await fetch('http://localhost:44335/api/ServComps/Servs/getTodosServicios', {
+        const recordsResponse = await fetch(`http://localhost:44335/api/ServComps/Servs/getRegistrosByIdEvento?idEvento=${event.id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (response.ok) {
-            const data: ComplementaryService[] = await response.json();
-            setServices(data);
+        if (recordsResponse.status === 404) {
+            setServices([]);
             setStage("services");
-        } else if (response.status === 401) {
-            throw new Error("Error de sesión: Su sesión ha expirado. Por favor, inicie sesión de nuevo para continuar.");
-        } else {
+            return;
+        }
+        
+        if (!recordsResponse.ok) {
+            if (recordsResponse.status === 401) {
+                throw new Error("Error de sesión: Su sesión ha expirado. Por favor, inicie sesión de nuevo para continuar.");
+            }
             throw new Error("Vaya, algo salió mal: No pudimos cargar los servicios adicionales. Inténtelo de nuevo en unos momentos.");
         }
+        
+        const records: ServiceBookingRecord[] = await recordsResponse.json();
+
+        const enrichedServices = await Promise.all(
+            records.map(async (record) => {
+                const serviceResponse = await fetch(`http://localhost:44335/api/ServComps/Servs/getServicioById?idServicio=${record.idServicio}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (serviceResponse.ok) {
+                    return serviceResponse.json();
+                }
+                return null;
+            })
+        );
+        
+        const validServices: ComplementaryService[] = enrichedServices.filter(s => s !== null);
+
+        const now = new Date();
+        const availableServices = validServices.filter(service => {
+            const record = records.find(r => r.idServicio === service.id);
+            if (!record) return false;
+            return new Date(record.fechaFin) >= now;
+        });
+        
+        setServices(availableServices);
+        setStage("services");
     } catch (err: any) {
         setServicesError(err.message);
     } finally {
