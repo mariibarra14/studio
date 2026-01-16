@@ -315,12 +315,13 @@ export function EventReservationModal({
             throw new Error("La cantidad de boletos debe ser mayor a 0.");
         }
 
-        // Step 1: Reserve event tickets
+        // Step 1: Reserve event tickets, now including total price
         const reservaData = {
             eventId: eventDetails.id,
             zonaEventoId: selectedTier.id,
             cantidadBoletos: quantity,
-            usuarioId: usuarioId
+            usuarioId: usuarioId,
+            precioTotal: totalPrice // Send the combined price
         };
 
         const ticketResponse = await fetch('http://localhost:44335/api/Reservas/hold', {
