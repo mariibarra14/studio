@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 import type { Category } from "@/lib/categories";
+import { useTranslation } from "react-i18next";
 
 type FiltersSheetProps = {
   isOpen: boolean;
@@ -48,6 +49,7 @@ export function FiltersSheet({
   categories,
   clearFilters,
 }: FiltersSheetProps) {
+  const { t } = useTranslation();
     
   const handleClearAndClose = () => {
     clearFilters();
@@ -58,20 +60,20 @@ export function FiltersSheet({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="flex flex-col">
         <SheetHeader>
-          <SheetTitle className="text-2xl">Filtrar Eventos</SheetTitle>
+          <SheetTitle className="text-2xl">{t('filters.title')}</SheetTitle>
           <SheetDescription>
-            Ajusta los filtros para encontrar exactamente lo que buscas.
+            {t('filters.description')}
           </SheetDescription>
         </SheetHeader>
         <div className="flex-1 overflow-y-auto py-6 px-1 space-y-8">
           <div className="space-y-4">
-            <Label htmlFor="search" className="text-base">Buscar por Nombre</Label>
+            <Label htmlFor="search" className="text-base">{t('filters.search_by_name')}</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 id="search"
                 type="search"
-                placeholder="Nombre del evento..."
+                placeholder={t('filters.event_name_placeholder')}
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -80,19 +82,19 @@ export function FiltersSheet({
           </div>
           
           <div className="space-y-4">
-            <Label htmlFor="category" className="text-base">Categoría</Label>
+            <Label htmlFor="category" className="text-base">{t('filters.category')}</Label>
             <Select
               value={selectedCategory || "all"}
               onValueChange={(value) => setSelectedCategory(value === "all" ? "" : value)}
             >
               <SelectTrigger id="category">
-                <SelectValue placeholder="Todas las categorías" />
+                <SelectValue placeholder={t('filters.all_categories')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas las categorías</SelectItem>
+                <SelectItem value="all">{t('filters.all_categories')}</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
-                    {cat.nombre}
+                    {t(`categories.${cat.nombre}` as const, { defaultValue: cat.nombre })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -100,10 +102,10 @@ export function FiltersSheet({
           </div>
 
           <div className="space-y-4">
-             <Label className="text-base">Rango de Fechas</Label>
+             <Label className="text-base">{t('filters.date_range')}</Label>
              <div className="grid grid-cols-1 gap-4">
                  <div className="space-y-2">
-                    <Label htmlFor="start-date" className="text-sm font-normal text-muted-foreground">Desde</Label>
+                    <Label htmlFor="start-date" className="text-sm font-normal text-muted-foreground">{t('filters.from')}</Label>
                     <Input
                         id="start-date"
                         type="date"
@@ -112,7 +114,7 @@ export function FiltersSheet({
                     />
                 </div>
                  <div className="space-y-2">
-                    <Label htmlFor="end-date" className="text-sm font-normal text-muted-foreground">Hasta</Label>
+                    <Label htmlFor="end-date" className="text-sm font-normal text-muted-foreground">{t('filters.to')}</Label>
                     <Input
                         id="end-date"
                         type="date"
@@ -128,10 +130,10 @@ export function FiltersSheet({
         <SheetFooter className="grid grid-cols-2 gap-4">
             <Button variant="outline" onClick={handleClearAndClose}>
                 <X className="mr-2 h-4 w-4"/>
-                Limpiar Filtros
+                {t('filters.clear')}
             </Button>
             <SheetClose asChild>
-                <Button>Aplicar Filtros</Button>
+                <Button>{t('filters.apply')}</Button>
             </SheetClose>
         </SheetFooter>
       </SheetContent>

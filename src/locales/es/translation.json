@@ -168,5 +168,29 @@
     "status_hold": "Por Pagar",
     "status_confirmed": "Confirmada",
     "status_expired": "Expirada"
+  },
+  "events": {
+    "title": "Eventos Disponibles",
+    "subtitle": "Encuentra tu próxima experiencia inolvidable.",
+    "filter": "Filtrar",
+    "book": "Reservar",
+    "retry": "Reintentar",
+    "loading_error_title": "Error al Cargar Eventos",
+    "no_events_found": "No se encontraron eventos",
+    "try_other_filters": "Intenta con otros filtros o un término de búsqueda diferente.",
+    "no_events_available": "No hay eventos disponibles en este momento."
+  },
+  "filters": {
+    "title": "Filtrar Eventos",
+    "description": "Ajusta los filtros para encontrar exactamente lo que buscas.",
+    "search_by_name": "Buscar por Nombre",
+    "event_name_placeholder": "Nombre del evento...",
+    "category": "Categoría",
+    "all_categories": "Todas las categorías",
+    "date_range": "Rango de Fechas",
+    "from": "Desde",
+    "to": "Hasta",
+    "clear": "Limpiar Filtros",
+    "apply": "Aplicar Filtros"
   }
 }

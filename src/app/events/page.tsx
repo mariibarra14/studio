@@ -20,10 +20,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { ApiEvent } from "@/lib/types";
 import { useApp } from "@/context/app-context";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 import { getAllCategories, type Category } from "@/lib/categories";
 import { FiltersSheet } from "@/components/events/filters-sheet";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
 
 export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<ApiEvent | null>(null);
@@ -31,13 +32,16 @@ export default function EventsPage() {
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { userRole } = useApp();
+  const { userRole, language } = useApp();
+  const { t } = useTranslation();
   
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const [categories, setCategories] = useState<Category[]>([]);
+  
+  const locale = language === 'es' ? es : enUS;
 
   const fetchEvents = useCallback(async () => {
     setIsLoading(true);
@@ -167,7 +171,7 @@ export default function EventsPage() {
 
                 <div className="absolute top-3 left-3 bg-background/90 rounded-lg p-2 text-center shadow-md">
                     <p className="text-xs font-bold uppercase text-primary">
-                        {format(eventDate, "MMM", { locale: es })}
+                        {format(eventDate, "MMM", { locale })}
                     </p>
                     <p className="text-xl font-bold">
                         {format(eventDate, "dd")}
@@ -182,7 +186,7 @@ export default function EventsPage() {
                 <div className="flex items-center text-sm text-muted-foreground mb-2">
                     <Calendar className="mr-2 h-4 w-4" />
                     <span>
-                        {format(eventDate, "EEEE, h:mm a", { locale: es })}
+                        {format(eventDate, "EEEE, h:mm a", { locale })}
                     </span>
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground">
@@ -194,7 +198,7 @@ export default function EventsPage() {
                 <Button className="w-full" onClick={(e) => {
                     e.stopPropagation();
                     setSelectedEvent(event);
-                }}>Reservar</Button>
+                }}>{t('events.book')}</Button>
             </CardFooter>
         </Card>
     );
@@ -221,13 +225,13 @@ export default function EventsPage() {
       <main className="flex-1 p-4 md:p-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div>
-                <h1 className="text-3xl font-bold mb-1">Eventos Disponibles</h1>
-                <p className="text-muted-foreground">Encuentra tu próxima experiencia inolvidable.</p>
+                <h1 className="text-3xl font-bold mb-1">{t('events.title')}</h1>
+                <p className="text-muted-foreground">{t('events.subtitle')}</p>
             </div>
             <div className="flex items-center gap-4">
                 <Button variant="outline" onClick={() => setIsFiltersOpen(true)} className="relative">
                     <Filter className="mr-2 h-4 w-4"/>
-                    Filtrar
+                    {t('events.filter')}
                     {activeFiltersCount > 0 && (
                         <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 justify-center p-0">{activeFiltersCount}</Badge>
                     )}
@@ -258,11 +262,11 @@ export default function EventsPage() {
            <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4 bg-card">
               <Alert variant="destructive" className="max-w-md border-0">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error al Cargar Eventos</AlertTitle>
+                  <AlertTitle>{t('events.loading_error_title')}</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
               </Alert>
               <Button onClick={fetchEvents} className="mt-6">
-                  Reintentar
+                  {t('events.retry')}
               </Button>
             </div>
         ) : filteredEvents.length > 0 ? (
@@ -273,11 +277,11 @@ export default function EventsPage() {
             </div>
         ) : (
             <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4">
-                <p className="text-2xl font-semibold text-muted-foreground mb-4">No se encontraron eventos</p>
+                <p className="text-2xl font-semibold text-muted-foreground mb-4">{t('events.no_events_found')}</p>
                 <p className="text-muted-foreground">
                   {searchQuery || selectedCategory || dateRange.start || dateRange.end
-                    ? "Intenta con otros filtros o un término de búsqueda diferente."
-                    : "No hay eventos disponibles en este momento."}
+                    ? t('events.try_other_filters')
+                    : t('events.no_events_available')}
                 </p>
             </div>
         )}

@@ -168,5 +168,29 @@
     "status_hold": "On Hold",
     "status_confirmed": "Confirmed",
     "status_expired": "Expired"
+  },
+  "events": {
+    "title": "Available Events",
+    "subtitle": "Find your next unforgettable experience.",
+    "filter": "Filter",
+    "book": "Book",
+    "retry": "Retry",
+    "loading_error_title": "Error Loading Events",
+    "no_events_found": "No events found",
+    "try_other_filters": "Try other filters or a different search term.",
+    "no_events_available": "There are no events available at this time."
+  },
+  "filters": {
+    "title": "Filter Events",
+    "description": "Adjust the filters to find exactly what you're looking for.",
+    "search_by_name": "Search by Name",
+    "event_name_placeholder": "Event name...",
+    "category": "Category",
+    "all_categories": "All Categories",
+    "date_range": "Date Range",
+    "from": "From",
+    "to": "To",
+    "clear": "Clear Filters",
+    "apply": "Apply Filters"
   }
 }
