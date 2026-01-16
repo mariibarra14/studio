@@ -137,6 +137,7 @@ export function SignupForm() {
       formData.append('Direccion', values.address);
       formData.append('FotoPerfil', 'null'); // Constant value as requested
       formData.append('Rol', authData.idrol);
+      formData.append('Preferencias', JSON.stringify([]));
       
       if (values.photo instanceof File) {
         formData.append('imagen', values.photo, values.photo.name);
