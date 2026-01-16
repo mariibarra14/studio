@@ -94,40 +94,6 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
     // Virtual event logic
     const isVirtual = booking.eventoTipo === 'Virtual';
     const isConfirmed = estadoReal === 'Confirmada';
-    const eventStartDate = booking.eventoInicio ? new Date(booking.eventoInicio) : null;
-    const [isJoinButtonEnabled, setIsJoinButtonEnabled] = useState(false);
-    const [timeUntilEvent, setTimeUntilEvent] = useState("");
-
-    useEffect(() => {
-        if (!eventStartDate || !isConfirmed || !isVirtual) return;
-
-        const checkTime = () => {
-            const now = new Date();
-            const fifteenMinutesInMillis = 15 * 60 * 1000;
-            const timeDiff = eventStartDate.getTime() - now.getTime();
-
-            if (timeDiff <= fifteenMinutesInMillis) {
-                setIsJoinButtonEnabled(true);
-                setTimeUntilEvent("");
-            } else {
-                setIsJoinButtonEnabled(false);
-                const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-                
-                let timeString = "El enlace se activará en ";
-                if (hours > 0) {
-                    timeString += `${hours}h `;
-                }
-                timeString += `${minutes}m`;
-                setTimeUntilEvent(timeString);
-            }
-        };
-
-        checkTime();
-        const interval = setInterval(checkTime, 60000); // Check every minute
-
-        return () => clearInterval(interval);
-    }, [eventStartDate, isConfirmed, isVirtual]);
 
 
     const handleAction = () => {
@@ -361,13 +327,10 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                                     <div className="flex-1">
                                         <p className="font-medium">Este evento se realizará en línea.</p>
                                         <p className="text-xs text-muted-foreground">
-                                            {isJoinButtonEnabled
-                                                ? "El evento está por comenzar o ya ha comenzado. ¡Puedes unirte ahora!"
-                                                : timeUntilEvent
-                                            }
+                                            Haz clic en el botón para acceder a la reunión virtual.
                                         </p>
                                     </div>
-                                    <Button asChild disabled={!isJoinButtonEnabled || !booking.onlineMeetingUrl}>
+                                    <Button asChild disabled={!booking.onlineMeetingUrl}>
                                         <a href={booking.onlineMeetingUrl!} target="_blank" rel="noopener noreferrer">
                                             Acceder a la Reunión
                                         </a>
