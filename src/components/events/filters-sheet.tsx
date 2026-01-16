@@ -91,8 +91,8 @@ export function FiltersSheet({
               <SelectContent>
                 <SelectItem value="all">Todas las categorías</SelectItem>
                 {categories.map((cat) => (
-                  <SelectItem key={cat._id} value={cat._id}>
-                    {cat.Nombre}
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>

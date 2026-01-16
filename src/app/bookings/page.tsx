@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Ticket, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCategoryNameById } from "@/lib/categories";
+import { getCategoryNameById, getAllCategories, type Category } from "@/lib/categories";
 
 export default function BookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<ApiBooking | null>(null);
@@ -21,6 +21,7 @@ export default function BookingsPage() {
   const [error, setError] = useState<{ title: string; message: string } | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
@@ -41,18 +42,23 @@ export default function BookingsPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:44335/api/Reservas/usuario/${userId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const [bookingsResponse, categoriesResponse] = await Promise.all([
+        fetch(`http://localhost:44335/api/Reservas/usuario/${userId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        getAllCategories(token),
+      ]);
+      
+      setCategories(categoriesResponse);
 
-      if (response.status === 401) throw new Error("401");
-      if (response.status === 404) {
+      if (bookingsResponse.status === 401) throw new Error("401");
+      if (bookingsResponse.status === 404) {
         setBookings([]);
         return;
       }
-      if (!response.ok) throw new Error("Server Error");
+      if (!bookingsResponse.ok) throw new Error("Server Error");
 
-      const initialBookings: ApiBooking[] = await response.json();
+      const initialBookings: ApiBooking[] = await bookingsResponse.json();
       
       const enrichedBookings = await Promise.all(
         initialBookings.map(async (booking) => {
@@ -86,7 +92,7 @@ export default function BookingsPage() {
                 const eventoData: ApiEvent = await eventoResponse.json();
                 eventoNombre = eventoData.nombre;
                 eventoImagen = eventoData.imagenUrl || "";
-                eventoCategoria = getCategoryNameById(eventoData.categoriaId) || 'General';
+                eventoCategoria = getCategoryNameById(categoriesResponse, eventoData.categoriaId) || 'General';
                 eventoInicio = eventoData.inicio;
                 eventoFin = eventoData.fin || "";
 

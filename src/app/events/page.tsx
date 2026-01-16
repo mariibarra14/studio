@@ -21,7 +21,7 @@ import type { ApiEvent } from "@/lib/types";
 import { useApp } from "@/context/app-context";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { getAllCategories } from "@/lib/categories";
+import { getAllCategories, type Category } from "@/lib/categories";
 import { FiltersSheet } from "@/components/events/filters-sheet";
 import { Badge } from "@/components/ui/badge";
 
@@ -37,7 +37,7 @@ export default function EventsPage() {
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  const categories = getAllCategories();
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const fetchEvents = useCallback(async () => {
     setIsLoading(true);
@@ -85,7 +85,20 @@ export default function EventsPage() {
   }, []);
 
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        setIsLoading(false);
+        setError("No estás autenticado. Por favor, inicia sesión de nuevo.");
+        return;
+    }
+
     fetchEvents();
+    
+    const fetchCategories = async () => {
+        const fetchedCategories = await getAllCategories(token);
+        setCategories(fetchedCategories);
+    };
+    fetchCategories();
   }, [fetchEvents]);
   
   const filteredEvents = useMemo(() => {

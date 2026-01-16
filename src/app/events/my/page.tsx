@@ -14,7 +14,7 @@ import { MyEventCard } from "@/components/events/my-event-card";
 import { MyEventDetailsModal } from "@/components/events/my-event-details-modal";
 import { useToast } from "@/hooks/use-toast";
 import { FiltersSheet } from "@/components/events/filters-sheet";
-import { getAllCategories } from "@/lib/categories";
+import { getAllCategories, getCategoryNameById, type Category } from "@/lib/categories";
 import { Badge } from "@/components/ui/badge";
 import { AddEventModal } from "@/components/events/add-event-modal";
 
@@ -31,7 +31,7 @@ export default function MyEventsPage() {
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const categories = getAllCategories();
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const fetchEvents = useCallback(async () => {
     setIsLoading(true);
@@ -65,6 +65,10 @@ export default function MyEventsPage() {
   useEffect(() => {
     if (user) {
       fetchEvents();
+      const token = localStorage.getItem('accessToken');
+      if(token) {
+        getAllCategories(token).then(setCategories);
+      }
     } else if (!isLoadingUser) {
         setIsLoading(false);
     }
@@ -210,7 +214,12 @@ export default function MyEventsPage() {
     return (
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {myEvents.map((event) => (
-          <MyEventCard key={event.id} event={event} onEventClick={handleEventClick} />
+          <MyEventCard 
+            key={event.id} 
+            event={event} 
+            onEventClick={handleEventClick}
+            categoryName={getCategoryNameById(categories, event.categoriaId)}
+          />
         ))}
       </div>
     );

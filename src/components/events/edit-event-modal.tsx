@@ -23,34 +23,40 @@ type EditEventModalProps = {
 
 export function EditEventModal({ isOpen, onClose, event, onUpdateSuccess }: EditEventModalProps) {
   const [venues, setVenues] = useState<Venue[]>([]);
-  const [isLoadingVenues, setIsLoadingVenues] = useState(true);
-  const categories = getAllCategories();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
-      const fetchVenues = async () => {
-        setIsLoadingVenues(true);
+      const fetchInitialData = async () => {
+        setIsLoading(true);
         const token = localStorage.getItem('accessToken');
         if (!token) {
-          setIsLoadingVenues(false);
+          setIsLoading(false);
           return;
         }
 
         try {
-          const response = await fetch('http://localhost:44335/api/events/escenarios', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
+          const [venuesRes, categoriesRes] = await Promise.all([
+            fetch('http://localhost:44335/api/events/escenarios', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            getAllCategories(token),
+          ]);
+          
+          if (venuesRes.ok) {
+            const data = await venuesRes.json();
             setVenues(data.items || []);
           }
+          setCategories(categoriesRes);
+
         } catch (error) {
-          console.error("Failed to fetch venues", error);
+          console.error("Failed to fetch data for edit modal", error);
         } finally {
-          setIsLoadingVenues(false);
+          setIsLoading(false);
         }
       };
-      fetchVenues();
+      fetchInitialData();
     }
   }, [isOpen]);
 
@@ -65,7 +71,7 @@ export function EditEventModal({ isOpen, onClose, event, onUpdateSuccess }: Edit
             Realiza cambios en la información de tu evento. Haz clic en "Guardar Cambios" cuando termines.
           </DialogDescription>
         </DialogHeader>
-        {isLoadingVenues ? (
+        {isLoading ? (
             <div className="py-4 space-y-4">
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-20 w-full" />

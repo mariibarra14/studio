@@ -341,7 +341,7 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
                                   <SelectTrigger><SelectValue placeholder="Selecciona una categoría" /></SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                  {categories.map(cat => <SelectItem key={cat._id} value={cat._id}>{cat.Nombre}</SelectItem>)}
+                                  {categories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.nombre}</SelectItem>)}
                               </SelectContent>
                               </Select>
                               <FormMessage />

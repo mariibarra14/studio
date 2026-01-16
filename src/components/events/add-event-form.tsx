@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,7 +54,7 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [venues, setVenues] = useState<Venue[]>([]);
-  const categories = getAllCategories();
+  const [categories, setCategories] = useState<Category[]>([]);
   
   // Usar useRef para prevenir doble envío
   const isSubmittingRef = useRef(false);
@@ -74,9 +75,10 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
   });
   
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
     const fetchVenues = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return;
       try {
         const response = await fetch('http://localhost:44335/api/events/escenarios', {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -89,7 +91,18 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
         console.error("Failed to fetch venues", error);
       }
     };
+
+    const fetchCategories = async () => {
+        try {
+            const fetchedCategories = await getAllCategories(token);
+            setCategories(fetchedCategories);
+        } catch (error) {
+            console.error("Failed to fetch categories", error);
+        }
+    };
+    
     fetchVenues();
+    fetchCategories();
   }, []);
 
   async function handleCreateEvent(values: z.infer<typeof formSchema>) {
@@ -213,8 +226,8 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
                       </FormControl>
                       <SelectContent>
                         {categories.map(cat => (
-                          <SelectItem key={cat._id} value={cat._id}>
-                            {cat.Nombre}
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.nombre}
                           </SelectItem>
                         ))}
                       </SelectContent>

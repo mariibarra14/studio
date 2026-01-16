@@ -8,14 +8,14 @@ import { es } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Users, MapPin, Tag } from "lucide-react";
-import { getCategoryNameById } from "@/lib/categories";
 
 type MyEventCardProps = {
   event: ApiEvent;
   onEventClick: (eventId: string) => void;
+  categoryName: string;
 };
 
-export function MyEventCard({ event, onEventClick }: MyEventCardProps) {
+export function MyEventCard({ event, onEventClick, categoryName }: MyEventCardProps) {
   const startDate = new Date(event.inicio);
   const createdDate = new Date(event.createdAt);
   
@@ -28,7 +28,6 @@ export function MyEventCard({ event, onEventClick }: MyEventCardProps) {
   };
 
   const displayStatus = getDisplayStatus(event.estado);
-  const categoryName = getCategoryNameById(event.categoriaId);
 
   return (
     <Card 

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,19 +10,15 @@ import { Loader2, AlertCircle } from "lucide-react";
 import type { User } from "@/context/app-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-
-type ApiCategory = {
-  id: string;
-  nombre: string;
-  descripcion: string;
-};
+import type { Category } from "@/lib/categories";
+import { getAllCategories } from "@/lib/categories";
 
 type PreferencesFormProps = {
   user: User;
 };
 
 export function PreferencesForm({ user }: PreferencesFormProps) {
-  const [apiCategories, setApiCategories] = useState<ApiCategory[]>([]);
+  const [apiCategories, setApiCategories] = useState<Category[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
@@ -50,16 +47,10 @@ export function PreferencesForm({ user }: PreferencesFormProps) {
       }
 
       try {
-        const response = await fetch('http://localhost:44335/api/events/Categorias', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error("Sesión caducada: Por favor, inicia sesión nuevamente para gestionar tus preferencias.");
-          }
-          throw new Error("Oops: No pudimos cargar las categorías en este momento. Intenta refrescar la página.");
+        const data = await getAllCategories(token);
+        if (data.length === 0) {
+            throw new Error("Oops: No pudimos cargar las categorías en este momento. Intenta refrescar la página.");
         }
-        const data: ApiCategory[] = await response.json();
         setApiCategories(data);
       } catch (err: any) {
         setLoadingError(err.message);

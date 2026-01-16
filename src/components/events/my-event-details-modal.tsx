@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { getCategoryNameById } from "@/lib/categories";
+import { getCategoryNameById, getAllCategories, type Category } from "@/lib/categories";
 import { EditEventModal } from "./edit-event-modal";
 import { AddZoneModal } from "./add-zone-modal";
 import { EditZoneModal } from "./edit-zone-modal";
@@ -64,6 +64,8 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
   const [serviceToCancel, setServiceToCancel] = useState<AssociatedService | null>(null);
   const [isCancellingService, setIsCancellingService] = useState(false);
 
+  const [categories, setCategories] = useState<Category[]>([]);
+
 
   const fetchDetails = useCallback(async () => {
     setIsLoading(true);
@@ -76,10 +78,13 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
     }
 
     try {
-      const [eventRes, zonasRes] = await Promise.all([
+      const [eventRes, zonasRes, categoriesRes] = await Promise.all([
         fetch(`http://localhost:44335/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`http://localhost:44335/api/events/${eventId}/zonas`, { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`http://localhost:44335/api/events/${eventId}/zonas`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        getAllCategories(token),
       ]);
+      
+      setCategories(categoriesRes);
 
       if (!eventRes.ok) throw new Error("No se pudo cargar el evento.");
       const eventData: ApiEvent = await eventRes.json();
@@ -356,7 +361,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
     }
     
     const displayStatus = getDisplayStatus(details.estado);
-    const categoryName = getCategoryNameById(details.categoriaId);
+    const categoryName = getCategoryNameById(categories, details.categoriaId);
 
     return (
         <>
