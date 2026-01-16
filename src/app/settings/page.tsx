@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -122,7 +123,7 @@ export default function SettingsPage() {
               <CardFooter className="justify-end">
                 <Button onClick={handleSave} disabled={!hasChanges}>
                   <Save className="mr-2 h-4 w-4" />
-                  Guardar Ajustes
+                  {t('settings.save_button')}
                 </Button>
               </CardFooter>
             </Card>

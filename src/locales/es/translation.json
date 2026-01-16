@@ -40,7 +40,8 @@
       "detected_in": "Hemos detectado que te encuentras en",
       "auto_config": "Tu idioma y moneda se han configurado automáticamente. Puedes cambiarlos manualmente.",
       "not_detected": "No pudimos detectar tu región automáticamente. Se aplicó la configuración por defecto."
-    }
+    },
+    "save_button": "Guardar Ajustes"
   },
   "profile": {
     "title": "Gestión de Cuenta",
@@ -56,7 +57,16 @@
     },
     "change_password": {
       "title": "Cambiar Contraseña",
-      "description": "Actualice la contraseña de su cuenta."
+      "description": "Actualice la contraseña de su cuenta.",
+      "toast_success_title": "Contraseña Actualizada",
+      "toast_success_desc": "Su contraseña ha sido cambiada exitosamente. Por seguridad, su sesión ha sido cerrada. Por favor, inicie sesión de nuevo.",
+      "toast_error_session_title": "Error de sesión",
+      "toast_error_session_desc": "Su sesión expiró. Vuelva a iniciar sesión e inténtelo de nuevo.",
+      "toast_error_change_title": "Error al Cambiar Contraseña",
+      "toast_error_change_desc_generic": "Error inesperado: No se pudo actualizar la contraseña. Por favor, inténtelo de nuevo más tarde.",
+      "toast_error_change_desc_auth": "Error al cambiar contraseña: Hubo un problema con el servicio de autenticación.",
+      "toast_error_connection_title": "Error de Conexión",
+      "toast_error_connection_desc": "No se pudo conectar con el servidor. Por favor, intente más tarde."
     },
     "payment_methods": {
       "title": "Métodos de Pago",
@@ -64,7 +74,15 @@
     },
     "activity_history": {
       "title": "Historial de Actividad",
-      "description": "Un registro de la actividad reciente de su cuenta."
+      "description": "Un registro de la actividad reciente de su cuenta.",
+      "table_header_action": "Acción",
+      "table_header_date": "Fecha",
+      "error_auth_title": "Error de Sesión",
+      "error_auth_desc": "Error de autorización: Su sesión expiró o no está autenticada. (Por favor, inicie sesión de nuevo.)",
+      "error_no_history_title": "Sin Actividad",
+      "error_no_history_desc": "No hay historial de actividad disponible. (Aún no ha realizado acciones registradas.)",
+      "error_connection_title": "Error de Conexión",
+      "error_connection_desc": "No se pudo conectar con el servidor para obtener el historial."
     },
     "content_preferences": {
       "title": "Preferencias de Contenido",
@@ -192,5 +210,16 @@
     "to": "Hasta",
     "clear": "Limpiar Filtros",
     "apply": "Aplicar Filtros"
+  },
+  "general": {
+    "cancelling": "Cancelando..."
+  },
+  "community": {
+    "title": "Comunidad",
+    "placeholder": "El contenido de la comunidad va aquí"
+  },
+  "surveys": {
+    "title": "Encuestas",
+    "placeholder": "El contenido de las encuestas va aquí"
   }
 }

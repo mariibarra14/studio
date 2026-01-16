@@ -40,7 +40,8 @@
       "detected_in": "We've detected you're in",
       "auto_config": "Your language and currency have been set automatically. You can change them manually above.",
       "not_detected": "We couldn't automatically detect your region. Default settings have been applied."
-    }
+    },
+    "save_button": "Save Settings"
   },
   "profile": {
     "title": "Account Management",
@@ -56,7 +57,16 @@
     },
     "change_password": {
       "title": "Change Password",
-      "description": "Update your account password."
+      "description": "Update your account password.",
+      "toast_success_title": "Password Updated",
+      "toast_success_desc": "Your password has been changed. For security, you have been logged out. Please log in again.",
+      "toast_error_session_title": "Session Error",
+      "toast_error_session_desc": "Your session has expired. Please log in again and retry.",
+      "toast_error_change_title": "Error Changing Password",
+      "toast_error_change_desc_generic": "Unexpected error: Could not update the password. Please try again later.",
+      "toast_error_change_desc_auth": "Error changing password: There was a problem with the authentication service.",
+      "toast_error_connection_title": "Connection Error",
+      "toast_error_connection_desc": "Could not connect to the server. Please try again later."
     },
     "payment_methods": {
       "title": "Payment Methods",
@@ -64,7 +74,15 @@
     },
     "activity_history": {
       "title": "Activity History",
-      "description": "A log of recent activity on your account."
+      "description": "A log of recent activity on your account.",
+      "table_header_action": "Action",
+      "table_header_date": "Date",
+      "error_auth_title": "Session Error",
+      "error_auth_desc": "Authorization error: Your session expired or you are not authenticated. (Please log in again.)",
+      "error_no_history_title": "No Activity",
+      "error_no_history_desc": "No activity history available. (You have not performed any registered actions yet.)",
+      "error_connection_title": "Connection Error",
+      "error_connection_desc": "Could not connect to the server to get history."
     },
     "content_preferences": {
       "title": "Content Preferences",
@@ -192,5 +210,16 @@
     "to": "To",
     "clear": "Clear Filters",
     "apply": "Apply Filters"
+  },
+  "general": {
+    "cancelling": "Cancelling..."
+  },
+  "community": {
+    "title": "Community",
+    "placeholder": "Community content goes here"
+  },
+  "surveys": {
+    "title": "Surveys",
+    "placeholder": "Survey content goes here"
   }
 }

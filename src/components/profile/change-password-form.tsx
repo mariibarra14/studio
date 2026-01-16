@@ -58,8 +58,8 @@ export function ChangePasswordForm() {
     if (!token || !userId) {
       toast({
         variant: "destructive",
-        title: "Error de sesión",
-        description: "Su sesión expiró. Vuelva a iniciar sesión e inténtelo de nuevo.",
+        title: t('profile.change_password.toast_error_session_title'),
+        description: t('profile.change_password.toast_error_session_desc'),
       });
       setIsLoading(false);
       return;
@@ -79,8 +79,8 @@ export function ChangePasswordForm() {
 
       if (response.ok) {
         toast({
-          title: "Contraseña Actualizada",
-          description: "Su contraseña ha sido cambiada exitosamente. Por seguridad, su sesión ha sido cerrada. Por favor, inicie sesión de nuevo.",
+          title: t('profile.change_password.toast_success_title'),
+          description: t('profile.change_password.toast_success_desc'),
         });
         form.reset();
 
@@ -94,25 +94,25 @@ export function ChangePasswordForm() {
       } else {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.message || "Error inesperado.";
-        let userFriendlyMessage = "Error inesperado: No se pudo actualizar la contraseña. Por favor, inténtelo de nuevo más tarde.";
+        let userFriendlyMessage = t('profile.change_password.toast_error_change_desc_generic');
 
         if (response.status === 401) {
-            userFriendlyMessage = "Error de sesión: Su sesión expiró. Vuelva a iniciar sesión e inténtelo de nuevo.";
+            userFriendlyMessage = t('profile.change_password.toast_error_session_desc');
         } else if (errorMessage.includes("Error al actualizar la contraseña en Keycloak")) {
-            userFriendlyMessage = "Error al cambiar contraseña: Hubo un problema con el servicio de autenticación.";
+            userFriendlyMessage = t('profile.change_password.toast_error_change_desc_auth');
         }
         
         toast({
           variant: "destructive",
-          title: "Error al Cambiar Contraseña",
+          title: t('profile.change_password.toast_error_change_title'),
           description: userFriendlyMessage,
         });
       }
     } catch (error) {
        toast({
         variant: "destructive",
-        title: "Error de Conexión",
-        description: "No se pudo conectar con el servidor. Por favor, intente más tarde.",
+        title: t('profile.change_password.toast_error_connection_title'),
+        description: t('profile.change_password.toast_error_connection_desc'),
       });
     } finally {
       setIsLoading(false);

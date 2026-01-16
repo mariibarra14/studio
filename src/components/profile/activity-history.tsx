@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
 import { LogIn, User, CreditCard, ShoppingCart, LogOut, Pencil, History, AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -47,7 +47,7 @@ export function ActivityHistory() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useApp();
+  const { user, language } = useApp();
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -57,7 +57,7 @@ export function ActivityHistory() {
       const userId = localStorage.getItem('userId');
 
       if (!userId || !token) {
-        setError("Error de autorización: Su sesión expiró o no está autenticada. (Por favor, inicie sesión de nuevo.)");
+        setError("auth");
         setIsLoading(false);
         return;
       }
@@ -73,27 +73,25 @@ export function ActivityHistory() {
           const data = await response.json();
           setActivities(data);
           if (data.length === 0) {
-            setError("No hay historial de actividad disponible. (Aún no ha realizado acciones registradas.)")
+            setError("no_history")
           }
         } else {
             const errorText = await response.text();
-            let friendlyMessage = "Error al cargar el historial. (Hubo un problema al intentar obtener su actividad.)";
-
+            
             if (response.status === 401) {
-              friendlyMessage = "Error de autorización: Su sesión expiró o no está autenticada. (Por favor, inicie sesión de nuevo.)";
-            } else if (response.status === 400) {
-              friendlyMessage = "Error de datos: Faltó el identificador del usuario. (No se pudo cargar el historial.)";
-            } else if (errorText.includes("No se encontraron actividades")) {
-                friendlyMessage = "No hay historial de actividad disponible. (Aún no ha realizado acciones registradas.)";
+              setError("auth");
+            } else if (response.status === 400 || errorText.includes("No se encontraron actividades")) {
+              setError("no_history");
+            } else {
+              setError("load");
             }
-            setError(friendlyMessage);
         }
       } catch (e) {
-        setError("Error al cargar el historial. (Hubo un problema al intentar obtener su actividad.)");
+        setError("load");
         toast({
             variant: "destructive",
-            title: "Error de Conexión",
-            description: "No se pudo conectar con el servidor para obtener el historial."
+            title: t('profile.activity_history.error_connection_title'),
+            description: t('profile.activity_history.error_connection_desc')
         })
       } finally {
         setIsLoading(false);
@@ -101,7 +99,7 @@ export function ActivityHistory() {
     };
 
     fetchActivityHistory();
-  }, [toast]);
+  }, [toast, t]);
 
   if (isLoading) {
     return (
@@ -112,11 +110,14 @@ export function ActivityHistory() {
   }
 
   if (error && activities.length === 0) {
+    const isAuthError = error === 'auth';
+    const errorTitleKey = isAuthError ? 'profile.activity_history.error_auth_title' : 'profile.activity_history.error_no_history_title';
+    const errorDescKey = isAuthError ? 'profile.activity_history.error_auth_desc' : 'profile.activity_history.error_no_history_desc';
     return (
-       <Alert variant={error.includes("autorización") ? "destructive" : "default"}>
+       <Alert variant={isAuthError ? "destructive" : "default"}>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{error.includes("autorización") ? "Error de Sesión" : "Sin Actividad"}</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertTitle>{t(errorTitleKey)}</AlertTitle>
+          <AlertDescription>{t(errorDescKey)}</AlertDescription>
         </Alert>
     )
   }
@@ -126,8 +127,8 @@ export function ActivityHistory() {
       <Table>
         <TableHeader className="sticky top-0 bg-background z-10">
           <TableRow>
-            <TableHead>{t('profile.activity_history.title')}</TableHead>
-            <TableHead className="text-right">Fecha</TableHead>
+            <TableHead>{t('profile.activity_history.table_header_action')}</TableHead>
+            <TableHead className="text-right">{t('profile.activity_history.table_header_date')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -138,7 +139,7 @@ export function ActivityHistory() {
                 <span>{activity.accion}</span>
               </TableCell>
               <TableCell className="text-right text-muted-foreground">
-                {format(new Date(activity.timestamp), "dd/MM/yyyy h:mm a", { locale: es })}
+                {format(new Date(activity.timestamp), "dd/MM/yyyy h:mm a", { locale: language === 'es' ? es : enUS })}
               </TableCell>
             </TableRow>
           ))}
