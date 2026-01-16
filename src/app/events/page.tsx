@@ -293,8 +293,8 @@ export default function EventsPage() {
                           </CarouselItem>
                       ))}
                   </CarouselContent>
-                  <CarouselPrevious className="ml-12"/>
-                  <CarouselNext className="mr-12"/>
+                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-background/70 hover:bg-background/90" />
+                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-background/70 hover:bg-background/90" />
               </Carousel>
           </section>
         )}
