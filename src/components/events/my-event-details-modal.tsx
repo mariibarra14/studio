@@ -76,10 +76,9 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
     }
 
     try {
-      const [eventRes, zonasRes, serviceBookingsRes] = await Promise.all([
+      const [eventRes, zonasRes] = await Promise.all([
         fetch(`http://localhost:44335/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`http://localhost:44335/api/events/${eventId}/zonas`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`http://localhost:44335/api/ServComps/Servs/getRegistrosByIdEvento?idEvento=${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`http://localhost:44335/api/events/${eventId}/zonas`, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
       if (!eventRes.ok) throw new Error("No se pudo cargar el evento.");
@@ -99,30 +98,48 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
 
       setDetails({ ...eventData, venue: venueData, zonas: zonasData });
 
+      // Fetch associated services separately to handle its specific responses
+      const serviceBookingsRes = await fetch(`http://localhost:44335/api/ServComps/Servs/getRegistrosByIdEvento?idEvento=${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      
       if (serviceBookingsRes.ok) {
-        const eventServiceBookings: ServiceBookingRecord[] = await serviceBookingsRes.json();
+        const responseText = await serviceBookingsRes.text();
         
-        const enrichedServices = await Promise.all(
-            eventServiceBookings.map(async (booking) => {
-                const serviceRes = await fetch(`http://localhost:44335/api/ServComps/Servs/getServicioById?idServicio=${booking.idServicio}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (serviceRes.ok) {
-                    const serviceData: ComplementaryService = await serviceRes.json();
-                    return {
-                        bookingId: booking.id,
-                        serviceId: serviceData.id,
-                        serviceName: serviceData.nombre,
-                        serviceType: serviceData.tipo,
-                        servicePhoto: serviceData.fotoServicio,
-                        startDate: booking.fechaInicio,
-                        endDate: booking.fechaFin,
-                    };
-                }
-                return null;
-            })
-        );
-        
-        setAssociatedServices(enrichedServices.filter(s => s !== null) as AssociatedService[]);
+        // API returns a text message for no results, even with a 200 OK status.
+        if (responseText.includes("No se encontraron registros")) {
+          setAssociatedServices([]);
+        } else {
+          try {
+            const eventServiceBookings: ServiceBookingRecord[] = JSON.parse(responseText);
+            const enrichedServices = await Promise.all(
+                eventServiceBookings.map(async (booking) => {
+                    const serviceRes = await fetch(`http://localhost:44335/api/ServComps/Servs/getServicioById?idServicio=${booking.idServicio}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (serviceRes.ok) {
+                        const serviceData: ComplementaryService = await serviceRes.json();
+                        return {
+                            bookingId: booking.id,
+                            serviceId: serviceData.id,
+                            serviceName: serviceData.nombre,
+                            serviceType: serviceData.tipo,
+                            servicePhoto: serviceData.fotoServicio,
+                            startDate: booking.fechaInicio,
+                            endDate: booking.fechaFin,
+                        };
+                    }
+                    return null;
+                })
+            );
+            setAssociatedServices(enrichedServices.filter(s => s !== null) as AssociatedService[]);
+          } catch(e) {
+             console.error("Failed to parse service bookings response:", e);
+             setAssociatedServices([]); // Default to empty on parsing error
+          }
+        }
       } else if (serviceBookingsRes.status === 404) {
+        // Handle explicit 404 Not Found
+        setAssociatedServices([]);
+      } else {
+        // For other server errors (5xx etc.), log it but don't show a blocking error
+        console.error("Failed to fetch associated services:", serviceBookingsRes.statusText);
         setAssociatedServices([]);
       }
 
