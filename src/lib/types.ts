@@ -141,3 +141,24 @@ export type Product = {
   descripcion: string;
   fotoProducto: string;
 };
+
+export type ServiceBookingRecord = {
+  id: string;
+  idServicio: string;
+  idOrganizador: string;
+  idEvento: string;
+  fechaInicio: string;
+  fechaFin: string;
+};
+
+export type AssociatedService = {
+  bookingId: string;
+  serviceId: string;
+  serviceName: string;
+  serviceType: string;
+  servicePhoto?: string | null;
+  startDate: string;
+  endDate: string;
+};
+
+    

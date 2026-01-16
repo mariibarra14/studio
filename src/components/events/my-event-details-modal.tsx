@@ -6,10 +6,10 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Calendar, Users, MapPin, Tag, FileText, Building, AlertCircle, Clock, Link as LinkIcon, Info, ArrowLeft, Trash2, Loader2, Edit, PlusCircle } from "lucide-react";
+import { Calendar, Users, MapPin, Tag, FileText, Building, AlertCircle, Clock, Link as LinkIcon, Info, ArrowLeft, Trash2, Loader2, Edit, PlusCircle, ConciergeBell } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import type { ApiEvent, Venue, Zone } from "@/lib/types";
+import type { ApiEvent, Venue, Zone, AssociatedService, ServiceBookingRecord, ComplementaryService } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,7 @@ import { getCategoryNameById } from "@/lib/categories";
 import { EditEventModal } from "./edit-event-modal";
 import { AddZoneModal } from "./add-zone-modal";
 import { EditZoneModal } from "./edit-zone-modal";
+import { AddServiceToEventModal } from "./add-service-to-event-modal";
 
 type MyEventDetailsModalProps = {
   eventId: string;
@@ -43,12 +44,15 @@ type DetailedEvent = ApiEvent & {
 
 export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditSuccess }: MyEventDetailsModalProps) {
   const [details, setDetails] = useState<DetailedEvent | null>(null);
+  const [associatedServices, setAssociatedServices] = useState<AssociatedService[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+  
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddZoneModalOpen, setIsAddZoneModalOpen] = useState(false);
+  const [isAddServiceModalOpen, setIsAddServiceModalOpen] = useState(false);
   
   const [isEditZoneModalOpen, setIsEditZoneModalOpen] = useState(false);
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
@@ -69,9 +73,10 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
     }
 
     try {
-      const [eventRes, zonasRes] = await Promise.all([
+      const [eventRes, zonasRes, serviceBookingsRes] = await Promise.all([
         fetch(`http://localhost:44335/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`http://localhost:44335/api/events/${eventId}/zonas`, { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`http://localhost:44335/api/events/${eventId}/zonas`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`http://localhost:44335/api/ServComps/Servs/getTodosRegistros`, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
       if (!eventRes.ok) throw new Error("No se pudo cargar el evento.");
@@ -90,6 +95,33 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
       }
 
       setDetails({ ...eventData, venue: venueData, zonas: zonasData });
+
+      if (serviceBookingsRes.ok) {
+        const allBookings: ServiceBookingRecord[] = await serviceBookingsRes.json();
+        const eventServiceBookings = allBookings.filter(b => b.idEvento === eventId);
+        
+        const enrichedServices = await Promise.all(
+            eventServiceBookings.map(async (booking) => {
+                const serviceRes = await fetch(`http://localhost:44335/api/ServComps/Servs/getServicioById?idServicio=${booking.idServicio}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (serviceRes.ok) {
+                    const serviceData: ComplementaryService = await serviceRes.json();
+                    return {
+                        bookingId: booking.id,
+                        serviceId: serviceData.id,
+                        serviceName: serviceData.nombre,
+                        serviceType: serviceData.tipo,
+                        servicePhoto: serviceData.fotoServicio,
+                        startDate: booking.fechaInicio,
+                        endDate: booking.fechaFin,
+                    };
+                }
+                return null;
+            })
+        );
+        
+        setAssociatedServices(enrichedServices.filter(s => s !== null) as AssociatedService[]);
+      }
+
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -151,14 +183,12 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
     const token = localStorage.getItem('accessToken');
     
     try {
-      // Step 1: Fetch seats for the zone
       const seatsResponse = await fetch(`http://localhost:44335/api/events/${eventId}/zonas/${zoneToDelete.id}/asientos`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!seatsResponse.ok) throw new Error('No se pudieron obtener los asientos de la zona.');
       const seats: any[] = await seatsResponse.json();
 
-      // Step 2: Delete each seat
       for (const seat of seats) {
         const deleteSeatResponse = await fetch(`http://localhost:44335/api/events/${eventId}/zonas/${zoneToDelete.id}/asientos/${seat.id}`, {
           method: 'DELETE',
@@ -169,7 +199,6 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
         }
       }
 
-      // Step 3: Delete the zone itself
       const deleteZoneResponse = await fetch(`http://localhost:44335/api/events/${eventId}/zonas/${zoneToDelete.id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -201,12 +230,17 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
 
   const handleAddZoneSuccess = () => {
     setIsAddZoneModalOpen(false);
-    fetchDetails(); // Refetch event details to show the new zone
+    fetchDetails();
   };
 
   const handleEditZoneSuccess = () => {
     setIsEditZoneModalOpen(false);
     setSelectedZone(null);
+    fetchDetails();
+  }
+  
+  const handleAddServiceSuccess = () => {
+    setIsAddServiceModalOpen(false);
     fetchDetails();
   }
 
@@ -380,6 +414,42 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                                 )}
                             </section>
 
+                            <section className="space-y-3 pt-4 border-t">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-semibold text-lg flex items-center">
+                                        <ConciergeBell className="mr-2 h-5 w-5 text-primary" />Servicios Apartados
+                                    </h3>
+                                    <Button size="sm" variant="outline" onClick={() => setIsAddServiceModalOpen(true)}>
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Agregar Servicio
+                                    </Button>
+                                </div>
+                                {associatedServices.length > 0 ? (
+                                     <div className="space-y-2">
+                                        {associatedServices.map(service => (
+                                            <div key={service.bookingId} className="flex items-center gap-4 p-3 border rounded-lg">
+                                                {service.servicePhoto && service.servicePhoto !== 'string' ? (
+                                                    <Image src={service.servicePhoto} alt={service.serviceName} width={64} height={64} className="rounded-md object-cover aspect-square bg-muted" />
+                                                ) : (
+                                                    <div className="h-16 w-16 bg-muted rounded-md flex items-center justify-center">
+                                                        <ConciergeBell className="h-8 w-8 text-muted-foreground"/>
+                                                    </div>
+                                                )}
+                                                <div className="flex-1">
+                                                    <p className="font-semibold">{service.serviceName}</p>
+                                                    <p className="text-sm text-muted-foreground">{service.serviceType}</p>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        {format(new Date(service.startDate), 'dd/MM/yy HH:mm')} - {format(new Date(service.endDate), 'dd/MM/yy HH:mm')}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">Este evento no tiene servicios complementarios apartados.</p>
+                                )}
+                            </section>
+
                             {details.venue && (
                                 <section className="space-y-3 pt-4 border-t">
                                     <h3 className="font-semibold text-lg flex items-center"><Building className="mr-2 h-5 w-5 text-primary" />Escenario</h3>
@@ -453,6 +523,12 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                     escenarioId={details.escenarioId}
                     eventoAforoMaximo={details.aforoMaximo}
                     zonasExistentes={details.zonas || []}
+                />
+                <AddServiceToEventModal
+                    isOpen={isAddServiceModalOpen}
+                    onClose={() => setIsAddServiceModalOpen(false)}
+                    onSuccess={handleAddServiceSuccess}
+                    event={details}
                 />
                 {selectedZone && (
                   <EditZoneModal
