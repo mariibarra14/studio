@@ -1,8 +1,10 @@
 
 "use client";
 
+import "@/lib/i18n"; // Import i18next configuration
 import { useToast } from "@/hooks/use-toast";
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import type { i18n } from "i18next";
 
 // Simple JWT decoder
 function decodeJwt(token: string) {
@@ -34,6 +36,25 @@ export type User = {
   preferencias: string[];
 };
 
+export type Currency = {
+  code: string;
+  name: string;
+  symbol: string;
+};
+
+export type Language = {
+  code: string;
+  name: string;
+};
+
+export type Region = {
+  countryCode: string;
+  name: string;
+  currency: Currency;
+  language: Language;
+};
+
+
 type AppContextType = {
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
@@ -42,9 +63,40 @@ type AppContextType = {
   userRole: string | null;
   refetchUser: () => Promise<void>;
   prefetchUser: (token: string, userId: string) => Promise<void>;
+  
+  // Locale state
+  isLoadingLocale: boolean;
+  language: string;
+  currency: Currency;
+  detectedRegion: Region | null;
+  supportedLanguages: Language[];
+  supportedCurrencies: Currency[];
+  setLocale: (language: string, currencyCode: string) => void;
+  i18n: i18n;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+const supportedLanguages: Language[] = [
+  { code: 'es', name: 'Español' },
+  { code: 'en', name: 'English' },
+];
+
+const supportedCurrencies: Currency[] = [
+  { code: 'COP', name: 'Pesos Colombianos', symbol: '$' },
+  { code: 'USD', name: 'Dólares Americanos', symbol: '$' },
+  { code: 'EUR', name: 'Euros', symbol: '€' },
+];
+
+const regionMappings: { [key: string]: Omit<Region, 'name'> } = {
+  'CO': { countryCode: 'CO', currency: supportedCurrencies[0], language: supportedLanguages[0] }, // Colombia
+  'US': { countryCode: 'US', currency: supportedCurrencies[1], language: supportedLanguages[1] }, // United States
+  'ES': { countryCode: 'ES', currency: supportedCurrencies[2], language: supportedLanguages[0] }, // Spain
+  'VE': { countryCode: 'VE', currency: supportedCurrencies[1], language: supportedLanguages[0] }, // Venezuela
+  // Default fallback
+  'default': { countryCode: 'US', currency: supportedCurrencies[1], language: supportedLanguages[1] },
+};
+
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -52,7 +104,63 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const { toast } = useToast();
+
+  // Locale state
+  const [isLoadingLocale, setIsLoadingLocale] = useState(true);
+  const [language, setLanguage] = useState(supportedLanguages[1].code);
+  const [currency, setCurrency] = useState(supportedCurrencies[1]);
+  const [detectedRegion, setDetectedRegion] = useState<Region | null>(null);
+  const { i18n } = useToast();
+
+
+  const setLocale = (languageCode: string, currencyCode: string) => {
+    const newLang = supportedLanguages.find(l => l.code === languageCode) || supportedLanguages[1];
+    const newCurr = supportedCurrencies.find(c => c.code === currencyCode) || supportedCurrencies[1];
+    
+    setLanguage(newLang.code);
+    setCurrency(newCurr);
+    i18n.changeLanguage(newLang.code);
+    localStorage.setItem('userLanguage', newLang.code);
+    localStorage.setItem('userCurrency', newCurr.code);
+  };
   
+  useEffect(() => {
+    const initializeLocale = async () => {
+      setIsLoadingLocale(true);
+      const savedLang = localStorage.getItem('userLanguage');
+      const savedCurr = localStorage.getItem('userCurrency');
+
+      if (savedLang && savedCurr) {
+        setLocale(savedLang, savedCurr);
+      } else {
+        try {
+          const response = await fetch("https://ipapi.co/json/");
+          if (response.ok) {
+            const data = await response.json();
+            const countryCode = data.country_code;
+            const regionConfig = regionMappings[countryCode] || regionMappings.default;
+            
+            setDetectedRegion({
+              ...regionConfig,
+              name: data.country_name,
+            });
+            setLocale(regionConfig.language.code, regionConfig.currency.code);
+          } else {
+            // Fallback to default if API fails
+            setLocale(regionMappings.default.language.code, regionMappings.default.currency.code);
+          }
+        } catch (error) {
+          console.warn("Could not fetch user region, using default settings.");
+          setLocale(regionMappings.default.language.code, regionMappings.default.currency.code);
+        }
+      }
+      setIsLoadingLocale(false);
+    };
+
+    initializeLocale();
+  }, [i18n]);
+
+
   const fetchUserAndRole = useCallback(async (
     token: string,
     userId: string
@@ -164,7 +272,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AppContext.Provider value={{ isSidebarOpen, toggleSidebar, user, isLoadingUser, userRole, refetchUser, prefetchUser }}>
+    <AppContext.Provider value={{ 
+        isSidebarOpen, 
+        toggleSidebar, 
+        user, 
+        isLoadingUser, 
+        userRole, 
+        refetchUser, 
+        prefetchUser,
+        isLoadingLocale,
+        language,
+        currency,
+        detectedRegion,
+        supportedLanguages,
+        supportedCurrencies,
+        setLocale,
+        i18n
+     }}>
       {children}
     </AppContext.Provider>
   );
