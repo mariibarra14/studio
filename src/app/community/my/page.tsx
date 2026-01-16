@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -12,23 +11,10 @@ import { ForumCard } from "@/components/community/ForumCard";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/app-context";
 import { AddForumModal } from "@/components/community/AddForumModal";
-import { EditForumModal } from "@/components/community/EditForumModal";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
 
 export default function MyCommunityPage() {
   const { t } = useTranslation();
   const { user, userRole } = useApp();
-  const { toast } = useToast();
 
   const [allForums, setAllForums] = useState<Forum[]>([]);
   const [allEvents, setAllEvents] = useState<ApiEvent[]>([]);
@@ -36,9 +22,6 @@ export default function MyCommunityPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingForum, setEditingForum] = useState<Forum | null>(null);
-  const [deletingForum, setDeletingForum] = useState<Forum | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -109,38 +92,6 @@ export default function MyCommunityPage() {
     fetchData();
   };
 
-  const handleEditSuccess = () => {
-    setEditingForum(null);
-    fetchData();
-  };
-  
-  const handleDeleteForum = async () => {
-    if (!deletingForum) return;
-
-    setIsProcessing(true);
-    const token = localStorage.getItem("accessToken");
-
-    try {
-      const response = await fetch(`http://localhost:44335/api/foros/${deletingForum.id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (response.status === 204) {
-        toast({ title: "Foro eliminado correctamente." });
-        setDeletingForum(null);
-        fetchData();
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "No se pudo eliminar el foro.");
-      }
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Error al eliminar", description: err.message });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -187,9 +138,6 @@ export default function MyCommunityPage() {
             key={forum.id}
             forum={forum}
             event={event}
-            userId={user?.id}
-            onEdit={() => setEditingForum(forum)}
-            onDelete={() => setDeletingForum(forum)}
           />
         ))}
       </div>
@@ -221,33 +169,6 @@ export default function MyCommunityPage() {
           onSuccess={handleCreateSuccess}
         />
       )}
-
-      {editingForum && (
-        <EditForumModal
-          forum={editingForum}
-          isOpen={!!editingForum}
-          onClose={() => setEditingForum(null)}
-          onSuccess={handleEditSuccess}
-        />
-      )}
-
-      <AlertDialog open={!!deletingForum} onOpenChange={() => setDeletingForum(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro de que quieres eliminar este foro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción es permanente y no se puede deshacer. El foro "{deletingForum?.titulo}" será eliminado.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteForum} disabled={isProcessing}>
-              {isProcessing ? "Eliminando..." : "Sí, eliminar"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
     </AuthenticatedLayout>
   );
 }

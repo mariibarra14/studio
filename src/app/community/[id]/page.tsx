@@ -1,13 +1,12 @@
-
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { useApp } from "@/context/app-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, ArrowLeft, Send, Calendar, MessageSquare } from "lucide-react";
+import { AlertCircle, ArrowLeft, Send, Calendar, MessageSquare, Edit, Trash2, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -18,18 +17,40 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Forum, EnrichedForumThread, ForumThread } from "@/lib/types";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
+import { EditForumModal } from "@/components/community/EditForumModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function ForumDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const forumId = params.id as string;
+  const { user } = useApp();
   const { i18n } = useApp();
   const { t } = useTranslation();
   const locale = i18n.language === 'es' ? es : enUS;
+  const { toast } = useToast();
 
   const [forum, setForum] = useState<Forum | null>(null);
   const [threads, setThreads] = useState<EnrichedForumThread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [editingForum, setEditingForum] = useState<Forum | null>(null);
+  const [deletingForum, setDeletingForum] = useState<Forum | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const isOwner = useMemo(() => user && forum && user.id === forum.creadorId, [user, forum]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -58,6 +79,7 @@ export default function ForumDetailPage() {
 
       if (threadsRes.status === 404) {
         setThreads([]);
+        setIsLoading(false);
         return;
       }
       if (!threadsRes.ok) throw new Error("No se pudieron cargar los hilos de discusión.");
@@ -108,6 +130,39 @@ export default function ForumDetailPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+  
+  const handleEditSuccess = () => {
+    setEditingForum(null);
+    fetchData(); // Refetch forum data to show updates
+  };
+
+  const handleDeleteForum = async () => {
+    if (!deletingForum) return;
+
+    setIsProcessing(true);
+    const token = localStorage.getItem("accessToken");
+
+    try {
+      const response = await fetch(`http://localhost:44335/api/foros/${deletingForum.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (response.status === 204) {
+        toast({ title: "Foro eliminado correctamente." });
+        router.push('/community/my');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "No se pudo eliminar el foro.");
+      }
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Error al eliminar", description: err.message });
+    } finally {
+      setIsProcessing(false);
+      setDeletingForum(null);
+    }
+  };
+
 
   const renderContent = () => {
     if (isLoading) {
@@ -203,7 +258,7 @@ export default function ForumDetailPage() {
         <div className="border-b p-4">
             <div className="flex items-start gap-4">
                 <Button variant="outline" size="icon" asChild>
-                    <Link href="/community"><ArrowLeft className="h-4 w-4" /></Link>
+                    <Link href={isOwner ? "/community/my" : "/community"}><ArrowLeft className="h-4 w-4" /></Link>
                 </Button>
                 <div className="flex-1">
                     <h1 className="text-xl font-bold">{forum?.titulo || <Skeleton className="h-6 w-48" />}</h1>
@@ -217,10 +272,49 @@ export default function ForumDetailPage() {
                         )}
                     </div>
                 </div>
+                {isOwner && forum && (
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setEditingForum(forum)}>
+                      <Edit className="mr-2 h-4 w-4"/>
+                      Editar
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => setDeletingForum(forum)}>
+                      <Trash2 className="mr-2 h-4 w-4"/>
+                      Eliminar
+                    </Button>
+                  </div>
+                )}
             </div>
         </div>
         {renderContent()}
       </main>
+
+      {editingForum && (
+        <EditForumModal
+          forum={editingForum}
+          isOpen={!!editingForum}
+          onClose={() => setEditingForum(null)}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+
+      <AlertDialog open={!!deletingForum} onOpenChange={() => setDeletingForum(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro de que quieres eliminar este foro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción es permanente y no se puede deshacer. El foro "{deletingForum?.titulo}" será eliminado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteForum} disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="animate-spin" /> : "Sí, eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </AuthenticatedLayout>
   );
 }
