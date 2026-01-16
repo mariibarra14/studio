@@ -5,12 +5,23 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, Package, ShoppingBag, DollarSign, Layers, PlusCircle } from "lucide-react";
+import { Loader2, AlertCircle, Package, ShoppingBag, DollarSign, Layers, PlusCircle, Trash2 } from "lucide-react";
 import type { ComplementaryService, Product } from "@/lib/types";
 import { AddProductModal } from "./AddProductModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 type ProductListModalProps = {
   service: ComplementaryService;
@@ -23,6 +34,9 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
 
   const fetchProducts = useCallback(async () => {
     if (!service.id) return;
@@ -72,8 +86,46 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
     fetchProducts();
   };
 
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
+    
+    setIsDeleting(true);
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+        toast({ variant: "destructive", title: "Acceso Denegado", description: "Tu sesión ha expirado o no tienes permisos para realizar esta acción." });
+        setIsDeleting(false);
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:44335/api/ServComps/Prods/eliminarProducto?idProducto=${productToDelete.id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const responseText = await response.text();
+
+        if (response.ok && responseText.includes("Producto eliminado exitosamente")) {
+            toast({ title: "¡Producto eliminado con éxito!" });
+            fetchProducts(); // Refresh list
+        } else {
+            let errorMessage = "Error al eliminar: No pudimos borrar el producto en este momento. Por favor, intenta de nuevo.";
+            if(response.status === 401) {
+                errorMessage = "Acceso Denegado: Tu sesión ha expirado o no tienes permisos para realizar esta acción.";
+            }
+            throw new Error(errorMessage);
+        }
+    } catch (err: any) {
+        toast({ variant: "destructive", title: "Error", description: err.message });
+    } finally {
+        setIsDeleting(false);
+        setProductToDelete(null);
+    }
+  };
+
   const ProductCard = ({ product }: { product: Product }) => (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden flex flex-col">
         <CardHeader className="p-0">
              <div className="relative aspect-video w-full bg-muted">
                 {product.fotoProducto && product.fotoProducto !== 'string' ? (
@@ -85,7 +137,7 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
                 )}
              </div>
         </CardHeader>
-        <CardContent className="p-4 space-y-2">
+        <CardContent className="p-4 space-y-2 flex-grow">
             <CardTitle className="text-lg">{product.nombre}</CardTitle>
             <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">{product.descripcion}</p>
             <div className="flex justify-between items-center pt-2 border-t">
@@ -99,6 +151,12 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
                 </div>
             </div>
         </CardContent>
+        <CardFooter className="p-4 pt-0">
+            <Button variant="destructive" className="w-full" onClick={() => setProductToDelete(product)} disabled={isDeleting}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Eliminar
+            </Button>
+        </CardFooter>
     </Card>
   );
 
@@ -106,8 +164,8 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
     if (isLoading) {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
-          <Skeleton className="h-72 w-full" />
-          <Skeleton className="h-72 w-full" />
+          <Skeleton className="h-80 w-full" />
+          <Skeleton className="h-80 w-full" />
         </div>
       );
     }
@@ -167,6 +225,23 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>¿Estás seguro de que deseas eliminar este producto?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Esta acción no se puede deshacer. El producto "{productToDelete?.nombre}" será eliminado permanentemente.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
+                    {isDeleting ? <Loader2 className="animate-spin" /> : "Sí, eliminar"}
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AddProductModal
         isOpen={isAddProductModalOpen}
