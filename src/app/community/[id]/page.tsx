@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { CommentForm } from "@/components/community/CommentForm";
 
 
 export default function ForumDetailPage() {
@@ -321,6 +322,11 @@ export default function ForumDetailPage() {
                         <p className="text-sm text-muted-foreground text-center py-4">No hay comentarios en este hilo.</p>
                       )}
                   </div>
+                  <CommentForm 
+                    forumId={forumId} 
+                    threadId={thread.id} 
+                    onSuccess={fetchData} 
+                  />
               </AccordionContent>
             </AccordionItem>
           ))}
