@@ -350,7 +350,15 @@ export function EventReservationModal({
         }
         
         const ticketResult = await ticketResponse.json();
-        ticketReservationId = ticketResult.reservaId;
+        // The API returns an array of reservation details, one for each seat.
+        // The reservation ID is the same for all of them.
+        if (Array.isArray(ticketResult) && ticketResult.length > 0 && ticketResult[0].reservaId) {
+            ticketReservationId = ticketResult[0].reservaId;
+        } else {
+            // Handle cases where the response is not as expected.
+            console.error("Unexpected response format from ticket reservation:", ticketResult);
+            throw new Error("No se pudo obtener el ID de la reserva de boletos.");
+        }
 
         // Step 2: Reserve complementary services/products
         if (selectedProducts.length > 0) {
