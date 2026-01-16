@@ -29,6 +29,7 @@ import { EditEventModal } from "./edit-event-modal";
 import { AddZoneModal } from "./add-zone-modal";
 import { EditZoneModal } from "./edit-zone-modal";
 import { AddServiceToEventModal } from "./add-service-to-event-modal";
+import { useApp } from "@/context/app-context";
 
 type MyEventDetailsModalProps = {
   eventId: string;
@@ -49,6 +50,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+  const { userRole } = useApp();
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddZoneModalOpen, setIsAddZoneModalOpen] = useState(false);
@@ -580,6 +582,14 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                                     <div className="flex flex-col"><span className="font-semibold text-muted-foreground">Fin</span><span className="text-foreground text-right">{formatDate(details.fin)}</span></div>
                                     <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Aforo</span><span className="text-foreground">{details.aforoMaximo.toLocaleString()}</span></div>
                                     <div className="flex justify-between"><span className="font-semibold text-muted-foreground">Categoría</span><span className="text-foreground capitalize">{categoryName}</span></div>
+                                    {(userRole === 'organizador' || userRole === 'administrador') && details.tipo === 'Virtual' && details.onlineMeetingUrl && (
+                                        <div className="flex flex-col pt-2 border-t">
+                                            <span className="font-semibold text-muted-foreground flex items-center gap-2"><LinkIcon className="h-4 w-4" />URL de la Reunión</span>
+                                            <a href={details.onlineMeetingUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline truncate text-right">
+                                                {details.onlineMeetingUrl}
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -682,3 +692,5 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
 
   return renderContent();
 }
+
+    
