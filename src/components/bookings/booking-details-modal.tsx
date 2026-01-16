@@ -129,51 +129,34 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                 throw new Error("No se pudo cancelar la reserva del evento. Puede que ya no sea válida o ya haya sido procesada.");
             }
     
-            // Step 2: Find and cancel complementary service reservation
-            try {
-                const compResResponse = await fetch(`http://localhost:44335/api/ServComps/Resv/getReservaByIdReserva?idReserva=${booking.reservaId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-    
-                if (compResResponse.ok) {
-                    const compResData = await compResResponse.json();
-                    const complementaryReservationId = compResData.id;
-    
-                    if (complementaryReservationId) {
-                        const cancelCompResResponse = await fetch(`http://localhost:44335/api/ServComps/Resv/cancelar?idReserva=${complementaryReservationId}`, {
-                            method: 'PUT',
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
-    
-                        if (!cancelCompResResponse.ok) {
-                             throw new Error("PARTIAL_CANCELLATION");
-                        }
+            // Step 2: Find and conditionally cancel complementary service reservation
+            const compResResponse = await fetch(`http://localhost:44335/api/ServComps/Resv/getReservaByIdReserva?idReserva=${booking.reservaId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            // Only proceed if a complementary reservation was found
+            if (compResResponse.ok) {
+                const compResData = await compResResponse.json();
+                const complementaryReservationId = compResData.id;
+
+                if (complementaryReservationId) {
+                    const cancelCompResResponse = await fetch(`http://localhost:44335/api/ServComps/Resv/cancelar?idReserva=${complementaryReservationId}`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    // If this cancellation fails, throw a specific error
+                    if (!cancelCompResResponse.ok) {
+                         throw new Error("PARTIAL_CANCELLATION");
                     }
-                } else if (compResResponse.status !== 404) {
-                     throw new Error("PARTIAL_CANCELLATION");
                 }
-    
-            } catch (compError: any) {
-                if (compError.message === 'PARTIAL_CANCELLATION') {
-                    toast({
-                        variant: "destructive",
-                        title: "Cancelación Parcial",
-                        description: "La reserva del evento se canceló, pero hubo un error al cancelar los servicios adicionales. Por favor, contacte a soporte.",
-                        duration: 8000
-                    });
-                } else {
-                     toast({
-                        variant: "destructive",
-                        title: "Cancelación Parcial",
-                        description: "La reserva del evento se canceló, pero hubo un error al buscar los servicios asociados. Contacte a soporte si es necesario.",
-                        duration: 8000
-                    });
-                }
-                onCancelSuccess();
-                return;
+            } else if (compResResponse.status !== 404) {
+                // If the check failed for a reason other than "Not Found", it's a server issue
+                 throw new Error("PARTIAL_CANCELLATION_CHECK_FAILED");
             }
+            // If the status is 404, we just continue, as there's nothing to cancel.
     
-            // If all successful
+            // If we reach here, everything was successful (or there was nothing to cancel)
             toast({
                 title: "Reserva Cancelada",
                 description: "Tu reserva y los servicios asociados han sido cancelados."
@@ -181,10 +164,24 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
             onCancelSuccess();
     
         } catch (err: any) {
+            let title = "Error al Cancelar";
+            let description = err.message;
+
+            if (err.message === "PARTIAL_CANCELLATION") {
+                title = "Cancelación Parcial";
+                description = "La reserva del evento se canceló, pero hubo un error al cancelar los servicios adicionales. Por favor, contacte a soporte.";
+                onCancelSuccess(); // Update UI even on partial success
+            } else if (err.message === "PARTIAL_CANCELLATION_CHECK_FAILED") {
+                title = "Cancelación Parcial";
+                description = "La reserva del evento se canceló, pero no se pudo verificar el estado de los servicios adicionales. Contacte a soporte.";
+                onCancelSuccess(); // Update UI even on partial success
+            }
+
             toast({
                 variant: "destructive",
-                title: "Error al Cancelar",
-                description: err.message,
+                title: title,
+                description: description,
+                duration: 8000
             });
         } finally {
             setIsCancelling(false);
@@ -391,3 +388,5 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
         </Dialog>
     );
 }
+
+    
