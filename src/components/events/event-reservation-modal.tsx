@@ -308,11 +308,14 @@ export function EventReservationModal({
         return;
     }
 
+    let ticketReservationId: string | null = null;
+
     try {
         if (quantity <= 0) {
             throw new Error("La cantidad de boletos debe ser mayor a 0.");
         }
 
+        // Step 1: Reserve event tickets
         const reservaData = {
             eventId: eventDetails.id,
             zonaEventoId: selectedTier.id,
@@ -320,7 +323,7 @@ export function EventReservationModal({
             usuarioId: usuarioId
         };
 
-        const response = await fetch('http://localhost:44335/api/Reservas/hold', {
+        const ticketResponse = await fetch('http://localhost:44335/api/Reservas/hold', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -329,45 +332,80 @@ export function EventReservationModal({
             body: JSON.stringify(reservaData)
         });
         
-        if (response.ok) {
-            const resultado = await response.json();
+        if (!ticketResponse.ok) {
+            const errorData = await ticketResponse.json().catch(() => ({}));
+            let errorMessage = `Error del servidor: ${ticketResponse.status}`;
+            if (ticketResponse.status === 409 && errorData.message?.includes('No hay asientos suficientes')) {
+                setError("No hay suficientes asientos disponibles en esta zona para la cantidad solicitada.");
+                fetchAvailableSeats(eventDetails.id, selectedTier.id);
+            } else if (ticketResponse.status === 401) {
+                errorMessage = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.";
+            } else if (ticketResponse.status === 400) {
+                errorMessage = "Datos inválidos para la reserva. Por favor, verifica la información.";
+            } else {
+                errorMessage = errorData.message || errorMessage;
+            }
+            if (ticketResponse.status !== 409) setError(errorMessage);
+            throw new Error("Ticket reservation failed.");
+        }
+        
+        const ticketResult = await ticketResponse.json();
+        ticketReservationId = ticketResult.reservaId;
+
+        // Step 2: Reserve complementary services/products
+        if (selectedProducts.length > 0) {
+            const serviceReservationData = {
+                idUsuario: usuarioId,
+                idReserva: ticketReservationId,
+                idEvento: eventDetails.id,
+                idsProducto: selectedProducts.map(p => p.id)
+            };
+
+            const serviceResponse = await fetch('http://localhost:44335/api/ServComps/Resv/reservar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(serviceReservationData)
+            });
+
+            if (!serviceResponse.ok) {
+                const serviceErrorData = await serviceResponse.json().catch(() => ({}));
+                let serviceErrorMessage = serviceErrorData.message || "No se pudo confirmar la reserva de servicios.";
+                throw new Error(`SERVICE_BOOKING_FAILED: ${serviceErrorMessage}`);
+            }
+        }
+        
+        // Step 3: Global success
+        toast({
+            title: "✅ ¡Reserva completada!",
+            description: selectedProducts.length > 0
+                ? "Tus entradas y servicios adicionales han sido reservados con éxito."
+                : `Se han reservado ${quantity} boleto(s) para ${eventDetails.nombre}.`,
+        });
+        handleClose();
+        router.push('/bookings');
+
+    } catch (err: any) {
+        if (err.message.startsWith("SERVICE_BOOKING_FAILED")) {
+            const detailedError = err.message.replace("SERVICE_BOOKING_FAILED: ", "");
             toast({
-                title: "✅ Reserva realizada con éxito",
-                description: `Se han reservado ${quantity} boleto(s) para ${eventDetails.nombre}.`,
-                duration: 5000,
+                variant: "destructive",
+                title: "Aviso Importante",
+                description: `Tu entrada se reservó, pero hubo un problema con los servicios adicionales: ${detailedError}. Por favor, contacta a soporte.`,
+                duration: 10000,
             });
             handleClose();
             router.push('/bookings');
-        } else {
-            let errorMessage = `Error del servidor: ${response.status}`;
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.message || errorMessage;
-                 if (response.status === 409 && errorData.message?.includes('No hay asientos suficientes')) {
-                    setError("No hay suficientes asientos disponibles en esta zona para la cantidad solicitada.");
-                    // Re-fetch availability
-                    fetchAvailableSeats(eventDetails.id, selectedTier.id);
-                }
-            } catch (e) {
-                // Ignore if error body is not JSON
-            }
-            if (response.status !== 409) {
-                 if (response.status === 401) {
-                    errorMessage = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.";
-                } else if (response.status === 400) {
-                    errorMessage = "Datos inválidos para la reserva. Por favor, verifica la información.";
-                }
-                 setError(errorMessage);
-            }
+        } else if (err.message !== "Ticket reservation failed.") {
+            setError(err.message);
+            toast({
+                variant: "destructive",
+                title: "❌ Error al crear la reserva",
+                description: err.message,
+            });
         }
-
-    } catch (err: any) {
-        setError(err.message);
-        toast({
-            variant: "destructive",
-            title: "❌ Error al crear la reserva",
-            description: err.message,
-        });
     } finally {
         setIsReserving(false);
     }
