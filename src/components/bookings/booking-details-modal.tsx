@@ -214,7 +214,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
             
             <div className="p-6 pt-4">
                 <DialogHeader className="mb-6 text-left">
-                    <Badge variant="outline" className="mb-2 w-fit">{booking.eventoCategoria}</Badge>
+                    <Badge variant="outline" className="mb-2 w-fit">{t(`categories.${booking.eventoCategoriaNombre}`, { defaultValue: booking.eventoCategoriaNombre })}</Badge>
                     <DialogTitle className="text-3xl font-bold">{booking.eventoNombre}</DialogTitle>
                     <DialogDescription>{t('bookings.ticket_details.booking_id')}: {booking.reservaId.substring(0,8)}</DialogDescription>
                 </DialogHeader>

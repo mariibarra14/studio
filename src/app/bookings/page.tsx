@@ -67,7 +67,7 @@ export default function BookingsPage() {
           let zonaNombre = "No disponible";
           let eventoNombre = "Evento no disponible";
           let eventoImagen = "";
-          let eventoCategoria = "General";
+          let eventoCategoriaNombre = "General";
           let eventoInicio = "";
           let eventoFin = "";
           let eventoTipo = "Presencial";
@@ -97,7 +97,7 @@ export default function BookingsPage() {
                 eventoNombre = eventoData.nombre;
                 eventoImagen = eventoData.imagenUrl || "";
                 const categoryName = getCategoryNameById(categoriesResponse, eventoData.categoriaId) || 'General';
-                eventoCategoria = t(`categories.${categoryName}`, { defaultValue: categoryName });
+                eventoCategoriaNombre = categoryName;
                 eventoInicio = eventoData.inicio;
                 eventoFin = eventoData.fin || "";
                 eventoTipo = eventoData.tipo;
@@ -165,7 +165,7 @@ export default function BookingsPage() {
             zonaNombre,
             eventoNombre,
             eventoImagen,
-            eventoCategoria,
+            eventoCategoriaNombre,
             eventoInicio,
             eventoFin,
             eventoTipo,

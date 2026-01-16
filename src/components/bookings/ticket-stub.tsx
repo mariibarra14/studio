@@ -83,7 +83,7 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
       <div className="p-4 space-y-3">
         <div className="flex items-center text-sm text-muted-foreground">
           <Tag className="h-4 w-4 mr-2" />
-          <span>{booking.eventoCategoria}</span>
+          <span>{t(`categories.${booking.eventoCategoriaNombre}`, { defaultValue: booking.eventoCategoriaNombre })}</span>
         </div>
         <div className="flex items-center text-sm text-muted-foreground">
           <MapPin className="h-4 w-4 mr-2" />

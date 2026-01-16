@@ -77,7 +77,7 @@ export interface ApiBooking {
   zonaNombre?: string;
   eventoNombre?: string;
   eventoImagen?: string;
-  eventoCategoria?: string;
+  eventoCategoriaNombre?: string;
   eventoInicio?: string;
   eventoFin?: string;
   escenarioNombre?: string;
