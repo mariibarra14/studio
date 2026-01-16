@@ -180,7 +180,7 @@ export function AddZoneForm({
           )} />
           <FormField control={form.control} name="precio" render={({ field }) => (
             <FormItem>
-              <FormLabel>Precio por Asiento ($)</FormLabel>
+              <FormLabel>Precio por Asiento (USD)</FormLabel>
               <FormControl><Input type="number" min="0" step="0.01" {...field} /></FormControl>
               <FormMessage />
             </FormItem>

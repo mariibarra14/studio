@@ -137,7 +137,7 @@ export function AddProductForm({ serviceId, onSuccess, onCancel }: AddProductFor
             )} />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="precio" render={({ field }) => (
-                <FormItem><FormLabel>Precio ($)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Precio (USD)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="cantidad" render={({ field }) => (
                 <FormItem><FormLabel>Cantidad (Stock)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
