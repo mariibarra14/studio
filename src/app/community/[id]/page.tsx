@@ -15,7 +15,7 @@ import { es, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Forum, EnrichedForumThread, ForumThread, ApiEvent } from "@/lib/types";
+import type { Forum, EnrichedForumThread, ForumThread, ApiEvent, EnrichedForumComment } from "@/lib/types";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { EditForumModal } from "@/components/community/EditForumModal";
@@ -53,8 +53,10 @@ export default function ForumDetailPage() {
   const [editingForum, setEditingForum] = useState<Forum | null>(null);
   const [deletingForum, setDeletingForum] = useState<Forum | null>(null);
   const [deletingThread, setDeletingThread] = useState<EnrichedForumThread | null>(null);
+  const [deletingComment, setDeletingComment] = useState<{ comment: EnrichedForumComment; threadId: string } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isProcessingDelete, setIsProcessingDelete] = useState(false);
+  const [isProcessingDeleteComment, setIsProcessingDeleteComment] = useState(false);
   const [isAddThreadModalOpen, setIsAddThreadModalOpen] = useState(false);
 
   const isOwner = useMemo(() => user && event && user.id === event.organizadorId, [user, event]);
@@ -222,6 +224,44 @@ export default function ForumDetailPage() {
     }
   };
 
+  const handleDeleteComment = async () => {
+    if (!deletingComment || !forumId) return;
+    
+    setIsProcessingDeleteComment(true);
+    const token = localStorage.getItem("accessToken");
+    const solicitanteId = localStorage.getItem("userId");
+
+    if (!token || !solicitanteId) {
+      toast({ variant: "destructive", title: "Error de autenticación", description: "Tu sesión ha expirado." });
+      setIsProcessingDeleteComment(false);
+      setDeletingComment(null);
+      return;
+    }
+
+    try {
+      const { comment, threadId } = deletingComment;
+      const response = await fetch(`http://localhost:44335/api/foros/${forumId}/hilos/${threadId}/comentarios/${comment.id}?solicitanteId=${solicitanteId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.status === 204) {
+        toast({ title: "Comentario eliminado correctamente." });
+        fetchData();
+      } else {
+        if (response.status === 401) throw new Error("Tu sesión ha expirado. Por favor, vuelve a ingresar.");
+        if (response.status === 403) throw new Error("No tienes autorización para eliminar este comentario.");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "No se pudo eliminar el comentario en este momento.");
+      }
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Error al Eliminar Comentario", description: err.message });
+    } finally {
+      setIsProcessingDeleteComment(false);
+      setDeletingComment(null);
+    }
+  };
+
 
   const renderContent = () => {
     if (isLoading) {
@@ -309,10 +349,22 @@ export default function ForumDetailPage() {
                                 <AvatarImage src={comment.author?.fotoPerfil || undefined} />
                                 <AvatarFallback>{comment.author?.nombre[0]}{comment.author?.apellido[0]}</AvatarFallback>
                               </Avatar>
-                              <div className="flex-1 bg-muted/50 p-3 rounded-lg">
-                                <div className="flex items-center gap-2 text-xs">
-                                  <p className="font-semibold">{comment.author?.nombre} {comment.author?.apellido}</p>
-                                  <p className="text-muted-foreground">{format(new Date(comment.fechaCreacion), "dd MMM, HH:mm", { locale })}</p>
+                              <div className="flex-1 bg-muted/50 p-3 rounded-lg group">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-xs">
+                                    <p className="font-semibold">{comment.author?.nombre} {comment.author?.apellido}</p>
+                                    <p className="text-muted-foreground">{format(new Date(comment.fechaCreacion), "dd MMM, HH:mm", { locale })}</p>
+                                  </div>
+                                   {(isOwner || userRole === 'administrador' || comment.autorId === user?.id) && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                      onClick={() => setDeletingComment({ comment, threadId: thread.id })}
+                                    >
+                                      <Trash className="h-3 w-3" />
+                                    </Button>
+                                  )}
                                 </div>
                                 <p className="text-sm mt-1 whitespace-pre-wrap">{comment.contenido}</p>
                               </div>
@@ -417,6 +469,23 @@ export default function ForumDetailPage() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteThread} disabled={isProcessingDelete}>
               {isProcessingDelete ? <Loader2 className="animate-spin" /> : "Sí, eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+       <AlertDialog open={!!deletingComment} onOpenChange={() => setDeletingComment(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro de que deseas eliminar este comentario?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción es permanente y no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteComment} disabled={isProcessingDeleteComment}>
+              {isProcessingDeleteComment ? <Loader2 className="animate-spin" /> : "Sí, eliminar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
