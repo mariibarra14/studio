@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, Clock, FileText } from "lucide-react";
+import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, Clock, FileText, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -102,6 +102,9 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
       return format(new Date(dateString), "dd MMMM, yyyy - h:mm a", { locale: es });
     }
 
+    const productsTotal = booking.complementaryProducts?.reduce((sum, p) => sum + p.precio, 0) || 0;
+    const ticketsTotal = booking.precioTotal - productsTotal;
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-[1000px] max-h-[95vh] p-0 overflow-auto">
@@ -186,16 +189,57 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                         ))}
                         </div>
                     </div>
+                    
+                    {/* Complementary Products */}
+                    {booking.complementaryProducts && booking.complementaryProducts.length > 0 && (
+                        <div className="md:col-span-2">
+                            <h4 className="font-semibold mb-2 flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> Productos Adicionales</h4>
+                            <div className="max-h-32 overflow-y-auto space-y-1 pr-2">
+                            {booking.complementaryProducts.map(product => (
+                                <div key={product.id} className="flex justify-between items-center text-sm p-2 bg-muted/50 rounded-md">
+                                    <div className="flex items-center gap-3">
+                                        {product.fotoProducto && product.fotoProducto !== 'string' ? (
+                                            <Image src={product.fotoProducto} alt={product.nombre} width={40} height={40} className="rounded-md aspect-square object-cover" />
+                                        ) : (
+                                            <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center"><Package className="h-5 w-5 text-muted-foreground"/></div>
+                                        )}
+                                        <div>
+                                            <p className="font-semibold">{product.nombre}</p>
+                                            <p className="text-xs text-muted-foreground line-clamp-1">{product.descripcion}</p>
+                                        </div>
+                                    </div>
+                                    <p className="font-semibold">${product.precio.toFixed(2)}</p>
+                                </div>
+                            ))}
+                            </div>
+                        </div>
+                    )}
+
 
                     {/* Total Price and Status */}
-                    <div className="md:col-span-2 border-t pt-6 mt-2 flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                            <h4 className="text-xl font-bold">Estado:</h4>
-                            <Badge variant="outline" className={cn("text-sm", estadoColor)}>{estadoDisplay}</Badge>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-muted-foreground">Precio Total</p>
-                            <p className="text-2xl font-bold">${booking.precioTotal.toFixed(2)}</p>
+                    <div className="md:col-span-2 border-t pt-6 mt-2 flex flex-col gap-4">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <h4 className="text-xl font-bold">Estado:</h4>
+                                <Badge variant="outline" className={cn("text-sm", estadoColor)}>{estadoDisplay}</Badge>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-sm space-y-1">
+                                    <div className="flex justify-between gap-4">
+                                        <span className="text-muted-foreground">Entradas:</span>
+                                        <span>${ticketsTotal.toFixed(2)}</span>
+                                    </div>
+                                    {productsTotal > 0 && (
+                                        <div className="flex justify-between gap-4">
+                                            <span className="text-muted-foreground">Productos:</span>
+                                            <span>${productsTotal.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="border-t my-2"></div>
+                                <p className="text-sm text-muted-foreground">Precio Total</p>
+                                <p className="text-2xl font-bold">${booking.precioTotal.toFixed(2)}</p>
+                            </div>
                         </div>
                     </div>
                 </div>

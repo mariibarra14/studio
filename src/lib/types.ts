@@ -81,6 +81,7 @@ export interface ApiBooking {
   eventoFin?: string;
   escenarioNombre?: string;
   escenarioUbicacion?: string;
+  complementaryProducts?: Product[];
 }
 
 export type Payment = {

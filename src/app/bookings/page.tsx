@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { BookingDetailsModal } from "@/components/bookings/booking-details-modal";
 import { TicketStub } from "@/components/bookings/ticket-stub";
-import type { ApiBooking, ApiEvent, Seat } from "@/lib/types";
+import type { ApiBooking, ApiEvent, Seat, Product } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -65,6 +65,7 @@ export default function BookingsPage() {
           let escenarioNombre = "Ubicación no disponible";
           let escenarioUbicacion = "";
           let enrichedAsientos: Seat[] = booking.asientos;
+          let complementaryProducts: Product[] = [];
 
           try {
             const [zonaResponse, eventoResponse] = await Promise.all([
@@ -122,6 +123,25 @@ export default function BookingsPage() {
                 }
               })
             );
+
+            // Fetch complementary products
+            const complementaryRes = await fetch(`http://localhost:44335/api/ServComps/Resv/getReservaByIdReserva?idReserva=${booking.reservaId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (complementaryRes.ok) {
+              const complementaryData = await complementaryRes.json();
+              if (complementaryData && complementaryData.idsProducto && complementaryData.idsProducto.length > 0) {
+                const productPromises = complementaryData.idsProducto.map((productId: string) => 
+                  fetch(`http://localhost:44335/api/ServComps/Prods/getProductoById?id=${productId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  }).then(res => res.ok ? res.json() : null)
+                );
+                
+                const fetchedProducts = await Promise.all(productPromises);
+                complementaryProducts = fetchedProducts.filter((p): p is Product => p !== null);
+              }
+            }
             
           } catch (e) {
             console.error("Error fetching extra details for booking:", booking.reservaId, e);
@@ -138,6 +158,7 @@ export default function BookingsPage() {
             escenarioNombre,
             escenarioUbicacion,
             asientos: enrichedAsientos,
+            complementaryProducts: complementaryProducts,
           };
         })
       );

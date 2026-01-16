@@ -80,6 +80,19 @@ export const generateBookingPDF = async (booking: ApiBooking) => {
     });
     
     yPosition += 5;
+
+    if (booking.complementaryProducts && booking.complementaryProducts.length > 0) {
+        doc.setFont("helvetica", "bold");
+        doc.text('Productos Adicionales:', 22, yPosition);
+        yPosition += 7;
+        doc.setFont("helvetica", "normal");
+        booking.complementaryProducts.forEach(product => {
+            doc.text(`  • ${product.nombre} - $${product.precio.toFixed(2)}`, 25, yPosition);
+            yPosition += 6;
+        });
+        yPosition += 2;
+    }
+
     doc.setFont("helvetica", "bold");
     doc.text(`Total Pagado: $${booking.precioTotal.toFixed(2)}`, 20, yPosition);
     yPosition += 7;
