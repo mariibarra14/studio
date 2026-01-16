@@ -12,6 +12,8 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import type { ApiBooking, Product } from "@/lib/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useApp } from "@/context/app-context";
+import { formatCurrency } from "@/lib/utils";
 
 type PaymentMethod = {
   idMPago: string;
@@ -31,6 +33,7 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
   const [eventName, setEventName] = useState("");
   const { toast } = useToast();
   const router = useRouter();
+  const { currency, language } = useApp();
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -242,7 +245,7 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
           )}
             <div className="flex justify-between items-baseline text-2xl font-bold border-t pt-4 mt-4">
             <span>Total a Pagar:</span>
-            <span>${monto?.toFixed(2)}</span>
+            <span>{formatCurrency(monto, currency, language)}</span>
           </div>
         </CardContent>
       </Card>
@@ -267,7 +270,7 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
             ) : (
               <CheckCircle className="mr-2 h-5 w-5" />
             )}
-            {isProcessing ? "Procesando..." : `Pagar $${monto?.toFixed(2)}`}
+            {isProcessing ? "Procesando..." : `Pagar ${formatCurrency(monto, currency, language)}`}
           </Button>
         </CardFooter>
       </Card>
@@ -281,6 +284,7 @@ function PendingPaymentsList() {
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const { toast } = useToast();
+    const { currency, language } = useApp();
 
     useEffect(() => {
         const fetchPendingBookings = async () => {
@@ -415,7 +419,7 @@ function PendingPaymentsList() {
                                     <p className="text-sm text-muted-foreground">
                                         Expira: {format(new Date(booking.expiraEn), "dd MMM yyyy, h:mm a", { locale: es })}
                                     </p>
-                                    <p className="font-bold mt-1">${grandTotal.toFixed(2)}</p>
+                                    <p className="font-bold mt-1">{formatCurrency(grandTotal, currency, language)}</p>
                                 </div>
                                 <Button onClick={() => router.push(`/payments?reservaId=${booking.reservaId}&eventId=${booking.eventId}&monto=${grandTotal}`)}>
                                     Pagar ahora
@@ -442,5 +446,3 @@ export function PaymentProcessing() {
 
   return <PendingPaymentsList />;
 }
-
-    

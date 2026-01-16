@@ -1,0 +1,45 @@
+
+{
+  "nav": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "events": "Events",
+    "my_bookings": "My Bookings",
+    "my_payments": "My Payments",
+    "comp_services": "Comp. Services",
+    "community": "Community",
+    "surveys": "Surveys",
+    "my_events": "My Events",
+    "my_services": "My Services",
+    "payments_history": "Payments History",
+    "venues": "Venues",
+    "reports": "Reports",
+    "control_panel": "Control Panel"
+  },
+  "header": {
+    "profile": "Profile",
+    "logout": "Log Out",
+    "not_logged_in": "Not logged in"
+  },
+  "logout": {
+    "title": "Logged Out",
+    "description": "You have been successfully logged out."
+  },
+  "settings": {
+    "title": "Application Settings",
+    "region": {
+      "title": "Language and Region",
+      "description": "Customize the language and currency for your experience.",
+      "language": "Language",
+      "select_language": "Select language",
+      "currency": "Display Currency",
+      "select_currency": "Select currency"
+    },
+    "detection": {
+      "title": "Automatic Detection",
+      "detected_in": "We've detected you're in",
+      "auto_config": "Your language and currency have been set automatically. You can change them manually above.",
+      "not_detected": "We couldn't automatically detect your region. Default settings have been applied."
+    }
+  }
+}

@@ -2,12 +2,13 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { Calendar, Clock, Ticket, Hash, MapPin, Tag, Armchair } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { ApiBooking } from "@/lib/types";
 import Image from "next/image";
+import { useApp } from "@/context/app-context";
 
 type TicketStubProps = {
   booking: ApiBooking;
@@ -42,6 +43,7 @@ const getEstadoColor = (estado: string, expiraEn?: string) => {
 };
 
 export function TicketStub({ booking, onSelect }: TicketStubProps) {
+  const { currency, language } = useApp();
   const estadoDisplay = getEstadoDisplay(booking.estado, booking.expiraEn);
   const estadoColor = getEstadoColor(booking.estado, booking.expiraEn);
   const seatLabels = booking.asientos.map(a => a.label).join(', ');
@@ -111,7 +113,7 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
           <div className="h-10 border-l border-dashed border-muted-foreground/50" />
           <div>
             <p className="text-xs text-muted-foreground">Total</p>
-            <p className="font-bold text-lg">${grandTotal.toFixed(2)}</p>
+            <p className="font-bold text-lg">{formatCurrency(grandTotal, currency, language)}</p>
           </div>
         </div>
       </div>

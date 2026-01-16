@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -22,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { EditProductModal } from "./EditProductModal";
+import { useApp } from "@/context/app-context";
+import { formatCurrency } from "@/lib/utils";
 
 type ProductListModalProps = {
   service: ComplementaryService;
@@ -37,6 +40,7 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+  const { currency, language } = useApp();
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -157,7 +161,7 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
             <div className="flex justify-between items-center pt-2 border-t">
                 <div className="flex items-center text-primary font-bold">
                     <DollarSign className="h-4 w-4 mr-1"/>
-                    <span>{product.precio.toFixed(2)}</span>
+                    <span>{formatCurrency(product.precio, currency, language)}</span>
                 </div>
                  <div className="flex items-center text-muted-foreground text-sm">
                     <Layers className="h-4 w-4 mr-1"/>

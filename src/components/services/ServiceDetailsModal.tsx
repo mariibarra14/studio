@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -28,6 +29,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useApp } from "@/context/app-context";
+import { formatCurrency } from "@/lib/utils";
+import { DollarSign, Layers } from "lucide-react";
 
 type ServiceDetailsModalProps = {
   serviceId: string;
@@ -57,6 +61,7 @@ export function ServiceDetailsModal({ serviceId, isOpen, onClose, onDeleteSucces
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+  const { currency, language } = useApp();
 
   const fetchServiceDetails = useCallback(async () => {
     if (!serviceId) return;

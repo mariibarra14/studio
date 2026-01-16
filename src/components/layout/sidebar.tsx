@@ -21,42 +21,44 @@ import {
   PieChart,
 } from "lucide-react";
 import { usePathname } from 'next/navigation';
+import { useTranslation } from "react-i18next";
 
 type NavLink = {
   href: string;
   icon: React.ElementType;
-  label: string;
+  labelKey: string;
   roles: string[];
   subItems?: NavLink[];
 };
 
 const navLinks: NavLink[] = [
   // Common
-  { href: "/profile", icon: User, label: "Perfil", roles: ["usuario_final", "organizador", "soporte_tecnico", "administrador"]},
-  { href: "/settings", icon: Settings, label: "Ajustes", roles: ["usuario_final", "organizador", "soporte_tecnico", "administrador"]},
+  { href: "/profile", icon: User, labelKey: "nav.profile", roles: ["usuario_final", "organizador", "soporte_tecnico", "administrador"]},
+  { href: "/settings", icon: Settings, labelKey: "nav.settings", roles: ["usuario_final", "organizador", "soporte_tecnico", "administrador"]},
   
   // usuario_final
-  { href: "/events", icon: Calendar, label: "Eventos", roles: ["usuario_final", "administrador"]},
-  { href: "/bookings", icon: ClipboardList, label: "Mis Reservas", roles: ["usuario_final", "administrador"]},
-  { href: "/payments", icon: CreditCard, label: "Mis Pagos", roles: ["usuario_final", "administrador"]},
-  { href: "/complementary-services", icon: ConciergeBell, label: "Servicios Comp.", roles: ["usuario_final"]},
-  { href: "/community", icon: Users, label: "Comunidad", roles: ["usuario_final", "organizador"], },
-  { href: "/surveys", icon: PieChart, label: "Encuestas", roles: ["usuario_final", "organizador"], },
+  { href: "/events", icon: Calendar, labelKey: "nav.events", roles: ["usuario_final", "administrador"]},
+  { href: "/bookings", icon: ClipboardList, labelKey: "nav.my_bookings", roles: ["usuario_final", "administrador"]},
+  { href: "/payments", icon: CreditCard, labelKey: "nav.my_payments", roles: ["usuario_final", "administrador"]},
+  { href: "/complementary-services", icon: ConciergeBell, labelKey: "nav.comp_services", roles: ["usuario_final"]},
+  { href: "/community", icon: Users, labelKey: "nav.community", roles: ["usuario_final", "organizador"], },
+  { href: "/surveys", icon: PieChart, labelKey: "nav.surveys", roles: ["usuario_final", "organizador"], },
 
   // organizador
-  { href: "/events/my", icon: Calendar, label: "Mis Eventos", roles: ["organizador", "administrador"]},
-  { href: "/services/my", icon: ConciergeBell, label: "Mis Servicios", roles: ["organizador", "administrador"]},
-  { href: "/payments/history", icon: CreditCard, label: "Historial Pagos", roles: ["organizador", "administrador"]},
-  { href: "/venues", icon: Building, label: "Escenarios", roles: ["organizador", "administrador"]},
-  { href: "/reports", icon: BarChart2, label: "Reportes", roles: ["organizador", "soporte_tecnico", "administrador"]},
+  { href: "/events/my", icon: Calendar, labelKey: "nav.my_events", roles: ["organizador", "administrador"]},
+  { href: "/services/my", icon: ConciergeBell, labelKey: "nav.my_services", roles: ["organizador", "administrador"]},
+  { href: "/payments/history", icon: CreditCard, labelKey: "nav.payments_history", roles: ["organizador", "administrador"]},
+  { href: "/venues", icon: Building, labelKey: "nav.venues", roles: ["organizador", "administrador"]},
+  { href: "/reports", icon: BarChart2, labelKey: "nav.reports", roles: ["organizador", "soporte_tecnico", "administrador"]},
   
   // soporte_tecnico
-  { href: "/control-panel", icon: LayoutDashboard, label: "Panel de Control", roles: ["soporte_tecnico", "administrador"]},
+  { href: "/control-panel", icon: LayoutDashboard, labelKey: "nav.control_panel", roles: ["soporte_tecnico", "administrador"]},
 ];
 
 
 const NavItem = ({ link, isSidebarOpen }: { link: NavLink; isSidebarOpen: boolean }) => {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const isActive = pathname === link.href;
 
   return (
@@ -70,7 +72,7 @@ const NavItem = ({ link, isSidebarOpen }: { link: NavLink; isSidebarOpen: boolea
         )}
       >
         <link.icon className="h-5 w-5" />
-        <span className={cn(!isSidebarOpen && "hidden")}>{link.label}</span>
+        <span className={cn(!isSidebarOpen && "hidden")}>{t(link.labelKey)}</span>
       </Link>
     </li>
   );

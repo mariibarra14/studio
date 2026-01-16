@@ -17,11 +17,13 @@ import { useApp } from "@/context/app-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 export function Header() {
   const { toggleSidebar, user, isLoadingUser } = useApp();
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleLogout = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault(); 
@@ -29,8 +31,8 @@ export function Header() {
     localStorage.clear();
     router.push('/login');
     toast({
-      title: "Sesión Cerrada",
-      description: "Has cerrado sesión exitosamente.",
+      title: t('logout.title'),
+      description: t('logout.description'),
     })
   };
 
@@ -87,19 +89,19 @@ export function Header() {
                     </DropdownMenuItem>
                 </>
             ) : (
-                <DropdownMenuLabel>Not logged in</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('header.not_logged_in')}</DropdownMenuLabel>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/profile">
                 <User className="mr-2 h-4 w-4" />
-                <span>Perfil</span>
+                <span>{t('header.profile')}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/login" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Cerrar Sesión</span>
+                <span>{t('header.logout')}</span>
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -107,5 +109,3 @@ export function Header() {
     </header>
   );
 }
-
-    

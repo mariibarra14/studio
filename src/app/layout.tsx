@@ -1,6 +1,7 @@
 
 import type { Metadata } from "next";
 import "./globals.css";
+import "@/lib/i18n"; // Import i18next configuration
 import { Toaster } from "@/components/ui/toaster";
 import { AppProvider } from "@/context/app-context";
 import { Inter as FontSans } from "next/font/google"
@@ -37,5 +38,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-    

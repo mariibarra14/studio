@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -9,10 +10,13 @@ import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
 import type { EnrichedPayment } from "@/lib/types";
 import { generateReceiptPDF } from "@/lib/receipt-generator";
+import { useApp } from "@/context/app-context";
+import { formatCurrency } from "@/lib/utils";
 
 export function PaymentHistoryCard({ payment }: { payment: EnrichedPayment }) {
     const [isPrinting, setIsPrinting] = useState(false);
     const { toast } = useToast();
+    const { currency, language } = useApp();
 
     const handlePrintReceipt = async () => {
         setIsPrinting(true);
@@ -68,7 +72,7 @@ export function PaymentHistoryCard({ payment }: { payment: EnrichedPayment }) {
                         <DollarSign className="h-5 w-5 text-muted-foreground" />
                         <div>
                             <p className="font-semibold text-muted-foreground">Monto Pagado</p>
-                            <p className="font-bold text-lg">${payment.monto.toFixed(2)}</p>
+                            <p className="font-bold text-lg">{formatCurrency(payment.monto, currency, language)}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">

@@ -1,0 +1,45 @@
+
+{
+  "nav": {
+    "profile": "Perfil",
+    "settings": "Ajustes",
+    "events": "Eventos",
+    "my_bookings": "Mis Reservas",
+    "my_payments": "Mis Pagos",
+    "comp_services": "Servicios Comp.",
+    "community": "Comunidad",
+    "surveys": "Encuestas",
+    "my_events": "Mis Eventos",
+    "my_services": "Mis Servicios",
+    "payments_history": "Historial Pagos",
+    "venues": "Escenarios",
+    "reports": "Reportes",
+    "control_panel": "Panel de Control"
+  },
+  "header": {
+    "profile": "Perfil",
+    "logout": "Cerrar Sesión",
+    "not_logged_in": "No has iniciado sesión"
+  },
+  "logout": {
+    "title": "Sesión Cerrada",
+    "description": "Has cerrado sesión exitosamente."
+  },
+  "settings": {
+    "title": "Ajustes de la Aplicación",
+    "region": {
+      "title": "Idioma y Región",
+      "description": "Personalice el idioma y la moneda para su experiencia.",
+      "language": "Idioma",
+      "select_language": "Seleccionar idioma",
+      "currency": "Moneda de Visualización",
+      "select_currency": "Seleccionar moneda"
+    },
+    "detection": {
+      "title": "Detección Automática",
+      "detected_in": "Hemos detectado que te encuentras en",
+      "auto_config": "Tu idioma y moneda se han configurado automáticamente. Puedes cambiarlos manualmente.",
+      "not_detected": "No pudimos detectar tu región automáticamente. Se aplicó la configuración por defecto."
+    }
+  }
+}

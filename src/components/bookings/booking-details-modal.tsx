@@ -29,10 +29,11 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { ApiBooking, Seat } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { generateBookingPDF } from "@/lib/pdf-generator";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useApp } from "@/context/app-context";
 
 
 type BookingDetailsModalProps = {
@@ -86,6 +87,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
     const { toast } = useToast();
     const router = useRouter();
     const [isCancelling, setIsCancelling] = useState(false);
+    const { currency, language } = useApp();
 
     const estadoReal = getEstadoReal(booking.estado, booking.expiraEn);
     const estadoDisplay = getEstadoDisplay(booking.estado, booking.expiraEn);
@@ -285,7 +287,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                                 <Badge variant={asiento.estado === 'hold' ? 'default' : 'outline'} className="capitalize">
                                     {getEstadoAsientoDisplay(asiento.estado)}
                                 </Badge>
-                                <p className="font-semibold">${asiento.precioUnitario.toFixed(2)}</p>
+                                <p className="font-semibold">{formatCurrency(asiento.precioUnitario, currency, language)}</p>
                             </div>
                         ))}
                         </div>
@@ -309,7 +311,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                                             <p className="text-xs text-muted-foreground line-clamp-1">{product.descripcion}</p>
                                         </div>
                                     </div>
-                                    <p className="font-semibold">${product.precio.toFixed(2)}</p>
+                                    <p className="font-semibold">{formatCurrency(product.precio, currency, language)}</p>
                                 </div>
                             ))}
                             </div>
@@ -360,18 +362,18 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                                 <div className="text-sm space-y-1">
                                     <div className="flex justify-between gap-4">
                                         <span className="text-muted-foreground">Entradas:</span>
-                                        <span>${ticketsTotal.toFixed(2)}</span>
+                                        <span>{formatCurrency(ticketsTotal, currency, language)}</span>
                                     </div>
                                     {productsTotal > 0 && (
                                         <div className="flex justify-between gap-4">
                                             <span className="text-muted-foreground">Productos:</span>
-                                            <span>${productsTotal.toFixed(2)}</span>
+                                            <span>{formatCurrency(productsTotal, currency, language)}</span>
                                         </div>
                                     )}
                                 </div>
                                 <div className="border-t my-2"></div>
                                 <p className="text-sm text-muted-foreground">Precio Total</p>
-                                <p className="text-2xl font-bold">${grandTotal.toFixed(2)}</p>
+                                <p className="text-2xl font-bold">{formatCurrency(grandTotal, currency, language)}</p>
                             </div>
                         </div>
                     </div>
