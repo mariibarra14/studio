@@ -7,7 +7,7 @@ import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { useApp } from "@/context/app-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, ArrowLeft, Send } from "lucide-react";
+import { AlertCircle, ArrowLeft, Send, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,10 +66,6 @@ export default function ForumDetailPage() {
   });
 
   const fetchData = useCallback(async () => {
-    // Don't set loading to true on refetch to avoid flicker
-    if (!forum) {
-        setIsLoading(true);
-    }
     setError(null);
     const token = localStorage.getItem("accessToken");
 
@@ -111,9 +107,10 @@ export default function ForumDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [forumId, forum]);
+  }, [forumId]);
 
   useEffect(() => {
+    setIsLoading(true);
     fetchData();
   }, [fetchData]);
 
@@ -246,13 +243,21 @@ export default function ForumDetailPage() {
     <AuthenticatedLayout>
       <main className="flex flex-col h-[calc(100vh-57px)]">
         <div className="border-b p-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-start gap-4">
                 <Button variant="outline" size="icon" asChild>
                     <Link href="/community"><ArrowLeft className="h-4 w-4" /></Link>
                 </Button>
-                <div>
+                <div className="flex-1">
                     <h1 className="text-xl font-bold">{forum?.titulo || <Skeleton className="h-6 w-48" />}</h1>
-                    <p className="text-sm text-muted-foreground">{forum?.descripcion || <Skeleton className="h-4 w-64 mt-1" />}</p>
+                    <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
+                        <p className="flex-1">{forum?.descripcion || <Skeleton className="h-4 w-64 mt-1" />}</p>
+                        {forum && (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                <Calendar className="h-4 w-4" />
+                                <span>Creado el {format(new Date(forum.fechaCreacion), "dd MMM, yyyy", { locale })}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
