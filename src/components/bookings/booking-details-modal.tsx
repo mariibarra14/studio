@@ -68,7 +68,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
     const { toast } = useToast();
     const router = useRouter();
     const [isCancelling, setIsCancelling] = useState(false);
-    const { currency, language } = useApp();
+    const { currency, language, conversionRates } = useApp();
     const { t } = useTranslation();
 
     const getEstadoDisplay = (estado: string, expiraEn?: string) => {
@@ -272,7 +272,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                                 <Badge variant={asiento.estado === 'hold' ? 'default' : 'outline'} className="capitalize">
                                     {getEstadoAsientoDisplay(asiento.estado)}
                                 </Badge>
-                                <p className="font-semibold">{formatCurrency(asiento.precioUnitario, currency, language)}</p>
+                                <p className="font-semibold">{formatCurrency(asiento.precioUnitario, currency, language, conversionRates)}</p>
                             </div>
                         ))}
                         </div>
@@ -295,7 +295,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                                             <p className="text-xs text-muted-foreground line-clamp-1">{product.descripcion}</p>
                                         </div>
                                     </div>
-                                    <p className="font-semibold">{formatCurrency(product.precio, currency, language)}</p>
+                                    <p className="font-semibold">{formatCurrency(product.precio, currency, language, conversionRates)}</p>
                                 </div>
                             ))}
                             </div>
@@ -341,18 +341,18 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                                 <div className="text-sm space-y-1">
                                     <div className="flex justify-between gap-4">
                                         <span className="text-muted-foreground">{t('bookings.ticket_details.tickets')}:</span>
-                                        <span>{formatCurrency(ticketsTotal, currency, language)}</span>
+                                        <span>{formatCurrency(ticketsTotal, currency, language, conversionRates)}</span>
                                     </div>
                                     {productsTotal > 0 && (
                                         <div className="flex justify-between gap-4">
                                             <span className="text-muted-foreground">{t('bookings.ticket_details.products')}:</span>
-                                            <span>{formatCurrency(productsTotal, currency, language)}</span>
+                                            <span>{formatCurrency(productsTotal, currency, language, conversionRates)}</span>
                                         </div>
                                     )}
                                 </div>
                                 <div className="border-t my-2"></div>
                                 <p className="text-sm text-muted-foreground">{t('bookings.ticket_details.total_price')}</p>
-                                <p className="text-2xl font-bold">{formatCurrency(grandTotal, currency, language)}</p>
+                                <p className="text-2xl font-bold">{formatCurrency(grandTotal, currency, language, conversionRates)}</p>
                             </div>
                         </div>
                     </div>

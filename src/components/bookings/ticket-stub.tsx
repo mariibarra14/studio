@@ -34,7 +34,7 @@ const getEstadoColor = (estado: string, expiraEn?: string) => {
 };
 
 export function TicketStub({ booking, onSelect }: TicketStubProps) {
-  const { currency, language } = useApp();
+  const { currency, language, conversionRates } = useApp();
   const { t } = useTranslation();
 
   const getEstadoDisplay = (estado: string, expiraEn?: string) => {
@@ -114,7 +114,7 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
           <div className="h-10 border-l border-dashed border-muted-foreground/50" />
           <div>
             <p className="text-xs text-muted-foreground">{t('bookings.ticket_stub.total')}</p>
-            <p className="font-bold text-lg">{formatCurrency(grandTotal, currency, language)}</p>
+            <p className="font-bold text-lg">{formatCurrency(grandTotal, currency, language, conversionRates)}</p>
           </div>
         </div>
       </div>

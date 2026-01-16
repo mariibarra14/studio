@@ -75,7 +75,7 @@ export function EventReservationModal({
 
   const { toast } = useToast();
   const router = useRouter();
-  const { currency, language } = useApp();
+  const { currency, language, conversionRates } = useApp();
 
   const fetchEventDetails = useCallback(async (eventId: string) => {
     setIsLoading(true);
@@ -594,7 +594,7 @@ export function EventReservationModal({
                             <SelectItem key={tier.id} value={tier.id} className="text-base p-3">
                               <div className="flex justify-between w-full">
                                 <span className="font-semibold">{tier.nombre}</span>
-                                <span className="text-muted-foreground ml-4">{formatCurrency(tier.precio, currency, language)}</span>
+                                <span className="text-muted-foreground ml-4">{formatCurrency(tier.precio, currency, language, conversionRates)}</span>
                               </div>
                             </SelectItem>
                           ))}
@@ -640,7 +640,7 @@ export function EventReservationModal({
                     <div className="border-t pt-6 mt-6">
                         <div className="flex justify-between items-center text-2xl font-bold">
                             <span>Precio Total:</span>
-                            <span>{formatCurrency(ticketPrice, currency, language)}</span>
+                            <span>{formatCurrency(ticketPrice, currency, language, conversionRates)}</span>
                         </div>
                     </div>
                   </>
@@ -746,7 +746,7 @@ export function EventReservationModal({
                                                         <p className="font-semibold">{product.nombre}</p>
                                                         <p className="text-xs text-muted-foreground line-clamp-1">{product.descripcion}</p>
                                                     </div>
-                                                    <p className="font-bold text-sm ml-4">{formatCurrency(product.precio, currency, language)}</p>
+                                                    <p className="font-bold text-sm ml-4">{formatCurrency(product.precio, currency, language, conversionRates)}</p>
                                                 </label>
                                             </div>
                                         ))
@@ -763,7 +763,7 @@ export function EventReservationModal({
                 <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">{quantity} x {selectedTier?.nombre}</span>
-                        <span>{formatCurrency(ticketPrice, currency, language)}</span>
+                        <span>{formatCurrency(ticketPrice, currency, language, conversionRates)}</span>
                     </div>
                     {selectedService && (
                         <div className="flex justify-between">
@@ -776,7 +776,7 @@ export function EventReservationModal({
                             {selectedProducts.map(p => (
                                 <div key={p.id} className="flex justify-between text-muted-foreground">
                                     <span>- {p.nombre}</span>
-                                    <span>+ {formatCurrency(p.precio, currency, language)}</span>
+                                    <span>+ {formatCurrency(p.precio, currency, language, conversionRates)}</span>
                                 </div>
                             ))}
                         </div>
@@ -784,7 +784,7 @@ export function EventReservationModal({
                 </div>
                   <div className="flex justify-between items-center text-2xl font-bold mt-4">
                       <span>Precio Total:</span>
-                      <span>{formatCurrency(totalPrice, currency, language)}</span>
+                      <span>{formatCurrency(totalPrice, currency, language, conversionRates)}</span>
                   </div>
               </div>
   

@@ -16,7 +16,7 @@ import { formatCurrency } from "@/lib/utils";
 export function PaymentHistoryCard({ payment }: { payment: EnrichedPayment }) {
     const [isPrinting, setIsPrinting] = useState(false);
     const { toast } = useToast();
-    const { currency, language } = useApp();
+    const { currency, language, conversionRates } = useApp();
 
     const handlePrintReceipt = async () => {
         setIsPrinting(true);
@@ -72,7 +72,7 @@ export function PaymentHistoryCard({ payment }: { payment: EnrichedPayment }) {
                         <DollarSign className="h-5 w-5 text-muted-foreground" />
                         <div>
                             <p className="font-semibold text-muted-foreground">Monto Pagado</p>
-                            <p className="font-bold text-lg">{formatCurrency(payment.monto, currency, language)}</p>
+                            <p className="font-bold text-lg">{formatCurrency(payment.monto, currency, language, conversionRates)}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">

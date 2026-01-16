@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { i18n } from "i18next";
 import { useTranslation } from "react-i18next";
+import { getConversionRates, type ConversionRates } from "@/lib/currency-converter";
 
 // Simple JWT decoder
 function decodeJwt(token: string) {
@@ -74,6 +75,7 @@ type AppContextType = {
   supportedCurrencies: Currency[];
   setLocale: (language: string, currencyCode: string) => void;
   i18n: i18n;
+  conversionRates: ConversionRates;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -110,6 +112,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoadingLocale, setIsLoadingLocale] = useState(true);
   const [language, setLanguage] = useState(supportedLanguages[1].code);
   const [currency, setCurrency] = useState(supportedCurrencies[1]);
+  const [conversionRates, setConversionRates] = useState<ConversionRates>({});
   const [detectedRegion, setDetectedRegion] = useState<Region | null>(null);
   const { i18n } = useTranslation();
 
@@ -128,6 +131,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initializeLocale = async () => {
       setIsLoadingLocale(true);
+      
+      // Fetch conversion rates
+      getConversionRates().then(setConversionRates);
+
       const savedLang = localStorage.getItem('userLanguage');
       const savedCurr = localStorage.getItem('userCurrency');
 
@@ -288,7 +295,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         supportedLanguages,
         supportedCurrencies,
         setLocale,
-        i18n
+        i18n,
+        conversionRates,
      }}>
       {children}
     </AppContext.Provider>

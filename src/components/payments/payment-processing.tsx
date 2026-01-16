@@ -33,7 +33,7 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
   const [eventName, setEventName] = useState("");
   const { toast } = useToast();
   const router = useRouter();
-  const { currency, language } = useApp();
+  const { currency, language, conversionRates } = useApp();
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -245,7 +245,7 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
           )}
             <div className="flex justify-between items-baseline text-2xl font-bold border-t pt-4 mt-4">
             <span>Total a Pagar:</span>
-            <span>{formatCurrency(monto, currency, language)}</span>
+            <span>{formatCurrency(monto, currency, language, conversionRates)}</span>
           </div>
         </CardContent>
       </Card>
@@ -270,7 +270,7 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
             ) : (
               <CheckCircle className="mr-2 h-5 w-5" />
             )}
-            {isProcessing ? "Procesando..." : `Pagar ${formatCurrency(monto, currency, language)}`}
+            {isProcessing ? "Procesando..." : `Pagar ${formatCurrency(monto, currency, language, conversionRates)}`}
           </Button>
         </CardFooter>
       </Card>
@@ -284,7 +284,7 @@ function PendingPaymentsList() {
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const { toast } = useToast();
-    const { currency, language } = useApp();
+    const { currency, language, conversionRates } = useApp();
 
     useEffect(() => {
         const fetchPendingBookings = async () => {
@@ -419,7 +419,7 @@ function PendingPaymentsList() {
                                     <p className="text-sm text-muted-foreground">
                                         Expira: {format(new Date(booking.expiraEn), "dd MMM yyyy, h:mm a", { locale: es })}
                                     </p>
-                                    <p className="font-bold mt-1">{formatCurrency(grandTotal, currency, language)}</p>
+                                    <p className="font-bold mt-1">{formatCurrency(grandTotal, currency, language, conversionRates)}</p>
                                 </div>
                                 <Button onClick={() => router.push(`/payments?reservaId=${booking.reservaId}&eventId=${booking.eventId}&monto=${grandTotal}`)}>
                                     Pagar ahora
