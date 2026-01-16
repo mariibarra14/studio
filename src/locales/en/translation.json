@@ -185,7 +185,18 @@
     },
     "status_hold": "On Hold",
     "status_confirmed": "Confirmed",
-    "status_expired": "Expired"
+    "status_expired": "Expired",
+    "tabs": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "history": "History"
+    },
+    "empty_pending_title": "You have no pending bookings",
+    "empty_pending_desc": "When you reserve a ticket, it will appear here to complete the payment.",
+    "empty_confirmed_title": "You have no confirmed bookings",
+    "empty_confirmed_desc": "Tickets you have paid for and confirmed will appear here.",
+    "empty_history_title": "No booking history",
+    "empty_history_desc": "Your complete booking history will appear here."
   },
   "events": {
     "title": "Available Events",

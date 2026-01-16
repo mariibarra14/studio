@@ -185,7 +185,18 @@
     },
     "status_hold": "Por Pagar",
     "status_confirmed": "Confirmada",
-    "status_expired": "Expirada"
+    "status_expired": "Expirada",
+    "tabs": {
+      "pending": "Pendientes",
+      "confirmed": "Confirmadas",
+      "history": "Historial"
+    },
+    "empty_pending_title": "No tienes reservas pendientes",
+    "empty_pending_desc": "Cuando reserves una entrada, aparecerá aquí para que completes el pago.",
+    "empty_confirmed_title": "No tienes reservas confirmadas",
+    "empty_confirmed_desc": "Las entradas que has pagado y confirmado aparecerán aquí.",
+    "empty_history_title": "No hay historial de reservas",
+    "empty_history_desc": "Tu historial completo de reservas aparecerá aquí."
   },
   "events": {
     "title": "Eventos Disponibles",

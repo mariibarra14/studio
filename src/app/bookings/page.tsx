@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { BookingDetailsModal } from "@/components/bookings/booking-details-modal";
 import { TicketStub } from "@/components/bookings/ticket-stub";
@@ -9,11 +9,20 @@ import type { ApiBooking, ApiEvent, Seat, Product } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Ticket, WifiOff } from "lucide-react";
+import { AlertCircle, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategoryNameById, getAllCategories, type Category } from "@/lib/categories";
 import { useTranslation } from "react-i18next";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const getEstadoReal = (estado: string, expiraEn: string): string => {
+  if (estado === 'Hold' && new Date(expiraEn) < new Date()) {
+    return 'Expired';
+  }
+  return estado;
+};
+
 
 export default function BookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<ApiBooking | null>(null);
@@ -208,6 +217,19 @@ export default function BookingsPage() {
     fetchBookings();
   }, [fetchBookings]);
 
+  const pendingBookings = useMemo(() => {
+      return bookings.filter(b => getEstadoReal(b.estado, b.expiraEn) === 'Hold');
+  }, [bookings]);
+
+  const confirmedBookings = useMemo(() => {
+      return bookings.filter(b => b.estado === 'Confirmada');
+  }, [bookings]);
+
+  const historicalBookings = useMemo(() => {
+      return [...bookings].sort((a, b) => new Date(b.creadaEn).getTime() - new Date(a.creadaEn).getTime());
+  }, [bookings]);
+
+
   const handleBookingSelect = (booking: ApiBooking) => {
     setSelectedBooking(booking);
   };
@@ -221,6 +243,30 @@ export default function BookingsPage() {
     fetchBookings();
   };
   
+  const renderBookingsList = (bookingList: ApiBooking[], emptyTitleKey: string, emptyDescKey: string) => {
+    if (bookingList.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4">
+                <Ticket className="h-16 w-16 text-muted-foreground mb-4" />
+                <p className="text-2xl font-semibold text-muted-foreground mb-2">
+                    {t(emptyTitleKey)}
+                </p>
+                <p className="text-muted-foreground">
+                    {t(emptyDescKey)}
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-6">
+            {bookingList.map((booking) => (
+                <TicketStub key={booking.reservaId} booking={booking} onSelect={handleBookingSelect} />
+            ))}
+        </div>
+    );
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -260,11 +306,40 @@ export default function BookingsPage() {
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {bookings.map((booking) => (
-          <TicketStub key={booking.reservaId} booking={booking} onSelect={handleBookingSelect} />
-        ))}
-      </div>
+        <Tabs defaultValue="pending" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
+                <TabsTrigger value="pending">
+                    {t('bookings.tabs.pending')} ({pendingBookings.length})
+                </TabsTrigger>
+                <TabsTrigger value="confirmed">
+                    {t('bookings.tabs.confirmed')} ({confirmedBookings.length})
+                </TabsTrigger>
+                <TabsTrigger value="history">
+                    {t('bookings.tabs.history')} ({historicalBookings.length})
+                </TabsTrigger>
+            </TabsList>
+            <TabsContent value="pending">
+                {renderBookingsList(
+                    pendingBookings,
+                    'bookings.empty_pending_title',
+                    'bookings.empty_pending_desc'
+                )}
+            </TabsContent>
+            <TabsContent value="confirmed">
+                {renderBookingsList(
+                    confirmedBookings,
+                    'bookings.empty_confirmed_title',
+                    'bookings.empty_confirmed_desc'
+                )}
+            </TabsContent>
+            <TabsContent value="history">
+                {renderBookingsList(
+                    historicalBookings,
+                    'bookings.empty_history_title',
+                    'bookings.empty_history_desc'
+                )}
+            </TabsContent>
+        </Tabs>
     );
   }
 
@@ -290,3 +365,4 @@ export default function BookingsPage() {
     </AuthenticatedLayout>
   );
 }
+
