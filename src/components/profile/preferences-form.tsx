@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Category } from "@/lib/categories";
 import { getAllCategories } from "@/lib/categories";
+import { useTranslation } from "react-i18next";
 
 type PreferencesFormProps = {
   user: User;
@@ -28,6 +29,7 @@ export function PreferencesForm({ user }: PreferencesFormProps) {
   
   const { toast } = useToast();
   const { refetchUser } = useApp();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (user?.preferencias) {
@@ -160,10 +162,10 @@ export function PreferencesForm({ user }: PreferencesFormProps) {
             />
             <div className="grid gap-1.5 leading-none">
               <span className="font-medium">
-                {category.nombre}
+                {t(`categories.${category.nombre}` as const, { defaultValue: category.nombre })}
               </span>
               <p className="text-sm text-muted-foreground">
-                {category.descripcion}
+                {t(`categories_desc.${category.nombre}` as const, { defaultValue: category.descripcion })}
               </p>
             </div>
           </label>
@@ -174,12 +176,7 @@ export function PreferencesForm({ user }: PreferencesFormProps) {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <p className="text-muted-foreground">
-          Selecciona las categorías que más te interesan.
-        </p>
-        {renderContent()}
-      </div>
+      {renderContent()}
       
        {submitError && (
         <Alert variant="destructive" className="mt-4">
@@ -189,9 +186,9 @@ export function PreferencesForm({ user }: PreferencesFormProps) {
         </Alert>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end mt-6">
         <Button onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? <Loader2 className="animate-spin" /> : "Guardar Preferencias"}
+          {isSubmitting ? <Loader2 className="animate-spin" /> : t('profile.content_preferences.save_button')}
         </Button>
       </div>
     </div>

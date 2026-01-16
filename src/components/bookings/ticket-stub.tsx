@@ -5,10 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Calendar, Clock, Ticket, Hash, MapPin, Tag, Armchair } from "lucide-react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 import type { ApiBooking } from "@/lib/types";
 import Image from "next/image";
 import { useApp } from "@/context/app-context";
+import { useTranslation } from "react-i18next";
 
 type TicketStubProps = {
   booking: ApiBooking;
@@ -20,16 +21,6 @@ const getEstadoReal = (estado: string, expiraEn: string): string => {
     return 'Expired';
   }
   return estado;
-};
-
-const getEstadoDisplay = (estado: string, expiraEn?: string) => {
-  const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
-  const estados: { [key: string]: string } = {
-    'Hold': 'Por Pagar',
-    'Confirmada': 'Confirmada',
-    'Expired': 'Expirada'
-  };
-  return estados[estadoReal] || estadoReal;
 };
 
 const getEstadoColor = (estado: string, expiraEn?: string) => {
@@ -44,12 +35,22 @@ const getEstadoColor = (estado: string, expiraEn?: string) => {
 
 export function TicketStub({ booking, onSelect }: TicketStubProps) {
   const { currency, language } = useApp();
+  const { t } = useTranslation();
+
+  const getEstadoDisplay = (estado: string, expiraEn?: string) => {
+      const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
+      const key = `bookings.status_${estadoReal.toLowerCase()}`;
+      return t(key, { defaultValue: estadoReal });
+  };
+  
   const estadoDisplay = getEstadoDisplay(booking.estado, booking.expiraEn);
   const estadoColor = getEstadoColor(booking.estado, booking.expiraEn);
   const seatLabels = booking.asientos.map(a => a.label).join(', ');
 
   const productsTotal = booking.complementaryProducts?.reduce((sum, p) => sum + p.precio, 0) || 0;
   const grandTotal = booking.precioTotal + productsTotal;
+  
+  const locale = language === 'es' ? es : enUS;
 
   return (
     <div
@@ -86,16 +87,16 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
         </div>
         <div className="flex items-center text-sm text-muted-foreground">
           <MapPin className="h-4 w-4 mr-2" />
-          <span>{booking.escenarioNombre || 'Cargando...'}</span>
+          <span>{booking.escenarioNombre || t('bookings.ticket_stub.loading')}</span>
         </div>
          <div className="flex items-center text-sm text-muted-foreground">
           <Calendar className="h-4 w-4 mr-2" />
-          <span>Inicia: {booking.eventoInicio ? format(new Date(booking.eventoInicio), "dd/MM/yyyy", { locale: es }) : 'N/A'}</span>
+          <span>{t('bookings.ticket_stub.starts')}: {booking.eventoInicio ? format(new Date(booking.eventoInicio), "dd/MM/yyyy", { locale }) : 'N/A'}</span>
         </div>
          <div className="flex items-center text-sm text-muted-foreground">
           <Armchair className="h-4 w-4 mr-2" />
           <span className="truncate" title={seatLabels}>
-            {booking.asientos.length} Asiento(s): {seatLabels || 'N/A'}
+            {booking.asientos.length} {t('bookings.ticket_stub.seats')}: {seatLabels || 'N/A'}
           </span>
         </div>
       </div>
@@ -107,12 +108,12 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
 
         <div className="flex-grow p-4 flex justify-between items-center text-center">
           <div>
-            <p className="text-xs text-muted-foreground">Asientos</p>
+            <p className="text-xs text-muted-foreground">{t('bookings.ticket_stub.seats')}</p>
             <p className="font-bold text-lg">{booking.asientos.length}</p>
           </div>
           <div className="h-10 border-l border-dashed border-muted-foreground/50" />
           <div>
-            <p className="text-xs text-muted-foreground">Total</p>
+            <p className="text-xs text-muted-foreground">{t('bookings.ticket_stub.total')}</p>
             <p className="font-bold text-lg">{formatCurrency(grandTotal, currency, language)}</p>
           </div>
         </div>

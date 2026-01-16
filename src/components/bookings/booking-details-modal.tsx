@@ -27,13 +27,14 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, Clock, FileText, Package, Loader2, Video, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 import type { ApiBooking, Seat } from "@/lib/types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { generateBookingPDF } from "@/lib/pdf-generator";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useApp } from "@/context/app-context";
+import { useTranslation } from "react-i18next";
 
 
 type BookingDetailsModalProps = {
@@ -48,26 +49,6 @@ const getEstadoReal = (estado: string, expiraEn: string): string => {
     return 'Expired';
   }
   return estado;
-};
-
-const getEstadoDisplay = (estado: string, expiraEn?: string) => {
-  const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
-  const estados: { [key: string]: string } = {
-    'Hold': 'Por Pagar',
-    'Confirmada': 'Confirmada', 
-    'Expired': 'Expirada'
-  };
-  return estados[estadoReal] || estadoReal;
-};
-
-const getEstadoColor = (estado: string, expiraEn?: string) => {
-  const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
-  const colores: { [key: string]: string } = {
-    'Hold': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    'Confirmada': 'bg-green-100 text-green-800 border-green-200',
-    'Expired': 'bg-red-100 text-red-800 border-red-200'
-  };
-  return colores[estadoReal] || 'bg-gray-100 text-gray-800 border-gray-200';
 };
 
 const getEstadoAsientoDisplay = (estado: string | undefined) => {
@@ -88,12 +69,28 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
     const router = useRouter();
     const [isCancelling, setIsCancelling] = useState(false);
     const { currency, language } = useApp();
+    const { t } = useTranslation();
+
+    const getEstadoDisplay = (estado: string, expiraEn?: string) => {
+        const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
+        const key = `bookings.status_${estadoReal.toLowerCase()}`;
+        return t(key, { defaultValue: estadoReal });
+    };
+
+    const getEstadoColor = (estado: string, expiraEn?: string) => {
+        const estadoReal = expiraEn ? getEstadoReal(estado, expiraEn) : estado;
+        const colores: { [key: string]: string } = {
+          'Hold': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+          'Confirmada': 'bg-green-100 text-green-800 border-green-200',
+          'Expired': 'bg-red-100 text-red-800 border-red-200'
+        };
+        return colores[estadoReal] || 'bg-gray-100 text-gray-800 border-gray-200';
+    };
 
     const estadoReal = getEstadoReal(booking.estado, booking.expiraEn);
     const estadoDisplay = getEstadoDisplay(booking.estado, booking.expiraEn);
     const estadoColor = getEstadoColor(booking.estado, booking.expiraEn);
 
-    // Virtual event logic
     const isVirtual = booking.eventoTipo === 'Virtual';
     const isConfirmed = estadoReal === 'Confirmada';
 
@@ -130,7 +127,6 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
         }
     
         try {
-            // Step 1: Cancel event reservation
             const eventCancelResponse = await fetch(`http://localhost:44335/api/Reservas/${booking.reservaId}/cancelar`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -140,12 +136,10 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                 throw new Error("No se pudo cancelar la reserva del evento. Puede que ya no sea válida o ya haya sido procesada.");
             }
     
-            // Step 2: Find and conditionally cancel complementary service reservation
             const compResResponse = await fetch(`http://localhost:44335/api/ServComps/Resv/getReservaByIdReserva?idReserva=${booking.reservaId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            // Only proceed if a complementary reservation was found
             if (compResResponse.ok) {
                 const compResData = await compResResponse.json();
                 const complementaryReservationId = compResData.id;
@@ -156,18 +150,14 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
 
-                    // If this cancellation fails, throw a specific error
                     if (!cancelCompResResponse.ok) {
                          throw new Error("PARTIAL_CANCELLATION");
                     }
                 }
             } else if (compResResponse.status !== 404) {
-                // If the check failed for a reason other than "Not Found", it's a server issue
                  throw new Error("PARTIAL_CANCELLATION_CHECK_FAILED");
             }
-            // If the status is 404, we just continue, as there's nothing to cancel.
     
-            // If we reach here, everything was successful (or there was nothing to cancel)
             toast({
                 title: "Reserva Cancelada",
                 description: "Tu reserva y los servicios asociados han sido cancelados."
@@ -179,13 +169,13 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
             let description = err.message;
 
             if (err.message === "PARTIAL_CANCELLATION") {
-                title = "Cancelación Parcial";
-                description = "La reserva del evento se canceló, pero hubo un error al cancelar los servicios adicionales. Por favor, contacte a soporte.";
-                onCancelSuccess(); // Update UI even on partial success
+                title = t('bookings.ticket_details.partial_cancellation_title');
+                description = t('bookings.ticket_details.partial_cancellation_desc_1');
+                onCancelSuccess();
             } else if (err.message === "PARTIAL_CANCELLATION_CHECK_FAILED") {
-                title = "Cancelación Parcial";
-                description = "La reserva del evento se canceló, pero no se pudo verificar el estado de los servicios adicionales. Contacte a soporte.";
-                onCancelSuccess(); // Update UI even on partial success
+                title = t('bookings.ticket_details.partial_cancellation_title');
+                description = t('bookings.ticket_details.partial_cancellation_desc_2');
+                onCancelSuccess();
             }
 
             toast({
@@ -201,7 +191,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
 
     const formatDate = (dateString: string | undefined) => {
       if (!dateString) return 'N/A';
-      return format(new Date(dateString), "dd MMMM, yyyy - h:mm a", { locale: es });
+      return format(new Date(dateString), "dd MMMM, yyyy - h:mm a", { locale: language === 'es' ? es : enUS });
     }
 
     const ticketsTotal = booking.precioTotal;
@@ -226,62 +216,57 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                 <DialogHeader className="mb-6 text-left">
                     <Badge variant="outline" className="mb-2 w-fit">{booking.eventoCategoria}</Badge>
                     <DialogTitle className="text-3xl font-bold">{booking.eventoNombre}</DialogTitle>
-                    <DialogDescription>Identificador de la Reserva: {booking.reservaId.substring(0,8)}</DialogDescription>
+                    <DialogDescription>{t('bookings.ticket_details.booking_id')}: {booking.reservaId.substring(0,8)}</DialogDescription>
                 </DialogHeader>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    {/* Event Dates */}
                     <div className="flex items-start gap-3">
                         <Calendar className="h-5 w-5 mt-1 text-primary" />
                         <div>
-                            <h4 className="font-semibold">Inicio del Evento</h4>
+                            <h4 className="font-semibold">{t('bookings.ticket_details.event_start')}</h4>
                             <p className="text-muted-foreground">{formatDate(booking.eventoInicio)}</p>
                         </div>
                     </div>
                      <div className="flex items-start gap-3">
                         <Clock className="h-5 w-5 mt-1 text-primary" />
                         <div>
-                            <h4 className="font-semibold">Fin del Evento</h4>
+                            <h4 className="font-semibold">{t('bookings.ticket_details.event_end')}</h4>
                             <p className="text-muted-foreground">{formatDate(booking.eventoFin)}</p>
                         </div>
                     </div>
                     
-                    {/* Location */}
                     <div className="flex items-start gap-3">
                         <MapPin className="h-5 w-5 mt-1 text-primary" />
                         <div>
-                            <h4 className="font-semibold">Ubicación</h4>
+                            <h4 className="font-semibold">{t('bookings.ticket_details.location')}</h4>
                             <p className="text-muted-foreground">{booking.escenarioNombre}</p>
                             <p className="text-xs text-muted-foreground">{booking.escenarioUbicacion}</p>
                         </div>
                     </div>
 
-                     {/* Expiration Date */}
                      <div className="flex items-start gap-3">
                         <Clock className="h-5 w-5 mt-1 text-primary" />
                         <div>
-                            <h4 className="font-semibold">Expiración de la Reserva</h4>
+                            <h4 className="font-semibold">{t('bookings.ticket_details.booking_expiration')}</h4>
                             <p className="text-muted-foreground">{formatDate(booking.expiraEn)}</p>
                         </div>
                     </div>
 
-                    {/* Booking Details */}
                     <div className="flex items-start gap-3">
                         <Info className="h-5 w-5 mt-1 text-primary" />
                         <div>
-                            <h4 className="font-semibold">Zona de la Reserva</h4>
+                            <h4 className="font-semibold">{t('bookings.ticket_details.zone')}</h4>
                             <p className="text-muted-foreground">{booking.zonaNombre || 'Cargando...'}</p>
                         </div>
                     </div>
                     
-                    {/* Seats */}
                     <div className="md:col-span-2">
-                        <h4 className="font-semibold mb-2 flex items-center gap-2"><Armchair className="h-5 w-5 text-primary" /> Asientos Reservados</h4>
+                        <h4 className="font-semibold mb-2 flex items-center gap-2"><Armchair className="h-5 w-5 text-primary" /> {t('bookings.ticket_details.reserved_seats')}</h4>
                         <div className="max-h-32 overflow-y-auto space-y-1 pr-2">
                         {booking.asientos.map(asiento => (
                             <div key={asiento.asientoId} className="flex justify-between items-center text-sm p-2 bg-muted/50 rounded-md">
                                 <div>
-                                    <p>Asiento <span className="font-semibold">{asiento.label}</span></p>
+                                    <p>{t('bookings.ticket_stub.seats')} <span className="font-semibold">{asiento.label}</span></p>
                                     <p className="text-xs text-muted-foreground">ID: {asiento.asientoId.substring(0,8)}... </p>
                                 </div>
                                 <Badge variant={asiento.estado === 'hold' ? 'default' : 'outline'} className="capitalize">
@@ -293,10 +278,9 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                         </div>
                     </div>
                     
-                    {/* Complementary Products */}
                     {booking.complementaryProducts && booking.complementaryProducts.length > 0 && (
                         <div className="md:col-span-2">
-                            <h4 className="font-semibold mb-2 flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> Productos Adicionales</h4>
+                            <h4 className="font-semibold mb-2 flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> {t('bookings.ticket_details.additional_products')}</h4>
                             <div className="max-h-32 overflow-y-auto space-y-1 pr-2">
                             {booking.complementaryProducts.map(product => (
                                 <div key={product.id} className="flex justify-between items-center text-sm p-2 bg-muted/50 rounded-md">
@@ -318,32 +302,28 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                         </div>
                     )}
 
-                    {/* Virtual Event Section */}
                     {isVirtual && (
                         <div className="md:col-span-2 pt-4 border-t mt-2">
                             <h4 className="font-semibold mb-3 flex items-center gap-2">
-                                <Video className="h-5 w-5 text-primary" /> Evento Virtual
+                                <Video className="h-5 w-5 text-primary" /> {t('bookings.ticket_details.virtual_event')}
                             </h4>
                             {isConfirmed ? (
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-muted/50 rounded-lg">
                                     <div className="flex-1">
-                                        <p className="font-medium">Este evento se realizará en línea.</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            Haz clic en el botón para acceder a la reunión virtual.
-                                        </p>
+                                        <p className="font-medium">{t('bookings.ticket_details.virtual_event_confirmed_desc')}</p>
                                     </div>
                                     <Button asChild disabled={!booking.onlineMeetingUrl}>
                                         <a href={booking.onlineMeetingUrl!} target="_blank" rel="noopener noreferrer">
-                                            Acceder a la Reunión
+                                            {t('bookings.ticket_details.access_meeting')}
                                         </a>
                                     </Button>
                                 </div>
                             ) : (
                                 <Alert>
                                     <AlertTriangle className="h-4 w-4" />
-                                    <AlertTitle>Acceso Pendiente</AlertTitle>
+                                    <AlertTitle>{t('bookings.ticket_details.access_pending_title')}</AlertTitle>
                                     <AlertDescription>
-                                        El enlace para unirte al evento estará disponible aquí una vez que se confirme tu reserva.
+                                        {t('bookings.ticket_details.access_pending_desc')}
                                     </AlertDescription>
                                 </Alert>
                             )}
@@ -351,28 +331,27 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                     )}
 
 
-                    {/* Total Price and Status */}
                     <div className="md:col-span-2 border-t pt-6 mt-2 flex flex-col gap-4">
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-3">
-                                <h4 className="text-xl font-bold">Estado:</h4>
+                                <h4 className="text-xl font-bold">{t('bookings.ticket_details.status')}:</h4>
                                 <Badge variant="outline" className={cn("text-sm", estadoColor)}>{estadoDisplay}</Badge>
                             </div>
                             <div className="text-right">
                                 <div className="text-sm space-y-1">
                                     <div className="flex justify-between gap-4">
-                                        <span className="text-muted-foreground">Entradas:</span>
+                                        <span className="text-muted-foreground">{t('bookings.ticket_details.tickets')}:</span>
                                         <span>{formatCurrency(ticketsTotal, currency, language)}</span>
                                     </div>
                                     {productsTotal > 0 && (
                                         <div className="flex justify-between gap-4">
-                                            <span className="text-muted-foreground">Productos:</span>
+                                            <span className="text-muted-foreground">{t('bookings.ticket_details.products')}:</span>
                                             <span>{formatCurrency(productsTotal, currency, language)}</span>
                                         </div>
                                     )}
                                 </div>
                                 <div className="border-t my-2"></div>
-                                <p className="text-sm text-muted-foreground">Precio Total</p>
+                                <p className="text-sm text-muted-foreground">{t('bookings.ticket_details.total_price')}</p>
                                 <p className="text-2xl font-bold">{formatCurrency(grandTotal, currency, language)}</p>
                             </div>
                         </div>
@@ -386,26 +365,26 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                         <>
                             <Button className="w-full sm:w-auto" onClick={handleAction}>
                                 <CreditCard className="mr-2 h-4 w-4" />
-                                Proceder al Pago
+                                {t('bookings.ticket_details.pay')}
                             </Button>
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="destructive" className="w-full sm:w-auto" disabled={isCancelling}>
                                         {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
-                                        Cancelar Reserva
+                                        {t('bookings.ticket_details.cancel_booking')}
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle>¿Cancelar Reserva?</AlertDialogTitle>
+                                        <AlertDialogTitle>{t('bookings.ticket_details.cancel_booking_confirm_title')}</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            ¿Estás seguro de que deseas cancelar esta reserva? Se cancelarán también todos los servicios adicionales asociados. Esta acción no se puede deshacer.
+                                            {t('bookings.ticket_details.cancel_booking_confirm_desc')}
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel>No</AlertDialogCancel>
+                                        <AlertDialogCancel>{t('bookings.ticket_details.cancel_booking_confirm_no')}</AlertDialogCancel>
                                         <AlertDialogAction onClick={handleCancelReservation} disabled={isCancelling}>
-                                            {isCancelling ? 'Cancelando...' : 'Sí, cancelar'}
+                                            {isCancelling ? t('general.cancelling') : t('bookings.ticket_details.cancel_booking_confirm_yes')}
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -416,12 +395,12 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                     <>
                             <Button variant="outline" className="w-full sm:w-auto" onClick={handleGeneratePdf}>
                                 <FileText className="mr-2 h-4 w-4" />
-                                Imprimir PDF
+                                {t('bookings.ticket_details.print_pdf')}
                             </Button>
                     </>
                     )}
                 </div>
-                 <Button variant="outline" onClick={onClose}>Cerrar</Button>
+                 <Button variant="outline" onClick={onClose}>{t('bookings.ticket_details.close')}</Button>
             </DialogFooter>
         </DialogContent>
         </Dialog>

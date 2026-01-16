@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import type { User } from "@/context/app-context";
 import { useApp } from "@/context/app-context";
 import { ImageCropperModal } from "../auth/image-cropper-modal";
+import { useTranslation } from "react-i18next";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "El nombre es obligatorio." }),
@@ -45,6 +46,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
   
   const [imageToCrop, setImageToCrop] = useState<string | undefined>(undefined);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const { t } = useTranslation();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -188,11 +190,11 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
               <div className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                          <FormLabel>Dirección de Correo Electrónico</FormLabel>
+                          <FormLabel>{t('forms.email')}</FormLabel>
                           <Input value={user.correo} readOnly disabled />
                       </div>
                       <div className="space-y-2">
-                          <FormLabel>Rol de Usuario</FormLabel>
+                          <FormLabel>{t('forms.user_role')}</FormLabel>
                           <Input value={user.nombreRol || user.rol} readOnly disabled />
                       </div>
                   </div>
@@ -202,7 +204,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
                           name="firstName"
                           render={({ field }) => (
                           <FormItem>
-                              <FormLabel>Nombre</FormLabel>
+                              <FormLabel>{t('forms.first_name')}</FormLabel>
                               <FormControl>
                               <Input placeholder="John" {...field} />
                               </FormControl>
@@ -215,7 +217,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
                           name="lastName"
                           render={({ field }) => (
                           <FormItem>
-                              <FormLabel>Apellido</FormLabel>
+                              <FormLabel>{t('forms.last_name')}</FormLabel>
                               <FormControl>
                               <Input placeholder="Doe" {...field} />
                               </FormControl>
@@ -230,7 +232,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
                       name="phoneNumber"
                       render={({ field }) => (
                           <FormItem>
-                          <FormLabel>Número de Teléfono</FormLabel>
+                          <FormLabel>{t('forms.phone_number')}</FormLabel>
                           <FormControl>
                               <Input type="tel" placeholder="04142869306" {...field} />
                           </FormControl>
@@ -239,7 +241,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
                       )}
                       />
                       <div className="space-y-2">
-                          <FormLabel>Fecha de Nacimiento</FormLabel>
+                          <FormLabel>{t('forms.dob')}</FormLabel>
                           <Input value={format(new Date(user.fechaNacimiento), "dd/MM/yyyy")} readOnly disabled />
                       </div>
                   </div>
@@ -248,7 +250,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
                   name="address"
                   render={({ field }) => (
                       <FormItem>
-                      <FormLabel>Dirección</FormLabel>
+                      <FormLabel>{t('forms.address')}</FormLabel>
                       <FormControl>
                           <Textarea placeholder="123 Main St, Anytown USA" {...field} />
                       </FormControl>
@@ -259,7 +261,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
               </div>
               <div className="flex justify-start">
                   <Button type="submit" disabled={isLoading}>
-                      {isLoading ? <Loader2 className="animate-spin" /> : "Guardar Cambios"}
+                      {isLoading ? <Loader2 className="animate-spin" /> : t('forms.save_changes')}
                   </Button>
               </div>
           </div>
@@ -269,7 +271,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
                   name="photo"
                   render={({ field }) => (
                       <FormItem className="flex flex-col items-center text-center gap-4 p-4 border rounded-lg bg-background">
-                          <FormLabel className="text-base font-semibold">Foto de Perfil</FormLabel>
+                          <FormLabel className="text-base font-semibold">{t('forms.profile_photo')}</FormLabel>
                           <Avatar className="h-32 w-32">
                               <AvatarImage src={photoPreview || undefined} alt="Vista previa de la foto de perfil" />
                               <AvatarFallback className="text-4xl">{getInitials(user?.nombre, user?.apellido)}</AvatarFallback>
@@ -284,7 +286,7 @@ export function ProfileDetailsForm({ user }: ProfileDetailsFormProps) {
                               />
                               <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                                   <Upload className="mr-2 h-4 w-4" />
-                                  Cambiar Foto
+                                  {t('forms.change_photo')}
                               </Button>
                               <p className="text-xs text-muted-foreground">JPG, PNG o GIF. 1MB máx.</p>
                               <FormMessage />

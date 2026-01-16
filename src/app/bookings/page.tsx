@@ -13,6 +13,7 @@ import { AlertCircle, Ticket, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategoryNameById, getAllCategories, type Category } from "@/lib/categories";
+import { useTranslation } from "react-i18next";
 
 export default function BookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<ApiBooking | null>(null);
@@ -22,6 +23,7 @@ export default function BookingsPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
+  const { t } = useTranslation();
 
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
@@ -33,8 +35,8 @@ export default function BookingsPage() {
     if (!token || !userId) {
       toast({
         variant: "destructive",
-        title: "Sesión expirada",
-        description: "Redirigiendo al login...",
+        title: t('bookings.expired_session_title'),
+        description: t('bookings.expired_session_desc'),
       });
       localStorage.clear();
       router.push("/login");
@@ -94,7 +96,8 @@ export default function BookingsPage() {
                 const eventoData: ApiEvent = await eventoResponse.json();
                 eventoNombre = eventoData.nombre;
                 eventoImagen = eventoData.imagenUrl || "";
-                eventoCategoria = getCategoryNameById(categoriesResponse, eventoData.categoriaId) || 'General';
+                const categoryName = getCategoryNameById(categoriesResponse, eventoData.categoriaId) || 'General';
+                eventoCategoria = t(`categories.${categoryName}`, { defaultValue: categoryName });
                 eventoInicio = eventoData.inicio;
                 eventoFin = eventoData.fin || "";
                 eventoTipo = eventoData.tipo;
@@ -180,26 +183,26 @@ export default function BookingsPage() {
       if (err.message === "401") {
         toast({
           variant: "destructive",
-          title: "Sesión expirada",
-          description: "Redirigiendo al login...",
+          title: t('bookings.expired_session_title'),
+          description: t('bookings.expired_session_desc'),
         });
         localStorage.clear();
         router.push("/login");
       } else if (err.message === "Server Error") {
         setError({
-          title: "Error del servidor",
-          message: "No se pudieron cargar las reservas. Por favor, intenta nuevamente más tarde.",
+          title: t('bookings.server_error_title'),
+          message: t('bookings.server_error_desc'),
         });
       } else {
         setError({
-          title: "Error de conexión",
-          message: "Verifica tu conexión a internet e intenta de nuevo.",
+          title: t('bookings.connection_error_title'),
+          message: t('bookings.connection_error_desc'),
         });
       }
     } finally {
       setIsLoading(false);
     }
-  }, [router, toast]);
+  }, [router, toast, t]);
 
   useEffect(() => {
     fetchBookings();
@@ -237,7 +240,7 @@ export default function BookingsPage() {
             <AlertTitle>{error.title}</AlertTitle>
             <AlertDescription>{error.message}</AlertDescription>
           </Alert>
-          <Button onClick={fetchBookings} className="mt-6">Reintentar</Button>
+          <Button onClick={fetchBookings} className="mt-6">{t('bookings.retry')}</Button>
         </div>
       );
     }
@@ -247,10 +250,10 @@ export default function BookingsPage() {
         <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4">
           <Ticket className="h-16 w-16 text-muted-foreground mb-4" />
           <p className="text-2xl font-semibold text-muted-foreground mb-2">
-            No tienes reservas activas
+            {t('bookings.no_bookings_title')}
           </p>
           <p className="text-muted-foreground">
-            Cuando reserves un tiquete para un evento, aparecerá aquí.
+            {t('bookings.no_bookings_desc')}
           </p>
         </div>
       );
@@ -269,7 +272,7 @@ export default function BookingsPage() {
     <AuthenticatedLayout>
       <main className="flex-1 p-4 md:p-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold">Mis Reservas</h1>
+          <h1 className="text-3xl font-bold">{t('bookings.title')}</h1>
         </div>
         
         {renderContent()}

@@ -12,43 +12,45 @@ import { User, CreditCard, History, Heart } from 'lucide-react';
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { useApp } from "@/context/app-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 export default function ProfilePage() {
   const { user, isLoadingUser, userRole } = useApp();
+  const { t } = useTranslation();
 
   const showPaymentMethods = userRole === 'usuario_final' || userRole === 'administrador';
 
   return (
     <AuthenticatedLayout>
       <main className="flex-1 p-4 md:p-8">
-        <h1 className="text-3xl font-bold mb-6">Gestión de Cuenta</h1>
+        <h1 className="text-3xl font-bold mb-6">{t('profile.title')}</h1>
         <Tabs defaultValue="profile" className="w-full">
           <TabsList>
             <TabsTrigger value="profile">
               <User className="mr-2 h-4 w-4" />
-              Perfil
+              {t('profile.tabs.profile')}
             </TabsTrigger>
             {showPaymentMethods && (
               <TabsTrigger value="payment">
                 <CreditCard className="mr-2 h-4 w-4" />
-                Métodos de Pago
+                {t('profile.tabs.payment')}
               </TabsTrigger>
             )}
             <TabsTrigger value="activity">
               <History className="mr-2 h-4 w-4" />
-              Historial de Actividad
+              {t('profile.tabs.activity')}
             </TabsTrigger>
             <TabsTrigger value="preferences">
               <Heart className="mr-2 h-4 w-4" />
-              Preferencias
+              {t('profile.tabs.preferences')}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="profile">
             <div className="mt-6 grid gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Información Personal</CardTitle>
-                  <CardDescription>Actualice sus datos personales aquí.</CardDescription>
+                  <CardTitle>{t('profile.personal_info.title')}</CardTitle>
+                  <CardDescription>{t('profile.personal_info.description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {isLoadingUser ? (
@@ -69,8 +71,8 @@ export default function ProfilePage() {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle>Cambiar Contraseña</CardTitle>
-                  <CardDescription>Actualice la contraseña de su cuenta.</CardDescription>
+                  <CardTitle>{t('profile.change_password.title')}</CardTitle>
+                  <CardDescription>{t('profile.change_password.description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ChangePasswordForm />
@@ -83,8 +85,8 @@ export default function ProfilePage() {
               <div className="mt-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Métodos de Pago</CardTitle>
-                    <CardDescription>Administre sus métodos de pago guardados.</CardDescription>
+                    <CardTitle>{t('profile.payment_methods.title')}</CardTitle>
+                    <CardDescription>{t('profile.payment_methods.description')}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <PaymentMethods />
@@ -97,8 +99,8 @@ export default function ProfilePage() {
             <div className="mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Historial de Actividad</CardTitle>
-                  <CardDescription>Un registro de la actividad reciente de su cuenta.</CardDescription>
+                  <CardTitle>{t('profile.activity_history.title')}</CardTitle>
+                  <CardDescription>{t('profile.activity_history.description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ActivityHistory />
@@ -110,9 +112,9 @@ export default function ProfilePage() {
             <div className="mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Preferencias de Contenido</CardTitle>
+                  <CardTitle>{t('profile.content_preferences.title')}</CardTitle>
                   <CardDescription>
-                    Selecciona tus categorías favoritas para recibir recomendaciones personalizadas.
+                    {t('profile.content_preferences.description')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

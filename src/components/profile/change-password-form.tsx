@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 const formSchema = z.object({
   newPassword: z.string()
@@ -38,6 +39,7 @@ export function ChangePasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { t } = useTranslation();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -125,7 +127,7 @@ export function ChangePasswordForm() {
           name="newPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nueva Contraseña</FormLabel>
+              <FormLabel>{t('forms.new_password')}</FormLabel>
               <div className="relative">
                 <FormControl>
                   <Input type={showNewPassword ? "text" : "password"} placeholder="••••••••" {...field} />
@@ -150,7 +152,7 @@ export function ChangePasswordForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirmar Nueva Contraseña</FormLabel>
+              <FormLabel>{t('forms.confirm_new_password')}</FormLabel>
                <div className="relative">
                 <FormControl>
                   <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" {...field} />
@@ -172,7 +174,7 @@ export function ChangePasswordForm() {
         />
         <div className="flex justify-end">
             <Button type="submit" disabled={isLoading}>
-            {isLoading ? <Loader2 className="animate-spin" /> : "Actualizar Contraseña"}
+            {isLoading ? <Loader2 className="animate-spin" /> : t('forms.update_password')}
             </Button>
         </div>
       </form>

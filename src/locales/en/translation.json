@@ -41,5 +41,132 @@
       "auto_config": "Your language and currency have been set automatically. You can change them manually above.",
       "not_detected": "We couldn't automatically detect your region. Default settings have been applied."
     }
+  },
+  "profile": {
+    "title": "Account Management",
+    "tabs": {
+      "profile": "Profile",
+      "payment": "Payment Methods",
+      "activity": "Activity History",
+      "preferences": "Preferences"
+    },
+    "personal_info": {
+      "title": "Personal Information",
+      "description": "Update your personal details here."
+    },
+    "change_password": {
+      "title": "Change Password",
+      "description": "Update your account password."
+    },
+    "payment_methods": {
+      "title": "Payment Methods",
+      "description": "Manage your saved payment methods."
+    },
+    "activity_history": {
+      "title": "Activity History",
+      "description": "A log of recent activity on your account."
+    },
+    "content_preferences": {
+      "title": "Content Preferences",
+      "description": "Select your favorite categories to receive personalized recommendations.",
+      "save_button": "Save Preferences"
+    }
+  },
+  "forms": {
+    "email": "Email Address",
+    "password": "Password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm Password",
+    "confirm_new_password": "Confirm New Password",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "phone_number": "Phone Number",
+    "dob": "Date of Birth",
+    "address": "Address",
+    "user_role": "User Role",
+    "profile_photo": "Profile Photo",
+    "change_photo": "Change Photo",
+    "save_changes": "Save Changes",
+    "update_password": "Update Password"
+  },
+  "categories": {
+    "Deportes": "Sports",
+    "Conciertos": "Concerts",
+    "Teatro y Artes Escénicas": "Theater & Performing Arts",
+    "Comedia": "Comedy",
+    "Festivales": "Festivals",
+    "Navideño y Fin de Año": "Holiday & New Year's",
+    "Conferencias": "Conferences",
+    "Actos Universitarios": "University Events",
+    "Salud y Bienestar": "Health & Wellness",
+    "Tecnología e Innovación": "Technology & Innovation",
+    "Moda y Creatividad": "Fashion & Creativity",
+    "Gastronómicos": "Gastronomy"
+  },
+  "categories_desc": {
+    "Deportes": "Includes all professional and college sports events. Covers major leagues like soccer, basketball (NBA), baseball (MLB), hockey (NHL), football (NFL), and also motorsports, tennis, golf, and wrestling.",
+    "Conciertos": "Musical events ranging from international pop artist tours, rock bands, hip-hop, electronic music, and massive music festivals.",
+    "Teatro y Artes Escénicas": "Covers dramatic shows, Broadway musicals, plays, opera, ballet, contemporary dance, and productions by local and international theater companies.",
+    "Comedia": "Performances by stand-up comedians, monologue tours, comedy festivals, and improv shows. Ideal for finding a humorous plan.",
+    "Festivales": "Focuses on long-duration events that combine multiple acts or genres. Generally includes music festivals (Lollapalooza, Coachella), food or cultural festivals, and large annual celebrations.",
+    "Navideño y Fin de Año": "Seasonal shows, concerts of bagpipes and carols, light-up ceremonies, New Year's Eve dinners, and Christmas-themed fairs.",
+    "Conferencias": "Includes academic, professional, and corporate events where papers, talks, and debates are presented. Covers keynotes, symposiums, congresses, specialized forums, and innovation meetings in various fields of knowledge.",
+    "Actos Universitarios": "Includes official ceremonies and activities of educational institutions. Covers graduation ceremonies, award ceremonies, academic inaugurations, and cultural events organized by universities.",
+    "Salud y Bienestar": "Includes activities focused on physical and mental well-being. Covers sports days, mass yoga, health fairs, meditation workshops, and healthy living events.",
+    "Tecnología e Innovación": "Includes meetings on technological advances and new ideas. Covers hackathons, innovation fairs, startup congresses, technology product launches, and applied science conferences.",
+    "Moda y Creatividad": "Includes events related to design, art, and creative expression. Covers fashion shows, art exhibitions, design fairs, photography exhibitions, and creativity festivals.",
+    "Gastronómicos": "Includes events centered on food and drink. Covers gastronomic festivals, coffee fairs, wine tastings, culinary competitions, and gourmet experiences."
+  },
+  "bookings": {
+    "title": "My Bookings",
+    "no_bookings_title": "You have no active bookings",
+    "no_bookings_desc": "When you book a ticket for an event, it will appear here.",
+    "retry": "Retry",
+    "server_error_title": "Server Error",
+    "server_error_desc": "Could not load bookings. Please try again later.",
+    "connection_error_title": "Connection Error",
+    "connection_error_desc": "Please check your internet connection and try again.",
+    "expired_session_title": "Session expired",
+    "expired_session_desc": "Redirecting to login...",
+    "ticket_details": {
+      "booking_id": "Booking ID",
+      "event_start": "Event Start",
+      "event_end": "Event End",
+      "location": "Location",
+      "venue": "Venue",
+      "booking_expiration": "Booking Expiration",
+      "zone": "Zone",
+      "reserved_seats": "Reserved Seats",
+      "additional_products": "Additional Products",
+      "virtual_event": "Virtual Event",
+      "virtual_event_confirmed_desc": "This event will be held online. Click the button to access the virtual meeting.",
+      "access_meeting": "Access Meeting",
+      "access_pending_title": "Access Pending",
+      "access_pending_desc": "The link to join the event will be available here once your booking is confirmed.",
+      "status": "Status",
+      "tickets": "Tickets",
+      "products": "Products",
+      "total_price": "Total Price",
+      "pay": "Proceed to Payment",
+      "cancel_booking": "Cancel Booking",
+      "cancel_booking_confirm_title": "Cancel Booking?",
+      "cancel_booking_confirm_desc": "Are you sure you want to cancel this booking? All associated additional services will also be canceled. This action cannot be undone.",
+      "cancel_booking_confirm_no": "No",
+      "cancel_booking_confirm_yes": "Yes, cancel",
+      "print_pdf": "Print PDF",
+      "close": "Close",
+      "partial_cancellation_title": "Partial Cancellation",
+      "partial_cancellation_desc_1": "The event booking was canceled, but there was an error canceling the additional services. Please contact support.",
+      "partial_cancellation_desc_2": "The event booking was canceled, but the status of additional services could not be verified. Please contact support."
+    },
+    "ticket_stub": {
+      "starts": "Starts",
+      "seats": "Seat(s)",
+      "total": "Total",
+      "loading": "Loading..."
+    },
+    "status_hold": "On Hold",
+    "status_confirmed": "Confirmed",
+    "status_expired": "Expired"
   }
 }

@@ -41,5 +41,132 @@
       "auto_config": "Tu idioma y moneda se han configurado automáticamente. Puedes cambiarlos manualmente.",
       "not_detected": "No pudimos detectar tu región automáticamente. Se aplicó la configuración por defecto."
     }
+  },
+  "profile": {
+    "title": "Gestión de Cuenta",
+    "tabs": {
+      "profile": "Perfil",
+      "payment": "Métodos de Pago",
+      "activity": "Historial de Actividad",
+      "preferences": "Preferencias"
+    },
+    "personal_info": {
+      "title": "Información Personal",
+      "description": "Actualice sus datos personales aquí."
+    },
+    "change_password": {
+      "title": "Cambiar Contraseña",
+      "description": "Actualice la contraseña de su cuenta."
+    },
+    "payment_methods": {
+      "title": "Métodos de Pago",
+      "description": "Administre sus métodos de pago guardados."
+    },
+    "activity_history": {
+      "title": "Historial de Actividad",
+      "description": "Un registro de la actividad reciente de su cuenta."
+    },
+    "content_preferences": {
+      "title": "Preferencias de Contenido",
+      "description": "Selecciona tus categorías favoritas para recibir recomendaciones personalizadas.",
+      "save_button": "Guardar Preferencias"
+    }
+  },
+  "forms": {
+    "email": "Dirección de Correo Electrónico",
+    "password": "Contraseña",
+    "new_password": "Nueva Contraseña",
+    "confirm_password": "Confirmar Contraseña",
+    "confirm_new_password": "Confirmar Nueva Contraseña",
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "phone_number": "Número de Teléfono",
+    "dob": "Fecha de Nacimiento",
+    "address": "Dirección",
+    "user_role": "Rol de Usuario",
+    "profile_photo": "Foto de Perfil",
+    "change_photo": "Cambiar Foto",
+    "save_changes": "Guardar Cambios",
+    "update_password": "Actualizar Contraseña"
+  },
+  "categories": {
+    "Deportes": "Deportes",
+    "Conciertos": "Conciertos",
+    "Teatro y Artes Escénicas": "Teatro y Artes Escénicas",
+    "Comedia": "Comedia",
+    "Festivales": "Festivales",
+    "Navideño y Fin de Año": "Navideño y Fin de Año",
+    "Conferencias": "Conferencias",
+    "Actos Universitarios": "Actos Universitarios",
+    "Salud y Bienestar": "Salud y Bienestar",
+    "Tecnología e Innovación": "Tecnología e Innovación",
+    "Moda y Creatividad": "Moda y Creatividad",
+    "Gastronómicos": "Gastronómicos"
+  },
+  "categories_desc": {
+    "Deportes": "Incluye todos los eventos deportivos profesionales y universitarios. Abarca ligas importantes como fútbol (soccer), baloncesto (NBA), béisbol (MLB), hockey (NHL), fútbol americano (NFL), y también deportes de motor, tenis, golf, y lucha libre.",
+    "Conciertos": "Eventos musicales que van desde giras de artistas pop internacionales, bandas de rock, hip-hop, música electrónica y festivales de música masivos.",
+    "Teatro y Artes Escénicas": "Cubre espectáculos dramáticos, musicales de Broadway, obras de teatro, ópera, ballet, danza contemporánea, y producciones de compañías teatrales locales e internacionales.",
+    "Comedia": "Presentaciones de comediantes de stand-up, giras de monólogos, festivales de comedia y shows de improvisación. Ideal para buscar un plan de humor.",
+    "Festivales": "Concentra eventos de larga duración que combinan múltiples actos o géneros. Generalmente incluye festivales de música (Lollapalooza, Coachella), festivales gastronómicos o culturales y grandes celebraciones anuales.",
+    "Navideño y Fin de Año": "Espectáculos de temporada, conciertos de gaitas y aguinaldos, encendidos de luces, cenas de fin de año, y ferias temáticas de Navidad.",
+    "Conferencias": "Incluye eventos académicos, profesionales y corporativos donde se presentan ponencias, charlas y debates. Abarca conferencias magistrales, simposios, congresos, foros especializados y encuentros de innovación en diversas áreas del conocimiento.",
+    "Actos Universitarios": "Incluye ceremonias y actividades oficiales de instituciones educativas. Abarca actos de grado, entregas de reconocimientos, inauguraciones académicas y eventos culturales organizados por universidades.",
+    "Salud y Bienestar": "Incluye actividades enfocadas en el bienestar físico y mental. Abarca jornadas deportivas, yoga masivo, ferias de salud, talleres de meditación y eventos de vida saludable.",
+    "Tecnología e Innovación": "Incluye encuentros sobre avances tecnológicos y nuevas ideas. Abarca hackathons, ferias de innovación, congresos de startups, lanzamientos de productos tecnológicos y conferencias de ciencia aplicada.",
+    "Moda y Creatividad": "Incluye eventos relacionados con el diseño, el arte y la expresión creativa. Abarca desfiles de moda, exposiciones de arte, ferias de diseño, muestras de fotografía y festivales de creatividad.",
+    "Gastronómicos": "Incluye eventos centrados en la comida y bebida. Abarca festivales gastronómicos, ferias de café, catas de vino, concursos culinarios y experiencias gourmet."
+  },
+  "bookings": {
+    "title": "Mis Reservas",
+    "no_bookings_title": "No tienes reservas activas",
+    "no_bookings_desc": "Cuando reserves un tiquete para un evento, aparecerá aquí.",
+    "retry": "Reintentar",
+    "server_error_title": "Error del servidor",
+    "server_error_desc": "No se pudieron cargar las reservas. Por favor, intenta nuevamente más tarde.",
+    "connection_error_title": "Error de conexión",
+    "connection_error_desc": "Verifica tu conexión a internet e intenta de nuevo.",
+    "expired_session_title": "Sesión expirada",
+    "expired_session_desc": "Redirigiendo al login...",
+    "ticket_details": {
+      "booking_id": "Identificador de la Reserva",
+      "event_start": "Inicio del Evento",
+      "event_end": "Fin del Evento",
+      "location": "Ubicación",
+      "venue": "Escenario",
+      "booking_expiration": "Expiración de la Reserva",
+      "zone": "Zona de la Reserva",
+      "reserved_seats": "Asientos Reservados",
+      "additional_products": "Productos Adicionales",
+      "virtual_event": "Evento Virtual",
+      "virtual_event_confirmed_desc": "Este evento se realizará en línea. Haz clic en el botón para acceder a la reunión virtual.",
+      "access_meeting": "Acceder a la Reunión",
+      "access_pending_title": "Acceso Pendiente",
+      "access_pending_desc": "El enlace para unirte al evento estará disponible aquí una vez que se confirme tu reserva.",
+      "status": "Estado",
+      "tickets": "Entradas",
+      "products": "Productos",
+      "total_price": "Precio Total",
+      "pay": "Proceder al Pago",
+      "cancel_booking": "Cancelar Reserva",
+      "cancel_booking_confirm_title": "¿Cancelar Reserva?",
+      "cancel_booking_confirm_desc": "¿Estás seguro de que deseas cancelar esta reserva? Se cancelarán también todos los servicios adicionales asociados. Esta acción no se puede deshacer.",
+      "cancel_booking_confirm_no": "No",
+      "cancel_booking_confirm_yes": "Sí, cancelar",
+      "print_pdf": "Imprimir PDF",
+      "close": "Cerrar",
+      "partial_cancellation_title": "Cancelación Parcial",
+      "partial_cancellation_desc_1": "La reserva del evento se canceló, pero hubo un error al cancelar los servicios adicionales. Por favor, contacte a soporte.",
+      "partial_cancellation_desc_2": "La reserva del evento se canceló, pero no se pudo verificar el estado de los servicios adicionales. Contacte a soporte."
+    },
+    "ticket_stub": {
+      "starts": "Inicia",
+      "seats": "Asiento(s)",
+      "total": "Total",
+      "loading": "Cargando..."
+    },
+    "status_hold": "Por Pagar",
+    "status_confirmed": "Confirmada",
+    "status_expired": "Expirada"
   }
 }

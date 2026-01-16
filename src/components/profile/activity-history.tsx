@@ -16,6 +16,7 @@ import { LogIn, User, CreditCard, ShoppingCart, LogOut, Pencil, History, AlertCi
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/context/app-context";
+import { useTranslation } from "react-i18next";
 
 type Activity = {
   id: string;
@@ -48,6 +49,7 @@ export function ActivityHistory() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useApp();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchActivityHistory = async () => {
@@ -124,7 +126,7 @@ export function ActivityHistory() {
       <Table>
         <TableHeader className="sticky top-0 bg-background z-10">
           <TableRow>
-            <TableHead>Actividad</TableHead>
+            <TableHead>{t('profile.activity_history.title')}</TableHead>
             <TableHead className="text-right">Fecha</TableHead>
           </TableRow>
         </TableHeader>
