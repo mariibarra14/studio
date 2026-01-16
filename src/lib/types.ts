@@ -194,5 +194,6 @@ export type Forum = {
   titulo: string;
   descripcion: string;
   fechaCreacion: string;
+  creadorId: string;
 };
     
