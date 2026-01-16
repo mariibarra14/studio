@@ -112,23 +112,29 @@ export default function EventsPage() {
   }, [fetchEvents, t]);
   
   const filteredEvents = useMemo(() => {
+    const now = new Date();
     return events.filter((event) => {
+        const eventDate = new Date(event.inicio);
+        if (eventDate < now) {
+            return false;
+        }
+
         const searchMatch = event.nombre.toLowerCase().includes(searchQuery.toLowerCase());
         
         const categoryMatch = !selectedCategory || event.categoriaId === selectedCategory;
 
         let dateMatch = true;
         if (dateRange.start || dateRange.end) {
-            const eventDate = new Date(event.inicio);
-            eventDate.setHours(0,0,0,0); // Compare dates only
+            const eventDateOnly = new Date(event.inicio);
+            eventDateOnly.setHours(0,0,0,0); // Compare dates only
             
             if (dateRange.start) {
                 const startDate = new Date(dateRange.start);
-                if (eventDate < startDate) dateMatch = false;
+                if (eventDateOnly < startDate) dateMatch = false;
             }
             if (dateRange.end) {
                 const endDate = new Date(dateRange.end);
-                if (eventDate > endDate) dateMatch = false;
+                if (eventDateOnly > endDate) dateMatch = false;
             }
         }
         
@@ -141,9 +147,14 @@ export default function EventsPage() {
       return [];
     }
     const userPrefsLower = user.preferencias.map(p => p.toLowerCase());
+    const now = new Date();
 
     const recommended = events
       .filter(event => {
+        const eventDate = new Date(event.inicio);
+        if (eventDate < now) {
+            return false;
+        }
         const categoryName = getCategoryNameById(categories, event.categoriaId);
         return userPrefsLower.includes(categoryName.toLowerCase());
       })
