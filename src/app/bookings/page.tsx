@@ -200,6 +200,11 @@ export default function BookingsPage() {
   const handleCloseModal = () => {
     setSelectedBooking(null);
   };
+
+  const handleCancelSuccess = () => {
+    handleCloseModal();
+    fetchBookings();
+  };
   
   const renderContent = () => {
     if (isLoading) {
@@ -264,6 +269,7 @@ export default function BookingsPage() {
           booking={selectedBooking}
           isOpen={!!selectedBooking}
           onClose={handleCloseModal}
+          onCancelSuccess={handleCancelSuccess}
         />
       )}
     </AuthenticatedLayout>

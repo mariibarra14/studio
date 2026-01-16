@@ -2,6 +2,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +11,20 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, Clock, FileText, Package } from "lucide-react";
+import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, Clock, FileText, Package, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -26,6 +38,7 @@ type BookingDetailsModalProps = {
     booking: ApiBooking;
     isOpen: boolean;
     onClose: () => void;
+    onCancelSuccess: () => void;
   };
 
 const getEstadoReal = (estado: string, expiraEn: string): string => {
@@ -68,9 +81,11 @@ const getEstadoAsientoDisplay = (estado: string | undefined) => {
     return estados[estado.toLowerCase()] || estado;
 };
 
-export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetailsModalProps) {
+export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess }: BookingDetailsModalProps) {
     const { toast } = useToast();
     const router = useRouter();
+    const [isCancelling, setIsCancelling] = useState(false);
+
 
     const handleAction = () => {
         router.push(`/payments?reservaId=${booking.reservaId}&eventId=${booking.eventId}&monto=${booking.precioTotal}`);
@@ -92,6 +107,89 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
             });
         }
     };
+
+    const handleCancelReservation = async () => {
+        setIsCancelling(true);
+        const token = localStorage.getItem('accessToken');
+    
+        if (!token) {
+            toast({ variant: "destructive", title: "Sesión expirada", description: "Inicie sesión para realizar esta acción" });
+            setIsCancelling(false);
+            return;
+        }
+    
+        try {
+            // Step 1: Cancel event reservation
+            const eventCancelResponse = await fetch(`http://localhost:44335/api/Reservas/${booking.reservaId}/cancelar`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+    
+            if (eventCancelResponse.status !== 204) {
+                throw new Error("No se pudo cancelar la reserva del evento. Puede que ya no sea válida o ya haya sido procesada.");
+            }
+    
+            // Step 2: Find and cancel complementary service reservation
+            try {
+                const compResResponse = await fetch(`http://localhost:44335/api/ServComps/Resv/getReservaByIdReserva?idReserva=${booking.reservaId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+    
+                if (compResResponse.ok) {
+                    const compResData = await compResResponse.json();
+                    const complementaryReservationId = compResData.id;
+    
+                    if (complementaryReservationId) {
+                        const cancelCompResResponse = await fetch(`http://localhost:44335/api/ServComps/Resv/cancelar?idReserva=${complementaryReservationId}`, {
+                            method: 'PUT',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+    
+                        if (!cancelCompResResponse.ok) {
+                             throw new Error("PARTIAL_CANCELLATION");
+                        }
+                    }
+                } else if (compResResponse.status !== 404) {
+                     throw new Error("PARTIAL_CANCELLATION");
+                }
+    
+            } catch (compError: any) {
+                if (compError.message === 'PARTIAL_CANCELLATION') {
+                    toast({
+                        variant: "destructive",
+                        title: "Cancelación Parcial",
+                        description: "La reserva del evento se canceló, pero hubo un error al cancelar los servicios adicionales. Por favor, contacte a soporte.",
+                        duration: 8000
+                    });
+                } else {
+                     toast({
+                        variant: "destructive",
+                        title: "Cancelación Parcial",
+                        description: "La reserva del evento se canceló, pero hubo un error al buscar los servicios asociados. Contacte a soporte si es necesario.",
+                        duration: 8000
+                    });
+                }
+                onCancelSuccess();
+                return;
+            }
+    
+            // If all successful
+            toast({
+                title: "Reserva Cancelada",
+                description: "Tu reserva y los servicios asociados han sido cancelados."
+            });
+            onCancelSuccess();
+    
+        } catch (err: any) {
+            toast({
+                variant: "destructive",
+                title: "Error al Cancelar",
+                description: err.message,
+            });
+        } finally {
+            setIsCancelling(false);
+        }
+    }
 
     const estadoReal = getEstadoReal(booking.estado, booking.expiraEn);
     const estadoDisplay = getEstadoDisplay(booking.estado, booking.expiraEn);
@@ -246,28 +344,48 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                 </div>
             </div>
 
-            <DialogFooter className="bg-muted/50 px-6 py-4 flex-col sm:flex-row gap-2">
-                {estadoReal === 'Hold' && (
+            <DialogFooter className="bg-muted/50 px-6 py-4 flex-col sm:flex-row sm:justify-between gap-2">
+                 <div className="flex gap-2">
+                    {estadoReal === 'Hold' && (
+                        <>
+                            <Button className="w-full sm:w-auto" onClick={handleAction}>
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                Proceder al Pago
+                            </Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" className="w-full sm:w-auto" disabled={isCancelling}>
+                                        {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
+                                        Cancelar Reserva
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>¿Cancelar Reserva?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            ¿Estás seguro de que deseas cancelar esta reserva? Se cancelarán también todos los servicios adicionales asociados. Esta acción no se puede deshacer.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>No</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleCancelReservation} disabled={isCancelling}>
+                                            {isCancelling ? 'Cancelando...' : 'Sí, cancelar'}
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </>
+                    )}
+                    {estadoReal === 'Confirmada' && (
                     <>
-                        <Button className="w-full sm:w-auto" onClick={handleAction}>
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            Proceder al Pago
-                        </Button>
+                            <Button variant="outline" className="w-full sm:w-auto" onClick={handleGeneratePdf}>
+                                <FileText className="mr-2 h-4 w-4" />
+                                Imprimir PDF
+                            </Button>
                     </>
-                )}
-                {estadoReal === 'Confirmada' && (
-                   <>
-                        <Button variant="outline" className="w-full sm:w-auto" onClick={handleGeneratePdf}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Imprimir PDF
-                        </Button>
-                   </>
-                )}
-                {(estadoReal === 'Cancelled' || estadoReal === 'Expired') && (
-                    <p className="text-sm text-center w-full">
-                        {estadoReal === 'Expired' ? 'Esta reserva ha expirado.' : 'Esta reserva ya no es válida.'}
-                    </p>
-                )}
+                    )}
+                </div>
+                 <Button variant="outline" onClick={onClose}>Cerrar</Button>
             </DialogFooter>
         </DialogContent>
         </Dialog>
