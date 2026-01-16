@@ -40,7 +40,7 @@ const navLinks: NavLink[] = [
   { href: "/bookings", icon: ClipboardList, labelKey: "nav.my_bookings", roles: ["usuario_final", "administrador"]},
   { href: "/payments", icon: CreditCard, labelKey: "nav.my_payments", roles: ["usuario_final", "administrador"]},
   { href: "/complementary-services", icon: ConciergeBell, labelKey: "nav.comp_services", roles: ["usuario_final"]},
-  { href: "/community", icon: Users, labelKey: "nav.community", roles: ["usuario_final", "organizador"], },
+  { href: "/community", icon: Users, labelKey: "nav.community", roles: ["usuario_final", "soporte_tecnico", "administrador"], },
   { href: "/surveys", icon: PieChart, labelKey: "nav.surveys", roles: ["usuario_final", "administrador"], },
 
   // organizador
@@ -48,6 +48,7 @@ const navLinks: NavLink[] = [
   { href: "/services/my", icon: ConciergeBell, labelKey: "nav.my_services", roles: ["organizador", "administrador"]},
   { href: "/payments/history", icon: CreditCard, labelKey: "nav.payments_history", roles: ["organizador", "administrador"]},
   { href: "/venues", icon: Building, labelKey: "nav.venues", roles: ["organizador", "administrador"]},
+  { href: "/community/my", icon: Users, labelKey: "nav.my_community", roles: ["organizador", "administrador"]},
   { href: "/surveys/my", icon: PieChart, labelKey: "nav.my_surveys", roles: ["organizador", "administrador"]},
   { href: "/reports", icon: BarChart2, labelKey: "nav.reports", roles: ["organizador", "soporte_tecnico", "administrador"]},
   

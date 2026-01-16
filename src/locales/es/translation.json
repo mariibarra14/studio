@@ -8,6 +8,7 @@
     "my_payments": "Mis Pagos",
     "comp_services": "Servicios Comp.",
     "community": "Comunidad",
+    "my_community": "Mi Comunidad",
     "surveys": "Encuestas",
     "my_events": "Mis Eventos",
     "my_services": "Mis Servicios",
@@ -244,6 +245,12 @@
     "error_loading_title": "Error al Cargar Foros",
     "error_loading_desc": "No pudimos conectar con la comunidad. Inténtalo más tarde.",
     "error_auth_desc": "Sesión Expirada: No tienes permisos para ver los foros. Por favor, inicia sesión de nuevo."
+  },
+  "my_community": {
+    "title": "Mi Comunidad",
+    "subtitle": "Gestiona los foros de discusión de tus eventos.",
+    "no_forums_title": "Aún no has creado foros.",
+    "no_forums_desc": "Crea tu primer foro para iniciar la conversación en uno de tus eventos."
   },
   "surveys": {
     "title": "Encuestas",

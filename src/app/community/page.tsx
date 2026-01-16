@@ -5,39 +5,18 @@ import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, MessageSquare, RefreshCw, PlusCircle, Edit, Trash2 } from "lucide-react";
+import { AlertCircle, MessageSquare, RefreshCw } from "lucide-react";
 import type { Forum, ApiEvent } from "@/lib/types";
 import { ForumCard } from "@/components/community/ForumCard";
 import { Button } from "@/components/ui/button";
-import { useApp } from "@/context/app-context";
-import { AddForumModal } from "@/components/community/AddForumModal";
-import { EditForumModal } from "@/components/community/EditForumModal";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
 
 export default function CommunityPage() {
   const { t } = useTranslation();
-  const { user, userRole } = useApp();
-  const { toast } = useToast();
 
   const [forums, setForums] = useState<Forum[]>([]);
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingForum, setEditingForum] = useState<Forum | null>(null);
-  const [deletingForum, setDeletingForum] = useState<Forum | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -93,43 +72,6 @@ export default function CommunityPage() {
     })).sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime());
   }, [forums, events]);
 
-  const handleCreateSuccess = () => {
-    setIsAddModalOpen(false);
-    fetchData();
-  };
-
-  const handleEditSuccess = () => {
-    setEditingForum(null);
-    fetchData();
-  };
-  
-  const handleDeleteForum = async () => {
-    if (!deletingForum) return;
-
-    setIsProcessing(true);
-    const token = localStorage.getItem("accessToken");
-
-    try {
-      const response = await fetch(`http://localhost:44335/api/foros/${deletingForum.id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (response.status === 204) {
-        toast({ title: "Foro eliminado correctamente." });
-        setDeletingForum(null);
-        fetchData();
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "No se pudo eliminar el foro.");
-      }
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Error al eliminar", description: err.message });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -176,9 +118,6 @@ export default function CommunityPage() {
             key={forum.id}
             forum={forum}
             event={event}
-            userId={user?.id}
-            onEdit={() => setEditingForum(forum)}
-            onDelete={() => setDeletingForum(forum)}
           />
         ))}
       </div>
@@ -193,50 +132,9 @@ export default function CommunityPage() {
             <h1 className="text-3xl font-bold">{t('community.title')}</h1>
             <p className="text-muted-foreground">{t('community.subtitle')}</p>
           </div>
-          {(userRole === 'organizador' || userRole === 'administrador') && (
-            <Button onClick={() => setIsAddModalOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Crear Foro
-            </Button>
-          )}
         </div>
         {renderContent()}
       </main>
-
-      {isAddModalOpen && (
-        <AddForumModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onSuccess={handleCreateSuccess}
-        />
-      )}
-
-      {editingForum && (
-        <EditForumModal
-          forum={editingForum}
-          isOpen={!!editingForum}
-          onClose={() => setEditingForum(null)}
-          onSuccess={handleEditSuccess}
-        />
-      )}
-
-      <AlertDialog open={!!deletingForum} onOpenChange={() => setDeletingForum(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro de que quieres eliminar este foro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción es permanente y no se puede deshacer. El foro "{deletingForum?.titulo}" será eliminado.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteForum} disabled={isProcessing}>
-              {isProcessing ? "Eliminando..." : "Sí, eliminar"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
     </AuthenticatedLayout>
   );
 }

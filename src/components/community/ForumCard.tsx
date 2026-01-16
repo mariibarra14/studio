@@ -14,14 +14,16 @@ type ForumCardProps = {
   forum: Forum;
   event: ApiEvent | undefined;
   userId?: string;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 };
 
 export function ForumCard({ forum, event, userId, onEdit, onDelete }: ForumCardProps) {
   const { i18n, t } = useTranslation();
   const locale = i18n.language === 'es' ? es : enUS;
-  const isOwner = forum.creadorId === userId;
+  
+  const isOwner = userId && forum.creadorId === userId;
+  const canManage = isOwner && onEdit && onDelete;
 
   return (
     <Card className="h-full flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-xl group">
@@ -52,7 +54,7 @@ export function ForumCard({ forum, event, userId, onEdit, onDelete }: ForumCardP
           <Calendar className="h-4 w-4" />
           <span>{format(new Date(forum.fechaCreacion), "dd MMM, yyyy", { locale })}</span>
          </div>
-         {isOwner ? (
+         {canManage ? (
           <div className="flex gap-2">
             <Button variant="ghost" size="icon" onClick={onEdit}><Edit className="h-4 w-4" /></Button>
             <Button variant="ghost" size="icon" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
