@@ -34,15 +34,36 @@ const formSchema = z.object({
   descripcion: z.string().optional(),
   inicio: z.string().min(1, "La fecha de inicio es requerida"),
   fin: z.string().min(1, "La fecha de fin es requerida"),
-  lugar: z.string().min(1, "El lugar es requerido"),
+  lugar: z.string().min(1, "El lugar o plataforma es requerido"),
   aforoMaximo: z.coerce.number().min(1, "El aforo debe ser mayor a 0"),
-  tipo: z.string().min(1, "El tipo de evento es requerido"),
+  tipo: z.enum(["Presencial", "Virtual"]),
   escenarioId: z.string().min(1, "El escenario es requerido"),
   categoriaId: z.string().min(1, "La categoría es requerida"),
+  onlineMeetingUrl: z.string().optional(),
 }).refine(data => new Date(data.fin) > new Date(data.inicio), {
   message: "La fecha de fin debe ser posterior a la de inicio",
   path: ["fin"],
+}).superRefine((data, ctx) => {
+  if (data.tipo === 'Virtual') {
+    if (!data.onlineMeetingUrl || data.onlineMeetingUrl.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'La URL de la reunión es obligatoria para eventos virtuales.',
+        path: ['onlineMeetingUrl'],
+      });
+    } else {
+      const urlCheck = z.string().url().safeParse(data.onlineMeetingUrl);
+      if (!urlCheck.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Por favor, introduce una URL válida.',
+          path: ['onlineMeetingUrl'],
+        });
+      }
+    }
+  }
 });
+
 
 type AddEventFormProps = {
   onSuccess: () => void;
@@ -56,7 +77,6 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   
-  // Usar useRef para prevenir doble envío
   const isSubmittingRef = useRef(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -71,8 +91,11 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
       tipo: "Presencial",
       escenarioId: "",
       categoriaId: "",
+      onlineMeetingUrl: "",
     },
   });
+
+  const eventType = form.watch("tipo");
   
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -94,7 +117,7 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
 
     const fetchCategories = async () => {
         try {
-            const fetchedCategories = await getAllCategories(token);
+            const fetchedCategories = await getAllCategories();
             setCategories(fetchedCategories);
         } catch (error) {
             console.error("Failed to fetch categories", error);
@@ -106,7 +129,6 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
   }, []);
 
   async function handleCreateEvent(values: z.infer<typeof formSchema>) {
-    // Prevenir doble envío
     if (isSubmittingRef.current) {
       console.log('Envío ya en progreso, ignorando...');
       return;
@@ -131,10 +153,9 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
         ...values,
         organizadorId,
         inicio: new Date(values.inicio).toISOString(),
-        fin: new Date(values.fin).toISOString()
+        fin: new Date(values.fin).toISOString(),
+        onlineMeetingUrl: values.tipo === 'Virtual' ? values.onlineMeetingUrl : null,
       };
-
-      console.log('Enviando evento...', submissionData);
 
       const response = await fetch(`http://localhost:44335/api/events`, {
         method: 'POST',
@@ -151,14 +172,12 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
       }
       
       const result = await response.json();
-      console.log('Evento creado con ID:', result.id);
       
       toast({ 
         title: "✅ Evento creado", 
         description: `"${values.nombre}" se ha creado exitosamente.` 
       });
       
-      // Llamar onSuccess inmediatamente después de crear el evento
       onSuccess();
 
     } catch (err: any) {
@@ -171,7 +190,6 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
       });
     } finally {
       setIsLoading(false);
-      // Usar timeout para asegurar que el componente se actualice antes de resetear
       setTimeout(() => {
         isSubmittingRef.current = false;
       }, 1000);
@@ -292,14 +310,30 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
               name="lugar" 
               render={({ field }) => ( 
                 <FormItem>
-                  <FormLabel>Lugar (Dirección)</FormLabel>
+                  <FormLabel>{eventType === 'Virtual' ? 'Plataforma del Evento' : 'Lugar (Dirección)'}</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder={eventType === 'Virtual' ? 'Ej: Zoom, YouTube Live' : 'Dirección detallada del evento'} />
                   </FormControl>
                   <FormMessage />
                 </FormItem> 
               )} 
             />
+
+            {eventType === 'Virtual' && (
+                <FormField
+                    control={form.control}
+                    name="onlineMeetingUrl"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>URL de la reunión</FormLabel>
+                            <FormControl>
+                                <Input placeholder="https://..." {...field} value={field.value ?? ''} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField 

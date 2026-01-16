@@ -33,6 +33,7 @@ export type ApiEvent = {
   updatedAt: string;
   zonas?: Zone[];
   categoriaId: string;
+  onlineMeetingUrl?: string | null;
 };
 
 export type Venue = {

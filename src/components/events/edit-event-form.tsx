@@ -36,14 +36,34 @@ const formSchema = z.object({
   descripcion: z.string().optional(),
   inicio: z.string().min(1, "La fecha de inicio es requerida"),
   fin: z.string().min(1, "La fecha de fin es requerida"),
-  lugar: z.string().min(1, "El lugar es requerido"),
+  lugar: z.string().min(1, "El lugar o plataforma es requerido"),
   aforoMaximo: z.coerce.number().min(1, "El aforo debe ser mayor a 0"),
-  tipo: z.string().min(1, "El tipo de evento es requerido"),
+  tipo: z.enum(["Presencial", "Virtual"]),
   escenarioId: z.string().min(1, "El escenario es requerido"),
   categoriaId: z.string().min(1, "La categoría es requerida"),
+  onlineMeetingUrl: z.string().optional(),
 }).refine(data => new Date(data.fin) > new Date(data.inicio), {
   message: "La fecha de fin debe ser posterior a la de inicio",
   path: ["fin"],
+}).superRefine((data, ctx) => {
+  if (data.tipo === 'Virtual') {
+    if (!data.onlineMeetingUrl || data.onlineMeetingUrl.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'La URL de la reunión es obligatoria para eventos virtuales.',
+        path: ['onlineMeetingUrl'],
+      });
+    } else {
+      const urlCheck = z.string().url().safeParse(data.onlineMeetingUrl);
+      if (!urlCheck.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Por favor, introduce una URL válida.',
+          path: ['onlineMeetingUrl'],
+        });
+      }
+    }
+  }
 });
 
 type EditEventFormProps = {
@@ -89,11 +109,14 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
       fin: toDateTimeLocal(event.fin),
       lugar: event.lugar,
       aforoMaximo: event.aforoMaximo,
-      tipo: event.tipo,
+      tipo: event.tipo as "Presencial" | "Virtual",
       escenarioId: event.escenarioId,
       categoriaId: event.categoriaId,
+      onlineMeetingUrl: event.onlineMeetingUrl || "",
     },
   });
+
+  const eventType = form.watch("tipo");
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -221,15 +244,10 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
           id: event.id,
           estado: event.estado,
           organizadorId: event.organizadorId,
-          nombre: values.nombre,
-          descripcion: values.descripcion,
-          lugar: values.lugar,
-          aforoMaximo: values.aforoMaximo,
-          tipo: values.tipo,
-          escenarioId: values.escenarioId,
-          categoriaId: values.categoriaId,
+          ...values,
           inicio: new Date(values.inicio).toISOString(),
-          fin: new Date(values.fin).toISOString()
+          fin: new Date(values.fin).toISOString(),
+          onlineMeetingUrl: values.tipo === 'Virtual' ? values.onlineMeetingUrl : null,
         };
 
         const response = await fetch(`http://localhost:44335/api/events/${event.id}`, {
@@ -323,7 +341,7 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
                       render={({ field }) => (
                           <FormItem>
                           <FormLabel>Descripción</FormLabel>
-                          <FormControl><Textarea {...field} rows={5} /></FormControl>
+                          <FormControl><Textarea {...field} rows={3} /></FormControl>
                           <FormMessage />
                           </FormItem>
                       )}
@@ -393,12 +411,28 @@ export function EditEventForm({ event, venues, categories, onSuccess, onCancel }
                       name="lugar"
                       render={({ field }) => (
                           <FormItem>
-                          <FormLabel>Lugar (Dirección)</FormLabel>
-                          <FormControl><Input {...field} placeholder="Dirección detallada del evento" /></FormControl>
+                          <FormLabel>{eventType === 'Virtual' ? 'Plataforma del Evento' : 'Lugar (Dirección)'}</FormLabel>
+                          <FormControl><Input {...field} placeholder={eventType === 'Virtual' ? 'Ej: Zoom, YouTube Live' : 'Dirección detallada del evento'} /></FormControl>
                           <FormMessage />
                           </FormItem>
                       )}
                   />
+
+                  {eventType === 'Virtual' && (
+                        <FormField
+                            control={form.control}
+                            name="onlineMeetingUrl"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>URL de la reunión</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="https://..." {...field} value={field.value ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
