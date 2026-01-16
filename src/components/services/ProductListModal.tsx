@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, Package, ShoppingBag, DollarSign, Layers, PlusCircle, Trash2 } from "lucide-react";
+import { Loader2, AlertCircle, Package, ShoppingBag, DollarSign, Layers, PlusCircle, Trash2, Edit } from "lucide-react";
 import type { ComplementaryService, Product } from "@/lib/types";
 import { AddProductModal } from "./AddProductModal";
 import {
@@ -22,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { EditProductModal } from "./EditProductModal";
 
 type ProductListModalProps = {
   service: ComplementaryService;
@@ -37,6 +37,9 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     if (!service.id) return;
@@ -84,6 +87,17 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
   const handleAddProductSuccess = () => {
     setIsAddProductModalOpen(false);
     fetchProducts();
+  };
+  
+  const handleOpenEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditProductSuccess = () => {
+      setIsEditModalOpen(false);
+      setEditingProduct(null);
+      fetchProducts();
   };
 
   const handleConfirmDelete = async () => {
@@ -151,7 +165,11 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
                 </div>
             </div>
         </CardContent>
-        <CardFooter className="p-4 pt-0">
+        <CardFooter className="p-4 pt-0 grid grid-cols-2 gap-2">
+            <Button variant="outline" className="w-full" onClick={() => handleOpenEditModal(product)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Editar
+            </Button>
             <Button variant="destructive" className="w-full" onClick={() => setProductToDelete(product)} disabled={isDeleting}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Eliminar
@@ -163,7 +181,8 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+          <Skeleton className="h-80 w-full" />
           <Skeleton className="h-80 w-full" />
           <Skeleton className="h-80 w-full" />
         </div>
@@ -193,7 +212,7 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
             {products.map(product => <ProductCard key={product.id} product={product} />)}
         </div>
     );
@@ -202,7 +221,7 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh]">
+        <DialogContent className="sm:max-w-5xl max-h-[90vh]">
           <DialogHeader>
             <div className="flex justify-between items-center">
                 <div>
@@ -249,6 +268,15 @@ export function ProductListModal({ service, isOpen, onClose }: ProductListModalP
         onSuccess={handleAddProductSuccess}
         serviceId={service.id}
       />
+
+      {isEditModalOpen && editingProduct && (
+          <EditProductModal
+              isOpen={isEditModalOpen}
+              onClose={() => setIsEditModalOpen(false)}
+              onSuccess={handleEditProductSuccess}
+              product={editingProduct}
+          />
+      )}
     </>
   );
 }
