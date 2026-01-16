@@ -31,6 +31,7 @@ export type User = {
   fotoPerfil: string;
   rol: string;
   nombreRol: string;
+  preferencias: string[];
 };
 
 type AppContextType = {
@@ -73,7 +74,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       const userData = await userResponse.json();
 
-      let finalUserData: User = { ...userData, nombreRol: userData.rol, rol: role };
+      let finalUserData: User = { 
+          ...userData, 
+          nombreRol: userData.rol, 
+          rol: role,
+          preferencias: userData.preferencias || [],
+        };
 
       if (userData.rol) {
         const roleResponse = await fetch(`http://localhost:44335/api/Usuarios/getRolById?id=${userData.rol}`, {

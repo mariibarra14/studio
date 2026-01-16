@@ -5,9 +5,10 @@ import { ActivityHistory } from "@/components/profile/activity-history";
 import { ChangePasswordForm } from "@/components/profile/change-password-form";
 import { PaymentMethods } from "@/components/profile/payment-methods";
 import { ProfileDetailsForm } from "@/components/profile/profile-details-form";
+import { PreferencesForm } from "@/components/profile/preferences-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, CreditCard, History } from 'lucide-react';
+import { User, CreditCard, History, Heart } from 'lucide-react';
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { useApp } from "@/context/app-context";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,6 +37,10 @@ export default function ProfilePage() {
             <TabsTrigger value="activity">
               <History className="mr-2 h-4 w-4" />
               Historial de Actividad
+            </TabsTrigger>
+            <TabsTrigger value="preferences">
+              <Heart className="mr-2 h-4 w-4" />
+              Preferencias
             </TabsTrigger>
           </TabsList>
           <TabsContent value="profile">
@@ -97,6 +102,33 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent>
                   <ActivityHistory />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          <TabsContent value="preferences">
+            <div className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Preferencias de Contenido</CardTitle>
+                  <CardDescription>
+                    Selecciona tus categorías favoritas para recibir recomendaciones personalizadas.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingUser ? (
+                     <div className="space-y-4">
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-full" />
+                      <div className="flex justify-end">
+                        <Skeleton className="h-10 w-24" />
+                      </div>
+                    </div>
+                  ) : user ? (
+                    <PreferencesForm user={user} />
+                  ) : (
+                    <p>No se pudo cargar la información del usuario.</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
