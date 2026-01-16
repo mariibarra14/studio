@@ -14,7 +14,7 @@ import { es, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Forum, EnrichedForumThread, ForumThread } from "@/lib/types";
+import type { Forum, EnrichedForumThread, ForumThread, ApiEvent } from "@/lib/types";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { EditForumModal } from "@/components/community/EditForumModal";
@@ -42,6 +42,7 @@ export default function ForumDetailPage() {
   const { toast } = useToast();
 
   const [forum, setForum] = useState<Forum | null>(null);
+  const [event, setEvent] = useState<ApiEvent | null>(null);
   const [threads, setThreads] = useState<EnrichedForumThread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export default function ForumDetailPage() {
   const [deletingForum, setDeletingForum] = useState<Forum | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const isOwner = useMemo(() => user && forum && user.id === forum.creadorId, [user, forum]);
+  const isOwner = useMemo(() => user && event && user.id === event.organizadorId, [user, event]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -64,62 +65,68 @@ export default function ForumDetailPage() {
     }
 
     try {
-      const [forumRes, threadsRes] = await Promise.all([
-        fetch(`http://localhost:44335/api/foros/${forumId}`, {
-          headers: { 'Authorization': `Bearer ${token}` },
+      const forumRes = await fetch(`http://localhost:44335/api/foros/${forumId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!forumRes.ok) throw new Error("No se pudo cargar el foro.");
+      const forumData: Forum = await forumRes.json();
+      setForum(forumData);
+
+      const [eventRes, threadsRes] = await Promise.all([
+        fetch(`http://localhost:44335/api/events/${forumData.eventoId}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
         }),
         fetch(`http://localhost:44335/api/foros/${forumId}/hilos`, {
-          headers: { 'Authorization': `Bearer ${token}` },
+            headers: { 'Authorization': `Bearer ${token}` },
         }),
       ]);
       
-      if (!forumRes.ok) throw new Error("No se pudo cargar el foro.");
-      const forumData = await forumRes.json();
-      setForum(forumData);
+      if(eventRes.ok) {
+        const eventData: ApiEvent = await eventRes.json();
+        setEvent(eventData);
+      }
 
       if (threadsRes.status === 404) {
         setThreads([]);
-        setIsLoading(false);
-        return;
-      }
-      if (!threadsRes.ok) throw new Error("No se pudieron cargar los hilos de discusión.");
-      
-      const rawThreads: ForumThread[] = await threadsRes.json();
+      } else {
+        if (!threadsRes.ok) throw new Error("No se pudieron cargar los hilos de discusión.");
+        
+        const rawThreads: ForumThread[] = await threadsRes.json();
 
-      // Enrich threads and comments with author info
-      const authorIds = new Set<string>();
-      rawThreads.forEach(thread => {
-        authorIds.add(thread.autorId);
-        thread.comentarios.forEach(comment => authorIds.add(comment.autorId));
-      });
-      
-      const authorCache = new Map<string, any>();
-      const authorPromises = Array.from(authorIds).map(async (authorId) => {
-        try {
-          const userRes = await fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${authorId}`, {
-            headers: { 'Authorization': `Bearer ${token}` },
-          });
-          if (userRes.ok) {
-            const userData = await userRes.json();
-            authorCache.set(authorId, userData);
+        // Enrich threads and comments with author info
+        const authorIds = new Set<string>();
+        rawThreads.forEach(thread => {
+          authorIds.add(thread.autorId);
+          thread.comentarios.forEach(comment => authorIds.add(comment.autorId));
+        });
+        
+        const authorCache = new Map<string, any>();
+        const authorPromises = Array.from(authorIds).map(async (authorId) => {
+          try {
+            const userRes = await fetch(`http://localhost:44335/api/Usuarios/getUsuarioById?id=${authorId}`, {
+              headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (userRes.ok) {
+              const userData = await userRes.json();
+              authorCache.set(authorId, userData);
+            }
+          } catch (e) {
+            console.error(`Failed to fetch author ${authorId}`, e);
           }
-        } catch (e) {
-          console.error(`Failed to fetch author ${authorId}`, e);
-        }
-      });
-      await Promise.all(authorPromises);
-      
-      const enrichedThreads: EnrichedForumThread[] = rawThreads.map(thread => ({
-        ...thread,
-        author: authorCache.get(thread.autorId) || { nombre: "Usuario", apellido: "Desconocido", fotoPerfil: null },
-        comentarios: thread.comentarios.map(comment => ({
-          ...comment,
-          author: authorCache.get(comment.autorId) || { nombre: "Usuario", apellido: "Desconocido", fotoPerfil: null },
-        })).sort((a, b) => new Date(a.fechaCreacion).getTime() - new Date(b.fechaCreacion).getTime()),
-      }));
+        });
+        await Promise.all(authorPromises);
+        
+        const enrichedThreads: EnrichedForumThread[] = rawThreads.map(thread => ({
+          ...thread,
+          author: authorCache.get(thread.autorId) || { nombre: "Usuario", apellido: "Desconocido", fotoPerfil: null },
+          comentarios: thread.comentarios.map(comment => ({
+            ...comment,
+            author: authorCache.get(comment.autorId) || { nombre: "Usuario", apellido: "Desconocido", fotoPerfil: null },
+          })).sort((a, b) => new Date(a.fechaCreacion).getTime() - new Date(b.fechaCreacion).getTime()),
+        }));
 
-      setThreads(enrichedThreads.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()));
-
+        setThreads(enrichedThreads.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()));
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
