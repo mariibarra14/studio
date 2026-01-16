@@ -22,7 +22,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { getCategoryNameById } from "@/lib/categories";
 import { EditEventModal } from "./edit-event-modal";
@@ -60,6 +59,9 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
   const [isDeletingZone, setIsDeletingZone] = useState<string | null>(null);
   const [showDeleteZoneDialog, setShowDeleteZoneDialog] = useState(false);
   const [zoneToDelete, setZoneToDelete] = useState<Zone | null>(null);
+
+  const [serviceToCancel, setServiceToCancel] = useState<AssociatedService | null>(null);
+  const [isCancellingService, setIsCancellingService] = useState(false);
 
 
   const fetchDetails = useCallback(async () => {
@@ -222,6 +224,55 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
     }
   };
 
+  const handleCancelServiceBooking = async () => {
+    if (!serviceToCancel) return;
+
+    setIsCancellingService(true);
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+        toast({
+            variant: "destructive",
+            title: "Sesión Expirada",
+            description: "No tienes permisos suficientes o tu sesión ha caducado. Por favor, inicia sesión de nuevo.",
+        });
+        setIsCancellingService(false);
+        setServiceToCancel(null);
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:44335/api/ServComps/Servs/eliminarRegistro?idRegistro=${serviceToCancel.bookingId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const responseText = await response.text();
+
+        if (response.ok && responseText.includes("Registro eliminado exitosamente")) {
+            toast({
+                title: "Apartado Cancelado",
+                description: `Se ha cancelado el apartado del servicio "${serviceToCancel.serviceName}".`
+            });
+            fetchDetails();
+        } else {
+            let errorMessage = "No se pudo eliminar el apartado en este momento. Inténtalo de nuevo más tarde.";
+            if(response.status === 401) {
+                errorMessage = "Sesión Expirada: No tienes permisos suficientes o tu sesión ha caducado. Por favor, inicia sesión de nuevo.";
+            }
+            throw new Error(errorMessage);
+        }
+    } catch (err: any) {
+        toast({
+            variant: "destructive",
+            title: "Error al Cancelar",
+            description: err.message
+        });
+    } finally {
+        setIsCancellingService(false);
+        setServiceToCancel(null);
+    }
+  };
   
   const handleEditSuccessAndClose = () => {
     setIsEditModalOpen(false);
@@ -428,7 +479,7 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                                 {associatedServices.length > 0 ? (
                                      <div className="space-y-2">
                                         {associatedServices.map(service => (
-                                            <div key={service.bookingId} className="flex items-center gap-4 p-3 border rounded-lg">
+                                            <div key={service.bookingId} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-muted/50">
                                                 {service.servicePhoto && service.servicePhoto !== 'string' ? (
                                                     <Image src={service.servicePhoto} alt={service.serviceName} width={64} height={64} className="rounded-md object-cover aspect-square bg-muted" />
                                                 ) : (
@@ -443,6 +494,10 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                                                         {format(new Date(service.startDate), 'dd/MM/yy HH:mm')} - {format(new Date(service.endDate), 'dd/MM/yy HH:mm')}
                                                     </p>
                                                 </div>
+                                                <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setServiceToCancel(service)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                    <span className="sr-only">Cancelar apartado de servicio</span>
+                                                </Button>
                                             </div>
                                         ))}
                                     </div>
@@ -490,6 +545,23 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                     </div>
                 </CardContent>
             </Card>
+
+            <AlertDialog open={!!serviceToCancel} onOpenChange={(isOpen) => !isOpen && setServiceToCancel(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Cancelar Apartado?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta acción es permanente y no se puede deshacer. Se cancelará el apartado del servicio "{serviceToCancel?.serviceName}" para este evento.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isCancellingService}>No, mantener</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleCancelServiceBooking} disabled={isCancellingService} className="bg-destructive hover:bg-destructive/90">
+                            {isCancellingService ? <Loader2 className="animate-spin" /> : "Sí, cancelar apartado"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <AlertDialog open={showDeleteZoneDialog} onOpenChange={setShowDeleteZoneDialog}>
                 <AlertDialogContent>
