@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -81,7 +82,7 @@ export function EditProductForm({ product, onSuccess, onCancel }: EditProductFor
 
     try {
       const response = await fetch(`http://localhost:44335/api/ServComps/Prods/modificarProducto?id=${product.id}`, {
-        method: 'DELETE', // As per requirement, using DELETE for update
+        method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
       });
