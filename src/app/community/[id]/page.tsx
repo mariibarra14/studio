@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -264,7 +263,7 @@ export default function ForumDetailPage() {
                 <div className="flex-1">
                     <h1 className="text-xl font-bold">{forum?.titulo || <Skeleton className="h-6 w-48" />}</h1>
                     <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
-                        <p className="flex-1">{forum?.descripcion || <Skeleton className="h-4 w-64 mt-1" />}</p>
+                        <div className="flex-1">{forum?.descripcion || <Skeleton className="h-4 w-64 mt-1" />}</div>
                         {forum && (
                             <div className="flex items-center gap-1.5 shrink-0">
                                 <Calendar className="h-4 w-4" />
