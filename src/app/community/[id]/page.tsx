@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -184,9 +185,17 @@ export default function ForumDetailPage() {
 
     setIsProcessingDelete(true);
     const token = localStorage.getItem("accessToken");
+    const solicitanteId = localStorage.getItem("userId");
+
+    if (!token || !solicitanteId) {
+        toast({ variant: "destructive", title: "Error de autenticación", description: "Tu sesión ha expirado. Por favor, vuelve a ingresar." });
+        setIsProcessingDelete(false);
+        setDeletingThread(null);
+        return;
+    }
 
     try {
-      const response = await fetch(`http://localhost:44335/api/foros/${forumId}/hilos/${deletingThread.id}`, {
+      const response = await fetch(`http://localhost:44335/api/foros/${forumId}/hilos/${deletingThread.id}?solicitanteId=${solicitanteId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -195,8 +204,14 @@ export default function ForumDetailPage() {
         toast({ title: "Hilo eliminado correctamente." });
         fetchData();
       } else {
+        if (response.status === 401) {
+            throw new Error("Tu sesión ha expirado. Por favor, vuelve a ingresar para publicar en el foro");
+        }
+        if (response.status === 403) {
+            throw new Error("No tienes autorización para eliminar esta publicación.");
+        }
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "No se pudo eliminar el hilo.");
+        throw new Error(errorData.message || "No se pudo eliminar el hilo en este momento. Por favor, inténtalo de nuevo más tarde.");
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error al eliminar", description: err.message });
@@ -268,7 +283,7 @@ export default function ForumDetailPage() {
                       </div>
                     </div>
                   </AccordionTrigger>
-                 {((isOwner || userRole === 'administrador') || (userRole === 'usuario_final' && thread.autorId === user?.id)) && (
+                 {((isOwner || userRole === 'administrador') || (userRole !== 'organizador' && thread.autorId === user?.id)) && (
                     <Button
                         variant="ghost"
                         size="icon"
@@ -331,7 +346,7 @@ export default function ForumDetailPage() {
                       <PlusCircle className="mr-2 h-4 w-4"/>
                       Nuevo Hilo
                     </Button>
-                    {isOwner && forum && (
+                    {(isOwner || userRole === 'administrador') && forum && (
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => setEditingForum(forum)}>
                           <Edit className="mr-2 h-4 w-4"/>
