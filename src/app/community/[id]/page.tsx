@@ -6,7 +6,7 @@ import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { useApp } from "@/context/app-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, ArrowLeft, Send, Calendar, MessageSquare, Edit, Trash2, Loader2, PlusCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, Send, Calendar, MessageSquare, Edit, Trash2, Loader2, PlusCircle, Trash } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -36,7 +36,7 @@ export default function ForumDetailPage() {
   const params = useParams();
   const router = useRouter();
   const forumId = params.id as string;
-  const { user } = useApp();
+  const { user, userRole } = useApp();
   const { i18n } = useApp();
   const { t } = useTranslation();
   const locale = i18n.language === 'es' ? es : enUS;
@@ -50,7 +50,9 @@ export default function ForumDetailPage() {
 
   const [editingForum, setEditingForum] = useState<Forum | null>(null);
   const [deletingForum, setDeletingForum] = useState<Forum | null>(null);
+  const [deletingThread, setDeletingThread] = useState<EnrichedForumThread | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isProcessingDelete, setIsProcessingDelete] = useState(false);
   const [isAddThreadModalOpen, setIsAddThreadModalOpen] = useState(false);
 
   const isOwner = useMemo(() => user && event && user.id === event.organizadorId, [user, event]);
@@ -177,6 +179,33 @@ export default function ForumDetailPage() {
     }
   };
 
+    const handleDeleteThread = async () => {
+    if (!deletingThread) return;
+
+    setIsProcessingDelete(true);
+    const token = localStorage.getItem("accessToken");
+
+    try {
+      const response = await fetch(`http://localhost:44335/api/foros/${forumId}/hilos/${deletingThread.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (response.status === 204) {
+        toast({ title: "Hilo eliminado correctamente." });
+        fetchData();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "No se pudo eliminar el hilo.");
+      }
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Error al eliminar", description: err.message });
+    } finally {
+      setIsProcessingDelete(false);
+      setDeletingThread(null);
+    }
+  };
+
 
   const renderContent = () => {
     if (isLoading) {
@@ -222,22 +251,37 @@ export default function ForumDetailPage() {
         <Accordion type="single" collapsible className="w-full space-y-4">
           {threads.map((thread) => (
             <AccordionItem key={thread.id} value={thread.id} className="border rounded-lg bg-card">
-              <AccordionTrigger className="p-4 hover:no-underline">
-                <div className="flex-1 text-left">
-                  <h4 className="font-semibold text-base">{thread.titulo}</h4>
-                  <div className="text-xs text-muted-foreground flex items-center gap-4 mt-1">
-                      <div className="flex items-center gap-1.5">
-                         <Avatar className="h-5 w-5">
-                            <AvatarImage src={thread.author?.fotoPerfil || undefined} />
-                            <AvatarFallback className="text-xs">{thread.author?.nombre[0]}{thread.author?.apellido[0]}</AvatarFallback>
-                         </Avatar>
-                         <span>{thread.author?.nombre} {thread.author?.apellido}</span>
+              <div className="flex items-center gap-2 pr-2">
+                 <AccordionTrigger className="p-4 hover:no-underline flex-grow">
+                    <div className="flex-1 text-left">
+                      <h4 className="font-semibold text-base">{thread.titulo}</h4>
+                      <div className="text-xs text-muted-foreground flex items-center gap-4 mt-1">
+                          <div className="flex items-center gap-1.5">
+                             <Avatar className="h-5 w-5">
+                                <AvatarImage src={thread.author?.fotoPerfil || undefined} />
+                                <AvatarFallback className="text-xs">{thread.author?.nombre[0]}{thread.author?.apellido[0]}</AvatarFallback>
+                             </Avatar>
+                             <span>{thread.author?.nombre} {thread.author?.apellido}</span>
+                          </div>
+                          <span className="flex items-center gap-1.5"><Calendar className="h-3 w-3"/>{format(new Date(thread.fechaCreacion), "dd MMM yyyy", { locale })}</span>
+                          <span className="flex items-center gap-1.5"><MessageSquare className="h-3 w-3"/>{thread.comentarios.length} Comentarios</span>
                       </div>
-                      <span className="flex items-center gap-1.5"><Calendar className="h-3 w-3"/>{format(new Date(thread.fechaCreacion), "dd MMM yyyy", { locale })}</span>
-                      <span className="flex items-center gap-1.5"><MessageSquare className="h-3 w-3"/>{thread.comentarios.length} Comentarios</span>
-                  </div>
-                </div>
-              </AccordionTrigger>
+                    </div>
+                  </AccordionTrigger>
+                 {((isOwner || userRole === 'administrador') || (userRole === 'usuario_final' && thread.autorId === user?.id)) && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive shrink-0"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingThread(thread);
+                        }}
+                    >
+                        <Trash className="h-4 w-4" />
+                    </Button>
+                  )}
+              </div>
               <AccordionContent className="p-4 pt-0">
                   <p className="text-sm text-foreground/80 whitespace-pre-wrap border-b pb-4 mb-4">{thread.contenido}</p>
                   <div className="space-y-4">
@@ -280,15 +324,7 @@ export default function ForumDetailPage() {
                 </Button>
                 <div className="flex-1">
                     <h1 className="text-xl font-bold">{forum?.titulo || <Skeleton className="h-6 w-48" />}</h1>
-                    <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
-                        <div className="flex-1">{forum?.descripcion || <Skeleton className="h-4 w-64 mt-1" />}</div>
-                        {forum && (
-                            <div className="flex items-center gap-1.5 shrink-0">
-                                <Calendar className="h-4 w-4" />
-                                <span>Creado el {format(new Date(forum.fechaCreacion), "dd MMM, yyyy", { locale })}</span>
-                            </div>
-                        )}
-                    </div>
+                    <div className="flex-1">{forum?.descripcion || <Skeleton className="h-4 w-64 mt-1" />}</div>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => setIsAddThreadModalOpen(true)}>
@@ -343,6 +379,23 @@ export default function ForumDetailPage() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteForum} disabled={isProcessing}>
               {isProcessing ? <Loader2 className="animate-spin" /> : "Sí, eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <AlertDialog open={!!deletingThread} onOpenChange={() => setDeletingThread(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro de que quieres eliminar este hilo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer y borrará todos los comentarios asociados. El hilo "{deletingThread?.titulo}" será eliminado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteThread} disabled={isProcessingDelete}>
+              {isProcessingDelete ? <Loader2 className="animate-spin" /> : "Sí, eliminar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
