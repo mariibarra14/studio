@@ -1,14 +1,16 @@
-
 "use client";
 
+import { useState, useEffect } from "react";
 import { useApp } from "@/context/app-context";
 import { useTranslation } from "react-i18next";
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Globe, MapPin, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Globe, MapPin, Save } from "lucide-react";
 
 export default function SettingsPage() {
   const {
@@ -21,6 +23,26 @@ export default function SettingsPage() {
     supportedLanguages,
   } = useApp();
   const { t } = useTranslation();
+  const { toast } = useToast();
+
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
+  const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(currency.code);
+
+  useEffect(() => {
+    // Sync local state if global context changes (e.g. on initial load or after saving)
+    setSelectedLanguage(language);
+    setSelectedCurrencyCode(currency.code);
+  }, [language, currency.code]);
+
+  const handleSave = () => {
+    setLocale(selectedLanguage, selectedCurrencyCode);
+    toast({
+      title: "Ajustes Guardados",
+      description: "Tu idioma y moneda han sido actualizados.",
+    });
+  };
+
+  const hasChanges = selectedLanguage !== language || selectedCurrencyCode !== currency.code;
 
   if (isLoadingLocale) {
     return (
@@ -61,8 +83,8 @@ export default function SettingsPage() {
                     {t('settings.region.language')}
                   </Label>
                   <Select
-                    value={language}
-                    onValueChange={(value) => setLocale(value, currency.code)}
+                    value={selectedLanguage}
+                    onValueChange={setSelectedLanguage}
                   >
                     <SelectTrigger id="language-select" className="w-[180px]">
                       <SelectValue placeholder={t('settings.region.select_language')} />
@@ -81,8 +103,8 @@ export default function SettingsPage() {
                     {t('settings.region.currency')}
                   </Label>
                   <Select
-                    value={currency.code}
-                    onValueChange={(value) => setLocale(language, value)}
+                    value={selectedCurrencyCode}
+                    onValueChange={setSelectedCurrencyCode}
                   >
                     <SelectTrigger id="currency-select" className="w-[180px]">
                       <SelectValue placeholder={t('settings.region.select_currency')} />
@@ -97,6 +119,12 @@ export default function SettingsPage() {
                   </Select>
                 </div>
               </CardContent>
+              <CardFooter className="justify-end">
+                <Button onClick={handleSave} disabled={!hasChanges}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Guardar Ajustes
+                </Button>
+              </CardFooter>
             </Card>
 
             <Card className="bg-muted/30">
