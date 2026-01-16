@@ -62,7 +62,7 @@ export function AddThreadForm({ forumId, onSuccess, onCancel }: AddThreadFormPro
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...values, foroId, autorId }),
+        body: JSON.stringify({ ...values, foroId: forumId, autorId }),
       });
 
       if (!response.ok) {
