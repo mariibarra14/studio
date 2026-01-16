@@ -117,7 +117,7 @@ export function AddEventForm({ onSuccess, onCancel }: AddEventFormProps) {
 
     const fetchCategories = async () => {
         try {
-            const fetchedCategories = await getAllCategories();
+            const fetchedCategories = await getAllCategories(token);
             setCategories(fetchedCategories);
         } catch (error) {
             console.error("Failed to fetch categories", error);
