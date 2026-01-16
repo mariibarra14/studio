@@ -161,4 +161,17 @@ export type AssociatedService = {
   endDate: string;
 };
 
+export type MyServiceBooking = {
+  id: string;
+  idServicio: string;
+  idEvento: string;
+  fechaInicio: string;
+  fechaFin: string;
+  serviceName: string;
+  servicePhoto: string;
+  serviceType: string;
+  eventName: string;
+  eventLugar: string;
+  eventInicio: string;
+};
     
