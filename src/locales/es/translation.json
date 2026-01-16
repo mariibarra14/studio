@@ -196,7 +196,14 @@
     "loading_error_title": "Error al Cargar Eventos",
     "no_events_found": "No se encontraron eventos",
     "try_other_filters": "Intenta con otros filtros o un término de búsqueda diferente.",
-    "no_events_available": "No hay eventos disponibles en este momento."
+    "no_events_available": "No hay eventos disponibles en este momento.",
+    "auth_error": "No estás autenticado. Por favor, inicia sesión de nuevo.",
+    "session_expired_error": "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.",
+    "generic_load_error": "Error {{status}}: Error al cargar los eventos.",
+    "connection_error": "No se pudo conectar con el servidor. Verifique su conexión o inténtelo de nuevo más tarde.",
+    "unexpected_error": "Ha ocurrido un error inesperado al cargar los eventos.",
+    "recommended_for_you": "Recomendados para Ti",
+    "all_events": "Todos los Eventos"
   },
   "filters": {
     "title": "Filtrar Eventos",

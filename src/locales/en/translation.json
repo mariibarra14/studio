@@ -196,7 +196,14 @@
     "loading_error_title": "Error Loading Events",
     "no_events_found": "No events found",
     "try_other_filters": "Try other filters or a different search term.",
-    "no_events_available": "There are no events available at this time."
+    "no_events_available": "There are no events available at this time.",
+    "auth_error": "You are not authenticated. Please log in again.",
+    "session_expired_error": "Your session has expired. Please log in again.",
+    "generic_load_error": "Error {{status}}: Error loading events.",
+    "connection_error": "Could not connect to the server. Check your connection or try again later.",
+    "unexpected_error": "An unexpected error occurred while loading events.",
+    "recommended_for_you": "Recommended for You",
+    "all_events": "All Events"
   },
   "filters": {
     "title": "Filter Events",

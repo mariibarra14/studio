@@ -3,7 +3,7 @@
 
 import AuthenticatedLayout from "@/components/layout/authenticated-layout";
 import { Button } from "@/components/ui/button";
-import { Filter, Search, AlertCircle, Calendar, MapPin, X } from "lucide-react";
+import { Filter, AlertCircle, Calendar, MapPin } from "lucide-react";
 import Image from "next/image";
 import {
   Card,
@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { EventReservationModal } from "@/components/events/event-reservation-modal";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,10 +20,17 @@ import type { ApiEvent } from "@/lib/types";
 import { useApp } from "@/context/app-context";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
-import { getAllCategories, type Category } from "@/lib/categories";
+import { getAllCategories, getCategoryNameById, type Category } from "@/lib/categories";
 import { FiltersSheet } from "@/components/events/filters-sheet";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel"
 
 export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<ApiEvent | null>(null);
@@ -32,7 +38,7 @@ export default function EventsPage() {
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { userRole, language } = useApp();
+  const { user, userRole, language } = useApp();
   const { t } = useTranslation();
   
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -49,7 +55,7 @@ export default function EventsPage() {
     const token = localStorage.getItem('accessToken');
 
     if (!token) {
-      setError("No estás autenticado. Por favor, inicia sesión de nuevo.");
+      setError(t('events.auth_error'));
       setIsLoading(false);
       return;
     }
@@ -63,36 +69,36 @@ export default function EventsPage() {
       
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
+          throw new Error(t('events.session_expired_error'));
         }
         if (response.status === 404) {
           setEvents([]); // Set events to empty array on 404
           return;
         }
-        throw new Error(`Error ${response.status}: Error al cargar los eventos.`);
+        throw new Error(t('events.generic_load_error', { status: response.status }));
       }
       const data: ApiEvent[] = await response.json();
       setEvents(data);
     } catch (err: unknown) {
       if (err instanceof Error) {
         if (err.message.includes("Failed to fetch")) {
-          setError("No se pudo conectar con el servidor. Verifique su conexión o inténtelo de nuevo más tarde.");
+          setError(t('events.connection_error'));
         } else {
           setError(err.message);
         }
       } else {
-        setError("Ha ocurrido un error inesperado al cargar los eventos.");
+        setError(t('events.unexpected_error'));
       }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
         setIsLoading(false);
-        setError("No estás autenticado. Por favor, inicia sesión de nuevo.");
+        setError(t('events.auth_error'));
         return;
     }
 
@@ -103,7 +109,7 @@ export default function EventsPage() {
         setCategories(fetchedCategories);
     };
     fetchCategories();
-  }, [fetchEvents]);
+  }, [fetchEvents, t]);
   
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -130,6 +136,22 @@ export default function EventsPage() {
     });
   }, [searchQuery, events, selectedCategory, dateRange]);
 
+  const recommendedEvents = useMemo(() => {
+    if (!user || !user.preferencias || user.preferencias.length === 0 || categories.length === 0) {
+      return [];
+    }
+    const userPrefsLower = user.preferencias.map(p => p.toLowerCase());
+
+    const recommended = events
+      .filter(event => {
+        const categoryName = getCategoryNameById(categories, event.categoriaId);
+        return userPrefsLower.includes(categoryName.toLowerCase());
+      })
+      .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+      
+    return recommended;
+  }, [events, user, categories]);
+
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("");
@@ -149,7 +171,7 @@ export default function EventsPage() {
     const eventDate = new Date(event.inicio);
     return (
         <Card
-            className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col cursor-pointer group"
+            className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col cursor-pointer group h-full"
             onClick={() => setSelectedEvent(event)}
         >
             <CardHeader className="p-0">
@@ -251,40 +273,68 @@ export default function EventsPage() {
             categories={categories}
             clearFilters={clearFilters}
         />
-        
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <EventCardSkeleton key={index} />
-            ))}
-          </div>
-        ) : error ? (
-           <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4 bg-card">
-              <Alert variant="destructive" className="max-w-md border-0">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>{t('events.loading_error_title')}</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-              </Alert>
-              <Button onClick={fetchEvents} className="mt-6">
-                  {t('events.retry')}
-              </Button>
-            </div>
-        ) : filteredEvents.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
-            ))}
-            </div>
-        ) : (
-            <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4">
-                <p className="text-2xl font-semibold text-muted-foreground mb-4">{t('events.no_events_found')}</p>
-                <p className="text-muted-foreground">
-                  {searchQuery || selectedCategory || dateRange.start || dateRange.end
-                    ? t('events.try_other_filters')
-                    : t('events.no_events_available')}
-                </p>
-            </div>
+
+        {recommendedEvents.length > 0 && (
+          <section className="mb-12">
+              <h2 className="text-2xl font-bold mb-6">{t('events.recommended_for_you')}</h2>
+              <Carousel
+                  opts={{
+                      align: "start",
+                      loop: true,
+                  }}
+                  className="w-full"
+              >
+                  <CarouselContent className="-ml-4">
+                      {recommendedEvents.map((event) => (
+                          <CarouselItem key={event.id} className="pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                              <div className="h-full">
+                                  <EventCard event={event} />
+                              </div>
+                          </CarouselItem>
+                      ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="ml-12"/>
+                  <CarouselNext className="mr-12"/>
+              </Carousel>
+          </section>
         )}
+        
+        <section>
+          <h2 className="text-2xl font-bold mb-6">{t('events.all_events')}</h2>
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <EventCardSkeleton key={index} />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4 bg-card">
+                <Alert variant="destructive" className="max-w-md border-0">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>{t('events.loading_error_title')}</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+                <Button onClick={fetchEvents} className="mt-6">
+                    {t('events.retry')}
+                </Button>
+              </div>
+          ) : filteredEvents.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredEvents.map((event) => (
+                  <EventCard key={event.id} event={event} />
+              ))}
+              </div>
+          ) : (
+              <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg text-center p-8 mt-4">
+                  <p className="text-2xl font-semibold text-muted-foreground mb-4">{t('events.no_events_found')}</p>
+                  <p className="text-muted-foreground">
+                    {activeFiltersCount > 0
+                      ? t('events.try_other_filters')
+                      : t('events.no_events_available')}
+                  </p>
+              </div>
+          )}
+        </section>
       </main>
       {selectedEvent && (
         <EventReservationModal
