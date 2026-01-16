@@ -5,6 +5,7 @@ import "@/lib/i18n"; // Import i18next configuration
 import { useToast } from "@/hooks/use-toast";
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { i18n } from "i18next";
+import { useTranslation } from "react-i18next";
 
 // Simple JWT decoder
 function decodeJwt(token: string) {
@@ -110,7 +111,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState(supportedLanguages[1].code);
   const [currency, setCurrency] = useState(supportedCurrencies[1]);
   const [detectedRegion, setDetectedRegion] = useState<Region | null>(null);
-  const { i18n } = useToast();
+  const { i18n } = useTranslation();
 
 
   const setLocale = (languageCode: string, currencyCode: string) => {
