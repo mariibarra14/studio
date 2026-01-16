@@ -276,26 +276,29 @@ export default function EventsPage() {
 
         {recommendedEvents.length > 0 && (
           <section className="mb-12">
-              <h2 className="text-2xl font-bold mb-6">{t('events.recommended_for_you')}</h2>
-              <Carousel
-                  opts={{
-                      align: "start",
-                      loop: true,
-                  }}
-                  className="w-full"
-              >
-                  <CarouselContent className="-ml-4">
-                      {recommendedEvents.map((event) => (
-                          <CarouselItem key={event.id} className="pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                              <div className="h-full">
-                                  <EventCard event={event} />
-                              </div>
-                          </CarouselItem>
-                      ))}
-                  </CarouselContent>
-                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-background/70 hover:bg-background/90" />
-                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-background/70 hover:bg-background/90" />
-              </Carousel>
+            <h2 className="text-2xl font-bold mb-6">{t('events.recommended_for_you')}</h2>
+            <Carousel
+              opts={{
+                align: 'start',
+                loop: true,
+              }}
+              className="w-full px-12"
+            >
+              <CarouselContent className="-ml-4">
+                {recommendedEvents.map((event) => (
+                  <CarouselItem
+                    key={event.id}
+                    className="pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                  >
+                    <div className="h-full">
+                      <EventCard event={event} />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-background/70 hover:bg-background/90" />
+              <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-background/70 hover:bg-background/90" />
+            </Carousel>
           </section>
         )}
         
