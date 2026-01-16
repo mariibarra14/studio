@@ -22,6 +22,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { getCategoryNameById } from "@/lib/categories";
 import { EditEventModal } from "./edit-event-modal";
@@ -494,10 +495,28 @@ export function MyEventDetailsModal({ eventId, onClose, onDeleteSuccess, onEditS
                                                         {format(new Date(service.startDate), 'dd/MM/yy HH:mm')} - {format(new Date(service.endDate), 'dd/MM/yy HH:mm')}
                                                     </p>
                                                 </div>
-                                                <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setServiceToCancel(service)}>
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                    <span className="sr-only">Cancelar apartado de servicio</span>
-                                                </Button>
+                                                <AlertDialog>
+                                                  <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="shrink-0">
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                        <span className="sr-only">Cancelar apartado de servicio</span>
+                                                    </Button>
+                                                  </AlertDialogTrigger>
+                                                  <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>¿Cancelar Apartado?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Esta acción es permanente y no se puede deshacer. Se cancelará el apartado del servicio "{service?.serviceName}" para este evento.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel disabled={isCancellingService}>No, mantener</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => setServiceToCancel(service)} disabled={isCancellingService} className="bg-destructive hover:bg-destructive/90">
+                                                            {isCancellingService ? <Loader2 className="animate-spin" /> : "Sí, cancelar apartado"}
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                  </AlertDialogContent>
+                                                </AlertDialog>
                                             </div>
                                         ))}
                                     </div>
