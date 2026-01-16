@@ -46,6 +46,9 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
   const estadoColor = getEstadoColor(booking.estado, booking.expiraEn);
   const seatLabels = booking.asientos.map(a => a.label).join(', ');
 
+  const productsTotal = booking.complementaryProducts?.reduce((sum, p) => sum + p.precio, 0) || 0;
+  const grandTotal = booking.precioTotal + productsTotal;
+
   return (
     <div
       className="bg-card shadow-lg rounded-2xl overflow-hidden flex flex-col cursor-pointer transition-transform duration-300 hover:-translate-y-2 group border"
@@ -108,7 +111,7 @@ export function TicketStub({ booking, onSelect }: TicketStubProps) {
           <div className="h-10 border-l border-dashed border-muted-foreground/50" />
           <div>
             <p className="text-xs text-muted-foreground">Total</p>
-            <p className="font-bold text-lg">${booking.precioTotal.toFixed(2)}</p>
+            <p className="font-bold text-lg">${grandTotal.toFixed(2)}</p>
           </div>
         </div>
       </div>
