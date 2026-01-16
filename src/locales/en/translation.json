@@ -239,7 +239,23 @@
   },
   "surveys": {
     "title": "Surveys",
-    "placeholder": "Survey content goes here"
+    "attended_events_title": "Attended Events",
+    "no_events_to_rate_title": "No events to rate",
+    "no_events_to_rate_desc": "When you attend an event, it will appear here for you to share your opinion.",
+    "select_event_title": "Select an Event",
+    "select_event_desc": "Choose an event from the list to view or leave your feedback.",
+    "status_completed": "Completed",
+    "status_pending": "Pending",
+    "your_rating_title": "Your Rating",
+    "submitted_on": "Submitted on",
+    "rating_label": "Overall Rating",
+    "comment_label": "Comment (Optional)",
+    "comment_label_view": "Comment",
+    "comment_placeholder": "Tell us more about your experience...",
+    "submit_button": "Submit Rating",
+    "thanks_toast_title": "Thank you for your feedback!",
+    "thanks_toast_desc": "Your rating has been successfully saved.",
+    "no_comment_left": "You did not leave a comment."
   },
   "my_surveys": {
     "title": "My Surveys",

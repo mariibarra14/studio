@@ -178,4 +178,13 @@ export type MyServiceBooking = {
   eventLugar: string;
   eventInicio: string;
 };
+
+export type Survey = {
+  id: string;
+  eventoId: string;
+  usuarioId: string;
+  calificacion: number;
+  comentario: string;
+  fechaCreacion: string;
+};
     

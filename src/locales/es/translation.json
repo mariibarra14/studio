@@ -239,7 +239,23 @@
   },
   "surveys": {
     "title": "Encuestas",
-    "placeholder": "El contenido de las encuestas va aquí"
+    "attended_events_title": "Eventos Asistidos",
+    "no_events_to_rate_title": "Sin eventos para valorar",
+    "no_events_to_rate_desc": "Cuando asistas a un evento, aparecerá aquí para que dejes tu opinión.",
+    "select_event_title": "Selecciona un evento",
+    "select_event_desc": "Elige un evento de la lista para ver o dejar tu valoración.",
+    "status_completed": "Completada",
+    "status_pending": "Pendiente",
+    "your_rating_title": "Tu Valoración",
+    "submitted_on": "Enviada el",
+    "rating_label": "Calificación General",
+    "comment_label": "Comentario (Opcional)",
+    "comment_label_view": "Comentario",
+    "comment_placeholder": "Cuéntanos más sobre tu experiencia...",
+    "submit_button": "Enviar Valoración",
+    "thanks_toast_title": "¡Gracias por tu opinión!",
+    "thanks_toast_desc": "Tu valoración ha sido guardada con éxito.",
+    "no_comment_left": "No dejaste un comentario."
   },
   "my_surveys": {
     "title": "Mis Encuestas",
