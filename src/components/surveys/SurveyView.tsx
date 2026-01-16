@@ -4,6 +4,7 @@ import type { Survey } from "@/lib/types";
 import { StarRating } from "./StarRating";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
+import { es, enUS } from "date-fns/locale";
 
 type SurveyViewProps = {
   survey: Survey;
@@ -11,7 +12,7 @@ type SurveyViewProps = {
 
 export function SurveyView({ survey }: SurveyViewProps) {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language === 'es' ? require('date-fns/locale/es') : require('date-fns/locale/en-US');
+  const locale = i18n.language === 'es' ? es : enUS;
 
   return (
     <div className="space-y-4">

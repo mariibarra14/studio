@@ -13,9 +13,11 @@ import type { ApiBooking, Survey } from "@/lib/types";
 import { SurveyListItem } from "@/components/surveys/SurveyListItem";
 import { SurveyForm } from "@/components/surveys/SurveyForm";
 import { SurveyView } from "@/components/surveys/SurveyView";
+import { useTranslation } from "react-i18next";
 
 export default function SurveysPage() {
-  const { user, isLoadingUser, i18n } = useApp();
+  const { user, isLoadingUser } = useApp();
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState<ApiBooking[]>([]);
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -124,9 +126,9 @@ export default function SurveysPage() {
           return (
               <div className="text-center p-8">
                   <Inbox className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-4 font-semibold">{i18n.t('surveys.no_events_to_rate_title')}</h3>
+                  <h3 className="mt-4 font-semibold">{t('surveys.no_events_to_rate_title')}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                      {i18n.t('surveys.no_events_to_rate_desc')}
+                      {t('surveys.no_events_to_rate_desc')}
                   </p>
               </div>
           );
@@ -156,9 +158,9 @@ export default function SurveysPage() {
              <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed">
                 <div className="text-center">
                     <Edit className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-4 font-semibold">{i18n.t('surveys.select_event_title')}</h3>
+                    <h3 className="mt-4 font-semibold">{t('surveys.select_event_title')}</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        {i18n.t('surveys.select_event_desc')}
+                        {t('surveys.select_event_desc')}
                     </p>
                 </div>
             </div>
@@ -187,7 +189,7 @@ export default function SurveysPage() {
   return (
     <AuthenticatedLayout>
       <main className="flex-1 p-4 md:p-8">
-        <h1 className="text-3xl font-bold mb-6">{i18n.t('surveys.title')}</h1>
+        <h1 className="text-3xl font-bold mb-6">{t('surveys.title')}</h1>
         {error ? (
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -199,7 +201,7 @@ export default function SurveysPage() {
                 <div className="md:col-span-1 h-full">
                     <Card className="h-full flex flex-col">
                         <CardHeader>
-                            <CardTitle>{i18n.t('surveys.attended_events_title')}</CardTitle>
+                            <CardTitle>{t('surveys.attended_events_title')}</CardTitle>
                         </CardHeader>
                         <CardContent className="flex-1 p-2">
                            {renderLeftPanel()}

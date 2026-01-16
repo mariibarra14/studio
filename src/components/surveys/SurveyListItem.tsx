@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, CheckCircle, Edit3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { es, enUS } from 'date-fns/locale';
 
 type SurveyListItemProps = {
     booking: ApiBooking & { survey?: Survey };
@@ -15,7 +16,7 @@ type SurveyListItemProps = {
 
 export function SurveyListItem({ booking, isSelected, onSelect }: SurveyListItemProps) {
     const { t, i18n } = useTranslation();
-    const locale = i18n.language === 'es' ? require('date-fns/locale/es') : require('date-fns/locale/en-US');
+    const locale = i18n.language === 'es' ? es : enUS;
 
     return (
         <button
