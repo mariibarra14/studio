@@ -234,8 +234,16 @@
     "cancelling": "Cancelling..."
   },
   "community": {
-    "title": "Community",
-    "placeholder": "Community content goes here"
+    "title": "Community Forums",
+    "subtitle": "Join the discussion for your favorite events.",
+    "placeholder": "Community content goes here",
+    "no_forums_title": "No Forums Yet",
+    "no_forums_desc": "When discussion forums are created for events, they will appear here.",
+    "join_discussion": "Join Discussion",
+    "unknown_event": "Unknown Event",
+    "error_loading_title": "Error Loading Forums",
+    "error_loading_desc": "We couldn't connect to the community. Please try again later.",
+    "error_auth_desc": "Session Expired: You do not have permission to view the forums. Please log in again."
   },
   "surveys": {
     "title": "Surveys",

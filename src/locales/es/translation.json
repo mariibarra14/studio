@@ -234,8 +234,16 @@
     "cancelling": "Cancelando..."
   },
   "community": {
-    "title": "Comunidad",
-    "placeholder": "El contenido de la comunidad va aquí"
+    "title": "Foros de la Comunidad",
+    "subtitle": "Únete a la discusión de tus eventos favoritos.",
+    "placeholder": "El contenido de la comunidad va aquí",
+    "no_forums_title": "Aún no hay foros",
+    "no_forums_desc": "Cuando se creen foros de discusión para los eventos, aparecerán aquí.",
+    "join_discussion": "Unirse a la Discusión",
+    "unknown_event": "Evento Desconocido",
+    "error_loading_title": "Error al Cargar Foros",
+    "error_loading_desc": "No pudimos conectar con la comunidad. Inténtalo más tarde.",
+    "error_auth_desc": "Sesión Expirada: No tienes permisos para ver los foros. Por favor, inicia sesión de nuevo."
   },
   "surveys": {
     "title": "Encuestas",

@@ -187,4 +187,12 @@ export type Survey = {
   comentario: string;
   fechaCreacion: string;
 };
+
+export type Forum = {
+  id: string;
+  eventoId: string;
+  titulo: string;
+  descripcion: string;
+  fechaCreacion: string;
+};
     
