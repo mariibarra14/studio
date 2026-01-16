@@ -2,7 +2,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, Clock, FileText, Package, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Ticket, CreditCard, XCircle, QrCode, Armchair, Info, Clock, FileText, Package, Loader2, Video, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -32,6 +32,7 @@ import type { ApiBooking, Seat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { generateBookingPDF } from "@/lib/pdf-generator";
 import { useRouter } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 type BookingDetailsModalProps = {
@@ -85,6 +86,48 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
     const { toast } = useToast();
     const router = useRouter();
     const [isCancelling, setIsCancelling] = useState(false);
+
+    const estadoReal = getEstadoReal(booking.estado, booking.expiraEn);
+    const estadoDisplay = getEstadoDisplay(booking.estado, booking.expiraEn);
+    const estadoColor = getEstadoColor(booking.estado, booking.expiraEn);
+
+    // Virtual event logic
+    const isVirtual = booking.eventoTipo === 'Virtual';
+    const isConfirmed = estadoReal === 'Confirmada';
+    const eventStartDate = booking.eventoInicio ? new Date(booking.eventoInicio) : null;
+    const [isJoinButtonEnabled, setIsJoinButtonEnabled] = useState(false);
+    const [timeUntilEvent, setTimeUntilEvent] = useState("");
+
+    useEffect(() => {
+        if (!eventStartDate || !isConfirmed || !isVirtual) return;
+
+        const checkTime = () => {
+            const now = new Date();
+            const fifteenMinutesInMillis = 15 * 60 * 1000;
+            const timeDiff = eventStartDate.getTime() - now.getTime();
+
+            if (timeDiff <= fifteenMinutesInMillis) {
+                setIsJoinButtonEnabled(true);
+                setTimeUntilEvent("");
+            } else {
+                setIsJoinButtonEnabled(false);
+                const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                let timeString = "El enlace se activará en ";
+                if (hours > 0) {
+                    timeString += `${hours}h `;
+                }
+                timeString += `${minutes}m`;
+                setTimeUntilEvent(timeString);
+            }
+        };
+
+        checkTime();
+        const interval = setInterval(checkTime, 60000); // Check every minute
+
+        return () => clearInterval(interval);
+    }, [eventStartDate, isConfirmed, isVirtual]);
 
 
     const handleAction = () => {
@@ -187,10 +230,6 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
             setIsCancelling(false);
         }
     }
-
-    const estadoReal = getEstadoReal(booking.estado, booking.expiraEn);
-    const estadoDisplay = getEstadoDisplay(booking.estado, booking.expiraEn);
-    const estadoColor = getEstadoColor(booking.estado, booking.expiraEn);
 
     const formatDate = (dateString: string | undefined) => {
       if (!dateString) return 'N/A';
@@ -311,6 +350,41 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
                         </div>
                     )}
 
+                    {/* Virtual Event Section */}
+                    {isVirtual && (
+                        <div className="md:col-span-2 pt-4 border-t mt-2">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                <Video className="h-5 w-5 text-primary" /> Evento Virtual
+                            </h4>
+                            {isConfirmed ? (
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                                    <div className="flex-1">
+                                        <p className="font-medium">Este evento se realizará en línea.</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {isJoinButtonEnabled
+                                                ? "El evento está por comenzar o ya ha comenzado. ¡Puedes unirte ahora!"
+                                                : timeUntilEvent
+                                            }
+                                        </p>
+                                    </div>
+                                    <Button asChild disabled={!isJoinButtonEnabled || !booking.onlineMeetingUrl}>
+                                        <a href={booking.onlineMeetingUrl!} target="_blank" rel="noopener noreferrer">
+                                            Acceder a la Reunión
+                                        </a>
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Alert>
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <AlertTitle>Acceso Pendiente</AlertTitle>
+                                    <AlertDescription>
+                                        El enlace para unirte al evento estará disponible aquí una vez que se confirme tu reserva.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                        </div>
+                    )}
+
 
                     {/* Total Price and Status */}
                     <div className="md:col-span-2 border-t pt-6 mt-2 flex flex-col gap-4">
@@ -388,5 +462,3 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancelSuccess 
         </Dialog>
     );
 }
-
-    

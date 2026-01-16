@@ -68,6 +68,8 @@ export default function BookingsPage() {
           let eventoCategoria = "General";
           let eventoInicio = "";
           let eventoFin = "";
+          let eventoTipo = "Presencial";
+          let onlineMeetingUrl = "";
           let escenarioNombre = "Ubicación no disponible";
           let escenarioUbicacion = "";
           let enrichedAsientos: Seat[] = booking.asientos;
@@ -95,6 +97,8 @@ export default function BookingsPage() {
                 eventoCategoria = getCategoryNameById(categoriesResponse, eventoData.categoriaId) || 'General';
                 eventoInicio = eventoData.inicio;
                 eventoFin = eventoData.fin || "";
+                eventoTipo = eventoData.tipo;
+                onlineMeetingUrl = eventoData.onlineMeetingUrl || "";
 
                 if (eventoData.escenarioId) {
                   const escenarioResponse = await fetch(`http://localhost:44335/api/events/escenarios/${eventoData.escenarioId}`, {
@@ -161,6 +165,8 @@ export default function BookingsPage() {
             eventoCategoria,
             eventoInicio,
             eventoFin,
+            eventoTipo,
+            onlineMeetingUrl,
             escenarioNombre,
             escenarioUbicacion,
             asientos: enrichedAsientos,
