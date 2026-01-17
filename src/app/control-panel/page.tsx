@@ -8,8 +8,8 @@ import { Loader2, AlertCircle, BarChart, PieChart, Users, DollarSign, Percent, S
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Bar, Pie, Cell, ResponsiveContainer, BarChart as RechartsBarChart, PieChart as RechartsPieChart, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import { Bar, Pie, Cell, BarChart as RechartsBarChart, PieChart as RechartsPieChart, XAxis, YAxis, Legend } from "recharts";
 import type { ApiEvent, User, ApiBooking, Payment, Survey, ForumThread, Product, Category } from "@/lib/types";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -202,7 +202,7 @@ export default function ControlPanelPage() {
   }, [filteredData]);
 
   const chartData = useMemo(() => {
-    if (!filteredData) return { eventStatus: [], bookingStatus: [], topEvents: [] };
+    if (!filteredData) return { eventStatus: [], bookingStatus: [], topEvents: [], eventStatusConfig: {} as ChartConfig, bookingStatusConfig: {} as ChartConfig, topEventsConfig: {} as ChartConfig };
 
     const eventStatus = Object.entries(
       filteredData.allEvents.reduce((acc, event) => {
@@ -230,8 +230,32 @@ export default function ControlPanelPage() {
       return { name: event.nombre, revenue };
     });
     const topEvents = eventsWithRevenue.sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+    
+    const eventStatusConfig = eventStatus.reduce((acc, item, index) => {
+      acc[item.name] = {
+        label: item.name,
+        color: COLORS_EVENT_STATUS[index % COLORS_EVENT_STATUS.length],
+      };
+      return acc;
+    }, {} as ChartConfig);
 
-    return { eventStatus, bookingStatus, topEvents };
+    const bookingStatusConfig = bookingStatus.reduce((acc, item, index) => {
+      acc[item.name] = {
+        label: item.name,
+        color: COLORS_BOOKING_STATUS[index % COLORS_BOOKING_STATUS.length],
+      };
+      return acc;
+    }, {} as ChartConfig);
+    
+    const topEventsConfig = {
+      revenue: {
+        label: "Ingresos",
+        color: "hsl(var(--primary))",
+      },
+    } satisfies ChartConfig;
+
+
+    return { eventStatus, bookingStatus, topEvents, eventStatusConfig, bookingStatusConfig, topEventsConfig };
   }, [filteredData]);
 
 
@@ -289,10 +313,10 @@ export default function ControlPanelPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card className="lg:col-span-1">
             <CardHeader><CardTitle>Estado de Eventos</CardTitle><CardDescription>Distribución de todos los eventos.</CardDescription></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
+            <CardContent className="h-[250px]">
+              <ChartContainer config={chartData.eventStatusConfig} className="mx-auto aspect-square h-full">
                 <RechartsPieChart>
-                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                  <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="name"/>} />
                   <Pie data={chartData.eventStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                     {chartData.eventStatus.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS_EVENT_STATUS[index % COLORS_EVENT_STATUS.length]} />
@@ -300,30 +324,30 @@ export default function ControlPanelPage() {
                   </Pie>
                   <Legend />
                 </RechartsPieChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             </CardContent>
           </Card>
           
           <Card className="lg:col-span-2">
             <CardHeader><CardTitle>Top 5 Eventos por Ingresos</CardTitle><CardDescription>Los eventos más rentables.</CardDescription></CardHeader>
-            <CardContent>
-               <ResponsiveContainer width="100%" height={250}>
-                    <RechartsBarChart data={chartData.topEvents} layout="vertical" margin={{ left: 30 }}>
+            <CardContent className="h-[250px]">
+               <ChartContainer config={chartData.topEventsConfig} className="h-full w-full">
+                    <RechartsBarChart data={chartData.topEvents} layout="vertical" margin={{ left: 30, right: 30 }}>
                         <XAxis type="number" hide />
                         <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} width={150} />
                         <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
-                        <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={4} />
+                        <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
                     </RechartsBarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
             </CardContent>
           </Card>
 
            <Card>
             <CardHeader><CardTitle>Balance de Reservas</CardTitle><CardDescription>Estado de todas las reservas creadas.</CardDescription></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
+            <CardContent className="h-[250px]">
+              <ChartContainer config={chartData.bookingStatusConfig} className="mx-auto aspect-square h-full">
                 <RechartsPieChart>
-                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                  <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="name" />} />
                   <Pie data={chartData.bookingStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                     {chartData.bookingStatus.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS_BOOKING_STATUS[index % COLORS_BOOKING_STATUS.length]} />
@@ -331,7 +355,7 @@ export default function ControlPanelPage() {
                   </Pie>
                   <Legend />
                 </RechartsPieChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             </CardContent>
           </Card>
 
