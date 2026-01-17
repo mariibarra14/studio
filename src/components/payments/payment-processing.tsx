@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
@@ -31,9 +30,10 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [eventName, setEventName] = useState("");
+  const [bookingDetails, setBookingDetails] = useState<ApiBooking | null>(null);
   const { toast } = useToast();
   const router = useRouter();
-  const { currency, language, conversionRates } = useApp();
+  const { currency, language, conversionRates, user } = useApp();
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -48,12 +48,15 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
       }
 
       try {
-        const [methodsResponse, eventResponse] = await Promise.all([
+        const [methodsResponse, eventResponse, bookingResponse] = await Promise.all([
           fetch(`http://localhost:44335/api/Pagos/getMPagoPorIdUsuario?idUsuario=${userId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
           fetch(`http://localhost:44335/api/events/${eventId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
+          }),
+          fetch(`http://localhost:44335/api/Reservas/${reservaId}`, {
+             headers: { 'Authorization': `Bearer ${token}` }
           })
         ]);
 
@@ -71,6 +74,30 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
           setEventName(eventData.nombre);
         }
 
+        if (bookingResponse.ok) {
+            const bookingData: ApiBooking = await bookingResponse.json();
+            const complementaryRes = await fetch(`http://localhost:44335/api/ServComps/Resv/getReservaByIdReserva?idReserva=${bookingData.reservaId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (complementaryRes.ok) {
+                const complementaryData = await complementaryRes.json();
+                if (complementaryData && complementaryData.idsProducto && complementaryData.idsProducto.length > 0) {
+                    const productPromises = complementaryData.idsProducto.map((productId: string) => 
+                    fetch(`http://localhost:44335/api/ServComps/Prods/getProductoById?id=${productId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(res => res.ok ? res.json() : null)
+                    );
+                    
+                    const fetchedProducts = await Promise.all(productPromises);
+                    bookingData.complementaryProducts = fetchedProducts.filter((p): p is Product => p !== null);
+                }
+            }
+            setBookingDetails(bookingData);
+        } else {
+            throw new Error("No se pudieron cargar los detalles de la reserva.");
+        }
+
       } catch (error) {
         toast({ variant: "destructive", title: "Error de Red", description: "No se pudo cargar la información necesaria." });
       } finally {
@@ -79,7 +106,7 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
     };
 
     fetchInitialData();
-  }, [reservaId, eventId, monto, router, toast]);
+  }, [reservaId, eventId, router, toast]);
 
   const handleProcessPayment = async () => {
     if (!selectedMethod) {
@@ -111,7 +138,7 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
       });
       
       if (response.status === 201) {
-        // START: Confirm complementary services reservation
+        // Confirm complementary services reservation
         try {
             const compResResponse = await fetch(`http://localhost:44335/api/ServComps/Resv/getReservaByIdReserva?idReserva=${reservaId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -146,11 +173,56 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
                 duration: 8000
             });
         }
-        // END: Confirm complementary services reservation
+        
+        // Send Email Notification
+        if (user && bookingDetails) {
+            const seatsSummary = bookingDetails.asientos.map(a => a.label).join(', ');
+            const productsSummary = bookingDetails.complementaryProducts && bookingDetails.complementaryProducts.length > 0
+                ? `<ul>${bookingDetails.complementaryProducts.map(p => `<li>${p.nombre} - ${formatCurrency(p.precio, currency, language, conversionRates)}</li>`).join('')}</ul>`
+                : 'Ninguno';
+
+            const emailBody = `
+                <h1>¡Tu reserva para ${eventName} está confirmada!</h1>
+                <p>Hola ${user.nombre},</p>
+                <p>Tu pago ha sido procesado con éxito. Aquí están los detalles de tu reserva:</p>
+                <ul>
+                    <li><strong>ID de Reserva:</strong> ${reservaId}</li>
+                    <li><strong>Evento:</strong> ${eventName}</li>
+                    <li><strong>Asientos (${bookingDetails.asientos.length}):</strong> ${seatsSummary}</li>
+                    <li><strong>Productos Adicionales:</strong> ${productsSummary}</li>
+                    <li><strong>Total Pagado:</strong> ${formatCurrency(monto, currency, language, conversionRates)}</li>
+                </ul>
+                <p>Puedes ver todos los detalles de tu reserva y descargar tu entrada en la sección "Mis Reservas" de tu perfil.</p>
+                <p>¡Gracias por usar VivoPass!</p>
+            `;
+
+            try {
+                const notifResponse = await fetch('http://localhost:44335/api/notificaciones/enviar2', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        email: user.correo,
+                        motivo: `Confirmación de Reserva - ${eventName}`,
+                        cuerpo: emailBody,
+                    })
+                });
+                if (!notifResponse.ok) throw new Error("Email notification failed");
+            } catch (emailError) {
+                console.error("Failed to send notification email:", emailError);
+                toast({
+                    variant: "destructive",
+                    title: "Reserva confirmada, pero...",
+                    description: "Tuvimos un problema al enviar el correo de confirmación. Puedes ver los detalles de tu reserva en tu perfil."
+                });
+            }
+        }
         
         toast({
           title: "✅ Pago Exitoso",
-          description: "Tu reserva ha sido confirmada. Serás redirigido.",
+          description: "Tu reserva ha sido confirmada. Se ha enviado un comprobante a tu correo.",
         });
         setTimeout(() => router.push('/bookings'), 2000);
       } else {
