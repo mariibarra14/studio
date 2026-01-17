@@ -131,7 +131,7 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
                         toast({
                             variant: "destructive",
                             title: "Error de Sincronización",
-                            description: "Hubo un problema al marcar sus servicios como confirmados. Por favor, guarde su comprobante y revise 'Mis Reservas' en unos minutos.",
+                            description: "Tu reserva del evento está lista, pero hubo un problema al confirmar los servicios adicionales. Por favor, contacta a soporte",
                             duration: 8000
                         });
                     }
@@ -142,7 +142,7 @@ function PaymentForm({ reservaId, eventId, monto }: { reservaId: string, eventId
             toast({
                 variant: "destructive",
                 title: "Error de Sincronización",
-                description: "Hubo un problema al marcar sus servicios como confirmados. Por favor, guarde su comprobante y revise 'Mis Reservas' en unos minutos.",
+                description: "Tu reserva del evento está lista, pero hubo un problema al confirmar los servicios adicionales. Por favor, contacta a soporte",
                 duration: 8000
             });
         }
