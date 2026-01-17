@@ -40,7 +40,7 @@ const navLinks: NavLink[] = [
   { href: "/events", icon: Calendar, labelKey: "nav.events", roles: ["usuario_final", "administrador"]},
   { href: "/bookings", icon: ClipboardList, labelKey: "nav.my_bookings", roles: ["usuario_final", "administrador"]},
   { href: "/payments", icon: CreditCard, labelKey: "nav.my_payments", roles: ["usuario_final", "administrador"]},
-  { href: "/complementary-services", icon: ConciergeBell, labelKey: "nav.comp_services", roles: ["usuario_final"]},
+  { href: "/complementary-services", icon: ConciergeBell, labelKey: "nav.comp_services", roles: ["usuario_final", "administrador"]},
   { href: "/community", icon: Users, labelKey: "nav.community", roles: ["usuario_final", "soporte_tecnico", "administrador"], },
   { href: "/surveys", icon: PieChart, labelKey: "nav.surveys", roles: ["usuario_final", "administrador"], },
 
