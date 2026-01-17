@@ -115,7 +115,7 @@ export const generateSalesReportPDF = (data: ReportData) => {
 
 export const generateConversionReportPDF = (data: ReportData) => {
     const doc = new jsPDF();
-    let y = addHeader(doc, "Reporte de Análisis de Conversión", data.event.nombre, data.organizerName);
+    let y = addHeader(doc, "Reporte de Análisis de Asistencia", data.event.nombre, data.organizerName);
 
     // --- Conversion Analysis ---
     (doc as any).autoTable({
@@ -132,5 +132,5 @@ export const generateConversionReportPDF = (data: ReportData) => {
     });
     
     addFooter(doc);
-    doc.save(`Reporte_Conversion_${data.event.nombre.replace(/ /g, "_")}.pdf`);
+    doc.save(`Reporte_Asistencia_${data.event.nombre.replace(/ /g, "_")}.pdf`);
 };

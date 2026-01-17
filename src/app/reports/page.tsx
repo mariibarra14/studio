@@ -268,7 +268,7 @@ export default function ReportsPage() {
                             <CardContent><p className="text-3xl font-bold">{formatCurrency(reportData.sales.grandTotal, currency, language, conversionRates)}</p></CardContent>
                         </Card>
                         <Card>
-                            <CardHeader><CardTitle>Tasa de Conversión</CardTitle></CardHeader>
+                            <CardHeader><CardTitle>Tasa de Asistencia</CardTitle></CardHeader>
                             <CardContent><p className="text-3xl font-bold">{reportData.conversion.confirmationRate.toFixed(1)}%</p></CardContent>
                         </Card>
                         <Card>
@@ -281,7 +281,7 @@ export default function ReportsPage() {
                             <Download className="mr-2 h-4 w-4"/>Descargar Reporte de Ventas (PDF)
                         </Button>
                         <Button variant="outline" onClick={() => generateConversionReportPDF(reportData)}>
-                            <Download className="mr-2 h-4 w-4"/>Descargar Reporte de Conversión (PDF)
+                            <Download className="mr-2 h-4 w-4"/>Descargar Reporte de Asistencia (PDF)
                         </Button>
                      </div>
                 </div>
