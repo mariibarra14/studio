@@ -15,7 +15,6 @@ import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { formatCurrency } from "@/lib/utils";
 
-const COLORS_EVENT_STATUS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042"];
 const COLORS_BOOKING_STATUS = ["#82ca9d", "#ffc658", "#ff8042"];
 
 type DashboardData = {
@@ -204,9 +203,10 @@ export default function ControlPanelPage() {
   const chartData = useMemo(() => {
     if (!filteredData) return { eventStatus: [], bookingStatus: [], topEvents: [], eventStatusConfig: {} as ChartConfig, bookingStatusConfig: {} as ChartConfig, topEventsConfig: {} as ChartConfig };
 
+    const now = new Date();
     const eventStatus = Object.entries(
       filteredData.allEvents.reduce((acc, event) => {
-        const status = event.estado || 'Desconocido';
+        const status = event.fin && new Date(event.fin) > now ? 'Activo' : 'Finalizado';
         acc[status] = (acc[status] || 0) + 1;
         return acc;
       }, {} as Record<string, number>)
@@ -231,13 +231,16 @@ export default function ControlPanelPage() {
     });
     const topEvents = eventsWithRevenue.sort((a, b) => b.revenue - a.revenue).slice(0, 5);
     
-    const eventStatusConfig = eventStatus.reduce((acc, item, index) => {
-      acc[item.name] = {
-        label: item.name,
-        color: COLORS_EVENT_STATUS[index % COLORS_EVENT_STATUS.length],
-      };
-      return acc;
-    }, {} as ChartConfig);
+    const eventStatusConfig = {
+      "Activo": {
+        label: "Activo",
+        color: "hsl(var(--chart-2))", // Green
+      },
+      "Finalizado": {
+        label: "Finalizado",
+        color: "hsl(var(--muted))", // Muted Gray
+      },
+    } satisfies ChartConfig;
 
     const bookingStatusConfig = bookingStatus.reduce((acc, item, index) => {
       acc[item.name] = {
@@ -318,8 +321,8 @@ export default function ControlPanelPage() {
                 <RechartsPieChart>
                   <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="name"/>} />
                   <Pie data={chartData.eventStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                    {chartData.eventStatus.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS_EVENT_STATUS[index % COLORS_EVENT_STATUS.length]} />
+                    {chartData.eventStatus.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={`var(--color-${entry.name})`} />
                     ))}
                   </Pie>
                   <Legend />
