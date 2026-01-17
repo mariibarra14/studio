@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -63,9 +62,7 @@ export function EditCommentForm({ comment, forumId, threadId, onSuccess, onCance
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          contenido: values.contenido,
-        }),
+        body: JSON.stringify(values.contenido),
       });
 
       if (response.status === 204) {
