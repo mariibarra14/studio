@@ -29,16 +29,21 @@ export default function ReportsPage() {
   const fetchMyEvents = useCallback(async () => {
     if (!user) return;
     setIsLoadingEvents(true);
+    setError(null);
     const token = localStorage.getItem("accessToken");
     try {
       const response = await fetch('http://localhost:44335/api/events', { headers: { 'Authorization': `Bearer ${token}` } });
       if (!response.ok) throw new Error("No se pudieron cargar tus eventos.");
       const allEvents: ApiEvent[] = await response.json();
       
-      const myEvents = (userRole === 'administrador')
-        ? allEvents
-        : allEvents.filter(e => e.organizadorId === user.id);
-        
+      const now = new Date();
+
+      const myEvents = allEvents.filter(event => {
+        const isOwner = (userRole === 'administrador') || (event.organizadorId === user.id);
+        const hasFinished = event.fin ? new Date(event.fin) < now : false;
+        return isOwner && hasFinished;
+      });
+
       setEvents(myEvents);
     } catch (err: any) {
       setError(err.message);
@@ -222,13 +227,17 @@ export default function ReportsPage() {
                 <label htmlFor="event-select" className="text-sm font-medium">Seleccionar Evento</label>
                 {isLoadingEvents ? (
                     <Skeleton className="h-10 w-full mt-2" />
-                ) : (
+                ) : events.length > 0 ? (
                     <Select onValueChange={setSelectedEventId} value={selectedEventId || ""}>
                         <SelectTrigger id="event-select" className="mt-2"><SelectValue placeholder="Elige un evento..." /></SelectTrigger>
                         <SelectContent>
                             {events.map(event => <SelectItem key={event.id} value={event.id}>{event.nombre}</SelectItem>)}
                         </SelectContent>
                     </Select>
+                ) : (
+                    <div className="mt-2 text-center p-4 border-2 border-dashed rounded-lg bg-muted/50">
+                        <p className="text-muted-foreground text-sm">No tienes eventos finalizados para generar reportes en este momento.</p>
+                    </div>
                 )}
               </div>
               <Button onClick={() => selectedEventId && handleGenerateReport(selectedEventId)} disabled={!selectedEventId || isLoadingReport}>
@@ -278,7 +287,7 @@ export default function ReportsPage() {
                 </div>
             )}
 
-            {!selectedEventId && !isLoadingReport && !isLoadingEvents && (
+            {!selectedEventId && !isLoadingReport && !isLoadingEvents && events.length > 0 && (
                  <div className="text-center py-10 text-muted-foreground">
                     <p>Por favor, selecciona un evento para comenzar.</p>
                  </div>
@@ -289,5 +298,3 @@ export default function ReportsPage() {
     </AuthenticatedLayout>
   );
 }
-
-    
