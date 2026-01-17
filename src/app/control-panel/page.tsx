@@ -234,11 +234,11 @@ export default function ControlPanelPage() {
     const eventStatusConfig = {
       "Activo": {
         label: "Activo",
-        color: "hsl(var(--chart-2))", // Green
+        color: "hsl(var(--primary))",
       },
       "Finalizado": {
         label: "Finalizado",
-        color: "hsl(var(--muted))", // Muted Gray
+        color: "hsl(var(--chart-1))",
       },
     } satisfies ChartConfig;
 
