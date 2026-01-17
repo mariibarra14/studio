@@ -1,5 +1,6 @@
 
 
+
 export type TicketTier = {
   id: string;
   nombre: string;
@@ -229,4 +230,47 @@ export type EnrichedForumThread = Omit<ForumThread, 'comentarios'> & {
     }
     comentarios: EnrichedForumComment[];
 };
+
+export type Category = {
+    id: string;
+    nombre: string;
+    descripcion: string;
+};
+
+// --- Report Types ---
+export type ZoneSale = {
+  name: string;
+  count: number;
+  revenue: number;
+};
+
+export type ServiceSale = {
+  name: string;
+  count: number;
+  revenue: number;
+};
+
+export type ReportData = {
+  event: ApiEvent;
+  organizerName: string;
+  categoryName: string;
+  sales: {
+    ticketSales: ZoneSale[];
+    serviceSales: ServiceSale[];
+    totalTicketRevenue: number;
+    totalServiceRevenue: number;
+    grandTotal: number;
+  };
+  conversion: {
+    totalReservations: number;
+    confirmed: number;
+    cancelled: number;
+    confirmationRate: number;
+  };
+  satisfaction: {
+    averageRating: number;
+    totalSurveys: number;
+  };
+};
+
     
