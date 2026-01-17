@@ -50,17 +50,6 @@ const addFooter = (doc: jsPDF) => {
     }
 };
 
-const applyZebraStriping = (doc: any, startY: number) => {
-    let isOdd = false;
-    doc.autoTable.previous.body.forEach((row: any) => {
-        if (isOdd) {
-            doc.setFillColor(245, 245, 245); // Light gray
-            doc.rect(row.x, row.y, row.width, row.height, 'F');
-        }
-        isOdd = !isOdd;
-    });
-};
-
 export const generateSalesReportPDF = (data: ReportData) => {
     const doc = new jsPDF();
     let y = addHeader(doc, "Reporte de Ventas y Recaudación", data.event.nombre, data.organizerName);
@@ -72,9 +61,7 @@ export const generateSalesReportPDF = (data: ReportData) => {
         body: data.sales.ticketSales.map(sale => [sale.name, sale.count, `$${sale.revenue.toFixed(2)}`]),
         theme: 'grid',
         headStyles: { fillColor: [41, 128, 185] }, // Blue
-        didDrawPage: (hookData) => {
-            applyZebraStriping(doc, hookData.cursor.y);
-        }
+        alternateRowStyles: { fillColor: [245, 245, 245] },
     });
     y = (doc as any).autoTable.previous.finalY + 10;
     
@@ -86,9 +73,7 @@ export const generateSalesReportPDF = (data: ReportData) => {
             body: data.sales.serviceSales.map(sale => [sale.name, sale.count, `$${sale.revenue.toFixed(2)}`]),
             theme: 'grid',
             headStyles: { fillColor: [22, 160, 133] }, // Green
-            didDrawPage: (hookData) => {
-                applyZebraStriping(doc, hookData.cursor.y);
-            }
+            alternateRowStyles: { fillColor: [245, 245, 245] },
         });
         y = (doc as any).autoTable.previous.finalY + 10;
     } else {
@@ -136,9 +121,7 @@ export const generateConversionReportPDF = (data: ReportData) => {
         ],
         theme: 'grid',
         headStyles: { fillColor: [192, 57, 43] }, // Red
-        didDrawPage: (hookData) => {
-            applyZebraStriping(doc, hookData.cursor.y);
-        }
+        alternateRowStyles: { fillColor: [245, 245, 245] },
     });
     
     addFooter(doc);
