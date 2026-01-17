@@ -42,7 +42,7 @@ export function OrganizerRankingReport() {
         try {
             // Fetch all users and all events in parallel
             const [usersRes, eventsRes] = await Promise.all([
-                fetch(`http://localhost:44335/api/Usuarios/todos`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`http://localhost:44335/api/Usuarios/getTodosUsuarios`, { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch(`http://localhost:44335/api/events`, { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
 
