@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -50,7 +51,7 @@ const navLinks: NavLink[] = [
   { href: "/venues", icon: Building, labelKey: "nav.venues", roles: ["organizador", "administrador"]},
   { href: "/community/my", icon: Users, labelKey: "nav.my_community", roles: ["organizador", "administrador"]},
   { href: "/surveys/my", icon: PieChart, labelKey: "nav.my_surveys", roles: ["organizador", "administrador"]},
-  { href: "/reports", icon: BarChart2, labelKey: "nav.event_reports", roles: ["organizador", "soporte_tecnico", "administrador"]},
+  { href: "/reports", icon: BarChart2, labelKey: "nav.event_reports", roles: ["organizador", "administrador"]},
   
   // soporte_tecnico & admin
   { href: "/control-panel", icon: LayoutDashboard, labelKey: "nav.control_panel", roles: ["soporte_tecnico", "administrador"]},

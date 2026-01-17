@@ -326,7 +326,7 @@ export default function ForumDetailPage() {
                       </div>
                     </div>
                   </AccordionTrigger>
-                 {((isOwner || userRole === 'administrador') || (userRole !== 'organizador' && thread.autorId === user?.id)) && (
+                 {((isOwner || userRole === 'administrador' || userRole === 'soporte_tecnico') || (userRole !== 'organizador' && thread.autorId === user?.id)) && (
                     <Button
                         variant="ghost"
                         size="icon"
@@ -368,7 +368,7 @@ export default function ForumDetailPage() {
                                             <Edit className="h-3 w-3" />
                                         </Button>
                                     )}
-                                    {(isOwner || userRole === 'administrador' || comment.autorId === user?.id) && (
+                                    {(isOwner || userRole === 'administrador' || userRole === 'soporte_tecnico' || comment.autorId === user?.id) && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -388,7 +388,7 @@ export default function ForumDetailPage() {
                         <p className="text-sm text-muted-foreground text-center py-4">No hay comentarios en este hilo.</p>
                       )}
                   </div>
-                  {!(isOwner || userRole === 'administrador') && (
+                  {!(isOwner || userRole === 'administrador' || userRole === 'soporte_tecnico') && (
                     <CommentForm 
                       forumId={forumId} 
                       threadId={thread.id} 
