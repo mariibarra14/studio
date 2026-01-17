@@ -9,24 +9,24 @@ const addHeader = (doc: jsPDF, title: string, eventName: string, organizerName: 
     const pageWidth = doc.internal.pageSize.getWidth();
     
     // Header background
-    doc.setFillColor(41, 51, 61); // Dark gray
+    doc.setFillColor(108, 48, 233); // Primary Purple
     doc.rect(0, 0, pageWidth, 25, 'F');
 
     // Logo/App Name
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(255, 255, 255);
+    doc.setTextColor(255, 255, 255); // White
     doc.text("VIVOPASS", 14, 17);
 
     // Report Title
     doc.setFontSize(12);
-    doc.setTextColor(200, 200, 200);
+    doc.setTextColor(255, 255, 255);
     doc.text(title, pageWidth - 14, 17, { align: 'right' });
 
     // Event Details
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(41, 51, 61);
+    doc.setTextColor(41, 51, 61); // Dark Gray for body titles
     doc.text(eventName, 14, 40);
     
     doc.setFontSize(10);
@@ -60,8 +60,8 @@ export const generateSalesReportPDF = (data: ReportData) => {
         head: [['Zona', 'Entradas Vendidas', 'Ingresos por Zona (USD)']],
         body: data.sales.ticketSales.map(sale => [sale.name, sale.count, `$${sale.revenue.toFixed(2)}`]),
         theme: 'grid',
-        headStyles: { fillColor: [41, 128, 185] }, // Blue
-        alternateRowStyles: { fillColor: [245, 245, 245] },
+        headStyles: { fillColor: [108, 48, 233] }, // Primary Purple
+        alternateRowStyles: { fillColor: [247, 245, 254] }, // Light Purple
     });
     y = (doc as any).autoTable.previous.finalY + 10;
     
@@ -72,8 +72,8 @@ export const generateSalesReportPDF = (data: ReportData) => {
             head: [['Servicio/Producto', 'Cantidad Vendida', 'Ingresos (USD)']],
             body: data.sales.serviceSales.map(sale => [sale.name, sale.count, `$${sale.revenue.toFixed(2)}`]),
             theme: 'grid',
-            headStyles: { fillColor: [22, 160, 133] }, // Green
-            alternateRowStyles: { fillColor: [245, 245, 245] },
+            headStyles: { fillColor: [244, 98, 64] }, // Orange
+            alternateRowStyles: { fillColor: [255, 245, 242] }, // Light Orange
         });
         y = (doc as any).autoTable.previous.finalY + 10;
     } else {
@@ -98,8 +98,15 @@ export const generateSalesReportPDF = (data: ReportData) => {
     (doc as any).autoTable({
         startY: y,
         body: summaryBody,
-        theme: 'striped',
+        theme: 'grid',
         styles: { cellPadding: 3 },
+        didParseCell: function (data: any) {
+            if (data.row.index === summaryBody.length - 1) {
+                data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.fillColor = [247, 245, 254];
+                data.cell.styles.textColor = [108, 48, 233];
+            }
+        }
     });
 
     addFooter(doc);
@@ -120,12 +127,10 @@ export const generateConversionReportPDF = (data: ReportData) => {
             ['Reservas Expiradas o Canceladas', data.conversion.cancelled, `${(100 - data.conversion.confirmationRate).toFixed(1)}%`],
         ],
         theme: 'grid',
-        headStyles: { fillColor: [192, 57, 43] }, // Red
-        alternateRowStyles: { fillColor: [245, 245, 245] },
+        headStyles: { fillColor: [108, 48, 233] }, // Primary Purple
+        alternateRowStyles: { fillColor: [247, 245, 254] }, // Light Purple
     });
     
     addFooter(doc);
     doc.save(`Reporte_Conversion_${data.event.nombre.replace(/ /g, "_")}.pdf`);
 };
-
-    
