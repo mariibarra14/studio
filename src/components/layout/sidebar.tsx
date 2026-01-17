@@ -50,10 +50,11 @@ const navLinks: NavLink[] = [
   { href: "/venues", icon: Building, labelKey: "nav.venues", roles: ["organizador", "administrador"]},
   { href: "/community/my", icon: Users, labelKey: "nav.my_community", roles: ["organizador", "administrador"]},
   { href: "/surveys/my", icon: PieChart, labelKey: "nav.my_surveys", roles: ["organizador", "administrador"]},
-  { href: "/reports", icon: BarChart2, labelKey: "nav.reports", roles: ["organizador", "soporte_tecnico", "administrador"]},
+  { href: "/reports", icon: BarChart2, labelKey: "nav.event_reports", roles: ["organizador", "soporte_tecnico", "administrador"]},
   
-  // soporte_tecnico
+  // soporte_tecnico & admin
   { href: "/control-panel", icon: LayoutDashboard, labelKey: "nav.control_panel", roles: ["soporte_tecnico", "administrador"]},
+  { href: "/reports/global", icon: PieChart, labelKey: "nav.global_reports", roles: ["soporte_tecnico", "administrador"]},
 ];
 
 
@@ -85,7 +86,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   const filteredNavLinks = navLinks.filter(link => 
-    link.roles.includes(userRole || "") || (userRole === 'administrador')
+    link.roles.includes(userRole || "")
   );
 
   const mainNav = filteredNavLinks.filter(l => !["/profile", "/settings"].includes(l.href));

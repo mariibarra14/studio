@@ -14,7 +14,8 @@
     "my_services": "My Services",
     "payments_history": "Payments History",
     "venues": "Venues",
-    "reports": "Reports",
+    "event_reports": "Event Reports",
+    "global_reports": "Global Reports",
     "control_panel": "Control Panel",
     "my_surveys": "My Surveys"
   },
