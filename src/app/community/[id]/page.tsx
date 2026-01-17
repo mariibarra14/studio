@@ -374,11 +374,13 @@ export default function ForumDetailPage() {
                         <p className="text-sm text-muted-foreground text-center py-4">No hay comentarios en este hilo.</p>
                       )}
                   </div>
-                  <CommentForm 
-                    forumId={forumId} 
-                    threadId={thread.id} 
-                    onSuccess={fetchData} 
-                  />
+                  {!(isOwner || userRole === 'administrador') && (
+                    <CommentForm 
+                      forumId={forumId} 
+                      threadId={thread.id} 
+                      onSuccess={fetchData} 
+                    />
+                  )}
               </AccordionContent>
             </AccordionItem>
           ))}
@@ -494,3 +496,5 @@ export default function ForumDetailPage() {
     </AuthenticatedLayout>
   );
 }
+
+    
