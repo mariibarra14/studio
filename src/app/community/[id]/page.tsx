@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { CommentForm } from "@/components/community/CommentForm";
+import { EditCommentModal } from "@/components/community/EditCommentModal";
 
 
 export default function ForumDetailPage() {
@@ -54,6 +55,7 @@ export default function ForumDetailPage() {
   const [deletingForum, setDeletingForum] = useState<Forum | null>(null);
   const [deletingThread, setDeletingThread] = useState<EnrichedForumThread | null>(null);
   const [deletingComment, setDeletingComment] = useState<{ comment: EnrichedForumComment; threadId: string } | null>(null);
+  const [editingComment, setEditingComment] = useState<{ comment: EnrichedForumComment; threadId: string } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isProcessingDelete, setIsProcessingDelete] = useState(false);
   const [isProcessingDeleteComment, setIsProcessingDeleteComment] = useState(false);
@@ -355,16 +357,28 @@ export default function ForumDetailPage() {
                                     <p className="font-semibold">{comment.author?.nombre} {comment.author?.apellido}</p>
                                     <p className="text-muted-foreground">{format(new Date(comment.fechaCreacion), "dd MMM, HH:mm", { locale })}</p>
                                   </div>
-                                   {(isOwner || userRole === 'administrador' || comment.autorId === user?.id) && (
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                                      onClick={() => setDeletingComment({ comment, threadId: thread.id })}
-                                    >
-                                      <Trash className="h-3 w-3" />
-                                    </Button>
-                                  )}
+                                  <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {comment.autorId === user?.id && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 text-muted-foreground hover:text-primary"
+                                            onClick={() => setEditingComment({ comment, threadId: thread.id })}
+                                        >
+                                            <Edit className="h-3 w-3" />
+                                        </Button>
+                                    )}
+                                    {(isOwner || userRole === 'administrador' || comment.autorId === user?.id) && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                            onClick={() => setDeletingComment({ comment, threadId: thread.id })}
+                                        >
+                                            <Trash className="h-3 w-3" />
+                                        </Button>
+                                    )}
+                                  </div>
                                 </div>
                                 <p className="text-sm mt-1 whitespace-pre-wrap">{comment.contenido}</p>
                               </div>
@@ -492,6 +506,20 @@ export default function ForumDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {editingComment && (
+        <EditCommentModal
+          isOpen={!!editingComment}
+          onClose={() => setEditingComment(null)}
+          onSuccess={() => {
+            setEditingComment(null);
+            fetchData();
+          }}
+          comment={editingComment.comment}
+          forumId={forumId}
+          threadId={editingComment.threadId}
+        />
+      )}
 
     </AuthenticatedLayout>
   );
