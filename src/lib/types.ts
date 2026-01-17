@@ -1,5 +1,6 @@
 
 
+import type { User as AuthUser } from "@/context/app-context";
 
 export type TicketTier = {
   id: string;
@@ -273,4 +274,18 @@ export type ReportData = {
   };
 };
 
-    
+export type OrganizerStat = AuthUser & {
+    eventCount: number;
+    totalRevenue: number;
+    events: (ApiEvent & { revenue: number })[];
+};
+
+export type CustomerStat = {
+    user: AuthUser;
+    bookingCount: number;
+    totalSpent: number;
+    bookings: (ApiBooking & { eventName: string })[];
+};
+
+export type ProductStat = Product & { salesCount: number; revenue: number };
+export type ServiceStat = ComplementaryService & { products: ProductStat[], totalRevenue: number };

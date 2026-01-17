@@ -12,14 +12,15 @@ export function formatCurrency(
   amountInUSD: number, 
   targetCurrency: Currency, 
   language: string,
-  rates: ConversionRates
+  rates?: ConversionRates
 ) {
   if (typeof amountInUSD !== 'number') {
     amountInUSD = 0;
   }
   
-  const rate = rates[targetCurrency.code];
-  const convertedAmount = rate ? amountInUSD * rate : amountInUSD;
+  // Use a default rate of 1 if rates are not provided
+  const rate = rates ? (rates[targetCurrency.code] || 1) : 1;
+  const convertedAmount = amountInUSD * rate;
 
   return new Intl.NumberFormat(language, {
     style: 'currency',
